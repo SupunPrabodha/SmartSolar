@@ -1,0 +1,25 @@
+@host = https://localhost:7001
+
+### Health
+GET {{host}}/health
+
+### Register Prosumer
+POST {{host}}/api/v1/auth/register-prosumer
+Content-Type: application/json
+
+{
+  "nic": "200012345678",
+  "fullName": "Test Prosumer",
+  "email": "prosumer@example.com",
+  "phoneNumber": "0771234567",
+  "password": "{{$processEnv SMARTSOLAR_SAMPLE_PASSWORD}}"
+}
+
+### Login - replace NIC/password with seeded Backoffice account or activated user
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "nic": "200012345678",
+  "password": "{{$processEnv SMARTSOLAR_SAMPLE_PASSWORD}}"
+}

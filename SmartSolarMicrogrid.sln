@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{38F45F7B-82CA-474E-A413-6A83636F2FF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.Domain", "src\SmartSolar.Domain\SmartSolar.Domain.csproj", "{D9FEF37F-FC20-4D25-A167-F8FCD4820433}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.Application", "src\SmartSolar.Application\SmartSolar.Application.csproj", "{39815474-5A8F-49B1-BBDD-DE5FB95CFE26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.Infrastructure", "src\SmartSolar.Infrastructure\SmartSolar.Infrastructure.csproj", "{7A421AED-2891-4729-A29A-644880D17764}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.Api", "src\SmartSolar.Api\SmartSolar.Api.csproj", "{2CAAA710-46DE-4A03-8ACC-4AE406551568}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1F6391E3-82FD-42F8-80DF-0C7D17452335}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.UnitTests", "tests\SmartSolar.UnitTests\SmartSolar.UnitTests.csproj", "{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartSolar.IntegrationTests", "tests\SmartSolar.IntegrationTests\SmartSolar.IntegrationTests.csproj", "{55CB9DFC-C6D7-4A15-B525-3455911DFCD5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D9FEF37F-FC20-4D25-A167-F8FCD4820433}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9FEF37F-FC20-4D25-A167-F8FCD4820433}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9FEF37F-FC20-4D25-A167-F8FCD4820433}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9FEF37F-FC20-4D25-A167-F8FCD4820433}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39815474-5A8F-49B1-BBDD-DE5FB95CFE26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39815474-5A8F-49B1-BBDD-DE5FB95CFE26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39815474-5A8F-49B1-BBDD-DE5FB95CFE26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39815474-5A8F-49B1-BBDD-DE5FB95CFE26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A421AED-2891-4729-A29A-644880D17764}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A421AED-2891-4729-A29A-644880D17764}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A421AED-2891-4729-A29A-644880D17764}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A421AED-2891-4729-A29A-644880D17764}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CAAA710-46DE-4A03-8ACC-4AE406551568}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CAAA710-46DE-4A03-8ACC-4AE406551568}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CAAA710-46DE-4A03-8ACC-4AE406551568}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CAAA710-46DE-4A03-8ACC-4AE406551568}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55CB9DFC-C6D7-4A15-B525-3455911DFCD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55CB9DFC-C6D7-4A15-B525-3455911DFCD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55CB9DFC-C6D7-4A15-B525-3455911DFCD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55CB9DFC-C6D7-4A15-B525-3455911DFCD5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D9FEF37F-FC20-4D25-A167-F8FCD4820433} = {38F45F7B-82CA-474E-A413-6A83636F2FF7}
+		{39815474-5A8F-49B1-BBDD-DE5FB95CFE26} = {38F45F7B-82CA-474E-A413-6A83636F2FF7}
+		{7A421AED-2891-4729-A29A-644880D17764} = {38F45F7B-82CA-474E-A413-6A83636F2FF7}
+		{2CAAA710-46DE-4A03-8ACC-4AE406551568} = {38F45F7B-82CA-474E-A413-6A83636F2FF7}
+		{5E86A50D-483E-49A5-AC39-0ABAB3F2D4D9} = {1F6391E3-82FD-42F8-80DF-0C7D17452335}
+		{55CB9DFC-C6D7-4A15-B525-3455911DFCD5} = {1F6391E3-82FD-42F8-80DF-0C7D17452335}
+	EndGlobalSection
+EndGlobal

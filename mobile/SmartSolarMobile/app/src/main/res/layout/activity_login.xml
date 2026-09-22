@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/loginRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+    <com.google.android.material.card.MaterialCardView android:layout_width="48dp" android:layout_height="48dp" app:cardBackgroundColor="@color/solar_accent" app:cardCornerRadius="14dp" app:strokeWidth="0dp" android:importantForAccessibility="no">
+        <TextView android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="@string/brand_mark" android:textColor="@color/solar_hero" android:textSize="28sp" android:textStyle="bold" />
+    </com.google.android.material.card.MaterialCardView>
+    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/brand_name" />
+        <TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/brand_subtitle" android:textSize="12sp" />
+    </LinearLayout>
+</LinearLayout>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="56dp" android:text="@string/login_title" android:textAppearance="?attr/textAppearanceHeadlineLarge" android:textStyle="bold" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_description" android:layout_marginTop="12dp" />
+<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:hint="@string/nic_hint">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/editNic" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:singleLine="true" android:autofillHints="username" android:imeOptions="actionNext" />
+</com.google.android.material.textfield.TextInputLayout>
+<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:hint="@string/password_hint" app:endIconMode="password_toggle">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/editPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:autofillHints="password" android:saveEnabled="false" />
+</com.google.android.material.textfield.TextInputLayout>
+<TextView android:id="@+id/textError" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textColor="?attr/colorError" android:accessibilityLiveRegion="polite" android:visibility="gone" />
+<ProgressBar android:id="@+id/progress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:layout_marginTop="16dp" android:contentDescription="@string/working" android:visibility="gone" />
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonLogin" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp" android:text="@string/sign_in" android:layout_marginTop="20dp" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_roles" android:layout_marginTop="20dp" android:textSize="12sp" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/foundation_footer" android:layout_marginTop="40dp" android:textSize="12sp" android:gravity="center" />
+</LinearLayout>
+</ScrollView>

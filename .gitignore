@@ -1,0 +1,53 @@
+# .NET
+bin/
+obj/
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.user
+*.suo
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+appsettings.Production.json
+secrets.json
+
+# Node
+node_modules/
+dist/
+web/smart-solar-web/.env.local
+
+# Android / Gradle
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+*.jks
+*.keystore
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test artifacts
+TestResults/
+coverage/
+
+# Exported local databases and private signing certificates
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.pfx
+*.p12

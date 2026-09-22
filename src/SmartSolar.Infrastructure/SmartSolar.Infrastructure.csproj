@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SmartSolar.Application\SmartSolar.Application.csproj" />
+    <ProjectReference Include="..\SmartSolar.Domain\SmartSolar.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="3.12.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.29" />
+  </ItemGroup>
+</Project>

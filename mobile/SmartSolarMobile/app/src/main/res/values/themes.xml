@@ -1,0 +1,23 @@
+<resources>
+    <style name="Base.Theme.SmartSolarMobile" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/solar_primary</item>
+        <item name="colorOnPrimary">@color/solar_on_primary</item>
+        <item name="android:colorBackground">@color/solar_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <style name="Theme.SmartSolarMobile" parent="Base.Theme.SmartSolarMobile" />
+    <style name="Solar.Body" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
+        <item name="android:lineSpacingExtra">3dp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    <style name="Solar.Title" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceTitleLarge</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="Solar.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+</resources>

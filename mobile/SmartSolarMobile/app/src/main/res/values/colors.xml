@@ -1,0 +1,8 @@
+<resources>
+    <color name="solar_primary">#156451</color>
+    <color name="solar_on_primary">#FFFFFF</color>
+    <color name="solar_background">#F4F7F5</color>
+    <color name="solar_accent">#EFC86B</color>
+    <color name="solar_hero">#1B5141</color>
+    <color name="solar_hero_text">#FFFFFF</color>
+</resources>

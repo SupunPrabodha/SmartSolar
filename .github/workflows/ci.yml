@@ -1,0 +1,91 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [ develop, main ]
+  push:
+    branches: [ develop, main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 1)'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore SmartSolarMicrogrid.sln
+      - name: Build
+        run: dotnet build SmartSolarMicrogrid.sln --configuration Release --no-restore
+      - name: Foundation tests
+        env:
+          SMARTSOLAR_TEST_MONGO: mongodb://127.0.0.1:27017
+        run: dotnet test SmartSolarMicrogrid.sln --configuration Release --no-build --no-restore
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web/smart-solar-web
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/smart-solar-web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Session HTTP tests
+        run: npm test
+      - name: Build
+        env:
+          VITE_API_BASE_URL: https://example.invalid/api/v1
+        run: npm run build
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile/SmartSolarMobile
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - name: Install project SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Enable Gradle wrapper
+        run: chmod +x ./gradlew
+      - name: Assemble debug
+        run: ./gradlew :app:assembleDebug --no-daemon
+      - name: Local session tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
