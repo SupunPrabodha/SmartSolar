@@ -325,4 +325,130 @@ public class ReservationRepositoryTest {
         assertEquals(0, errorRef.get().getStatusCode());
         assertTrue(errorRef.get().getMessage().contains("Unable to reach the server"));
     }
+
+    @Test
+    public void handles400BadRequestWithValidationErrors() throws Exception {
+        String validationJson = "{" +
+                "\"type\":\"https://tools.ietf.org/html/rfc9110#section-15.5.1\"," +
+                "\"title\":\"Validation Failed\"," +
+                "\"status\":400," +
+                "\"errors\":{\"EnergyAmountKwh\":[\"EnergyAmountKwh must be greater than zero.\"]}" +
+                "}";
+
+        server.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setHeader("Content-Type", "application/problem+json")
+                .setBody(validationJson));
+
+        AtomicReference<ReservationError> errorRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.createReservation("11111111-1111-1111-1111-111111111111", 0, new ReservationRepository.Callback<ReservationResponse>() {
+            @Override
+            public void onSuccess(ReservationResponse result) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertNotNull(errorRef.get());
+        assertEquals(400, errorRef.get().getStatusCode());
+        assertEquals("Validation Failed", errorRef.get().getMessage());
+        assertNotNull(errorRef.get().getValidationErrors());
+        assertTrue(errorRef.get().getValidationErrors().containsKey("EnergyAmountKwh"));
+    }
+
+    @Test
+    public void handles403ForbiddenAccessDenied() throws Exception {
+        server.enqueue(new MockResponse()
+                .setResponseCode(403)
+                .setHeader("Content-Type", "application/problem+json")
+                .setBody("{\"title\":\"Forbidden\",\"status\":403,\"detail\":\"Access denied to this reservation.\"}"));
+
+        AtomicReference<ReservationError> errorRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.getReservation("res-other-user", new ReservationRepository.Callback<ReservationResponse>() {
+            @Override
+            public void onSuccess(ReservationResponse result) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertNotNull(errorRef.get());
+        assertEquals(403, errorRef.get().getStatusCode());
+        assertEquals("Access denied to this reservation.", errorRef.get().getMessage());
+    }
+
+    @Test
+    public void handles500ServerErrorFallback() throws Exception {
+        server.enqueue(new MockResponse()
+                .setResponseCode(500)
+                .setHeader("Content-Type", "text/plain")
+                .setBody("Internal Server Error"));
+
+        AtomicReference<ReservationError> errorRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.getReservation("res-500", new ReservationRepository.Callback<ReservationResponse>() {
+            @Override
+            public void onSuccess(ReservationResponse result) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertNotNull(errorRef.get());
+        assertEquals(500, errorRef.get().getStatusCode());
+        assertEquals("Request failed with status 500.", errorRef.get().getMessage());
+    }
+
+    @Test
+    public void handlesMalformedProblemDetailsJsonGracefully() throws Exception {
+        server.enqueue(new MockResponse()
+                .setResponseCode(400)
+                .setHeader("Content-Type", "application/problem+json")
+                .setBody("{bad-json-syntax"));
+
+        AtomicReference<ReservationError> errorRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.getReservation("res-bad-json", new ReservationRepository.Callback<ReservationResponse>() {
+            @Override
+            public void onSuccess(ReservationResponse result) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                errorRef.set(error);
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertNotNull(errorRef.get());
+        assertEquals(400, errorRef.get().getStatusCode());
+        assertEquals("Invalid reservation request.", errorRef.get().getMessage());
+    }
 }
+
