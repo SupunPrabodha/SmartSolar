@@ -1,6 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import HomePage from './pages/HomePage';
+import { ReservationLayout } from './pages/reservations/ReservationComponents';
+import ReservationListPage from './pages/reservations/ReservationListPage';
+import ReservationDetailsPage from './pages/reservations/ReservationDetailsPage';
+import ReservationFormPage from './pages/reservations/ReservationFormPage';
 import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -20,6 +24,14 @@ export default function App() {
               </ProtectedRoute>
             )}
           />
+          <Route path="/operator/reservations" element={(
+            <ProtectedRoute roles={['GridOperator']}><ReservationLayout /></ProtectedRoute>
+          )}>
+            <Route index element={<ReservationListPage />} />
+            <Route path="new" element={<ReservationFormPage creating />} />
+            <Route path=":reservationId" element={<ReservationDetailsPage />} />
+            <Route path=":reservationId/edit" element={<ReservationFormPage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

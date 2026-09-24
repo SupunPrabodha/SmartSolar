@@ -69,14 +69,16 @@ public sealed class UserRepository : IUserRepository
 
     public async Task ReplaceAsync(User user, CancellationToken cancellationToken = default)
     {
-        // Replace the complete user document identified by its immutable NIC.
+        // Persist account fields by immutable NIC while preserving internal reservation coordination.
         try
         {
-            await _collection.ReplaceOneAsync(
-                x => x.Nic == user.Nic,
-                user,
-                new ReplaceOptions { IsUpsert = false },
-                cancellationToken);
+            // Update account fields only: a stale profile must never erase the reservation mutex.
+            var update = Builders<User>.Update
+                .Set(x => x.FullName, user.FullName).Set(x => x.Email, user.Email)
+                .Set(x => x.PhoneNumber, user.PhoneNumber).Set(x => x.PasswordHash, user.PasswordHash)
+                .Set(x => x.Role, user.Role).Set(x => x.Status, user.Status)
+                .Set(x => x.CreatedAtUtc, user.CreatedAtUtc).Set(x => x.UpdatedAtUtc, user.UpdatedAtUtc);
+            await _collection.UpdateOneAsync(x => x.Nic == user.Nic, update, cancellationToken: cancellationToken);
         }
         catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {

@@ -20,6 +20,10 @@ public sealed class EnergyReservation
 
     public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
 
+    // Nullable for legacy documents; missing snapshots require verified backfill.
+    public DateTime? ScheduledStartAtUtc { get; set; }
+    public DateTime? ScheduledEndAtUtc { get; set; }
+
     public string? QrToken { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
