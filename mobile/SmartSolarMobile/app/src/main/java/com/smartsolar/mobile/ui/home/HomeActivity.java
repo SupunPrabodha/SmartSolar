@@ -113,6 +113,20 @@ public final class HomeActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.moduleOne)).setText(operator ? R.string.operations : R.string.find_stations);
         ((TextView) findViewById(R.id.moduleTwo)).setText(operator ? R.string.scan_transaction : R.string.my_reservations);
         ((TextView) findViewById(R.id.moduleThree)).setText(operator ? R.string.transaction_history : R.string.booking_history);
+
+        Button buttonModuleTwo = findViewById(R.id.buttonModuleTwo);
+        if (!operator) {
+            buttonModuleTwo.setEnabled(true);
+            buttonModuleTwo.setText(R.string.new_reservation);
+            buttonModuleTwo.setOnClickListener(v ->
+                    startActivity(new Intent(this, com.smartsolar.mobile.ui.reservation.CreateReservationActivity.class)));
+            findViewById(R.id.moduleTwo).setOnClickListener(v ->
+                    startActivity(new Intent(this, com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class)));
+        } else {
+            buttonModuleTwo.setEnabled(false);
+            buttonModuleTwo.setText(R.string.coming_next);
+            findViewById(R.id.moduleTwo).setOnClickListener(null);
+        }
         scheduleExpiry();
     }
 

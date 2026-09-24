@@ -12,6 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartSolarMobile">
         <activity android:name=".ui.home.HomeActivity" android:exported="false" />
+        <activity android:name=".ui.reservation.CreateReservationActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.reservation.ReservationDetailsActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.reservation.ModifyReservationActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.reservation.ReservationSummaryActivity" android:exported="false" />
         <activity android:name=".ui.auth.LoginActivity" android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
