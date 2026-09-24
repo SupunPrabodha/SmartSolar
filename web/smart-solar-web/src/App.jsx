@@ -1,7 +1,10 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import HomePage from './pages/HomePage';
-import ReservationPlaceholderPage from './pages/reservations/ReservationPlaceholderPage';
+import { ReservationLayout } from './pages/reservations/ReservationComponents';
+import ReservationListPage from './pages/reservations/ReservationListPage';
+import ReservationDetailsPage from './pages/reservations/ReservationDetailsPage';
+import ReservationFormPage from './pages/reservations/ReservationFormPage';
 import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -22,12 +25,12 @@ export default function App() {
             )}
           />
           <Route path="/operator/reservations" element={(
-            <ProtectedRoute roles={['GridOperator']}><Outlet /></ProtectedRoute>
+            <ProtectedRoute roles={['GridOperator']}><ReservationLayout /></ProtectedRoute>
           )}>
-            <Route index element={<ReservationPlaceholderPage mode="list" />} />
-            <Route path="new" element={<ReservationPlaceholderPage mode="create" />} />
-            <Route path=":reservationId" element={<ReservationPlaceholderPage mode="details" />} />
-            <Route path=":reservationId/edit" element={<ReservationPlaceholderPage mode="edit" />} />
+            <Route index element={<ReservationListPage />} />
+            <Route path="new" element={<ReservationFormPage creating />} />
+            <Route path=":reservationId" element={<ReservationDetailsPage />} />
+            <Route path=":reservationId/edit" element={<ReservationFormPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

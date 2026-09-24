@@ -49,7 +49,7 @@ export default function HomePage() {
           <h1>Welcome, {user.fullName}</h1><p className="text-secondary mb-0">Your account and shared workspace, in one place.</p></div>
           <span className="role-pill">{user.role}</span></div>
         {user.role === 'GridOperator' && <div className="mb-4">
-          <Link className="btn btn-outline-primary" to="/operator/reservations">Reservations (preview)</Link>
+          <Link className="btn btn-outline-primary" to="/operator/reservations">Manage reservations</Link>
         </div>}
         <section className="foundation-banner" aria-labelledby="foundation-title">
           <span className="banner-orbit" aria-hidden="true" />
