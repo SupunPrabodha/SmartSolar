@@ -81,6 +81,21 @@ public sealed class ReservationService : IReservationService
         }, ct);
     }
 
+    public async Task<IReadOnlyList<ReservationResponse>> ListAsync(string actorNic, ListReservationsRequest request, CancellationToken ct = default)
+    {
+        // Enforce the operational role independently of MVC; this is not a Prosumer history API.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.GridOperator)
+            throw new ForbiddenException("Only GridOperators may list reservations.");
+        ArgumentNullException.ThrowIfNull(request);
+        RequestValidation.EnsureValid(request);
+        var nic = string.IsNullOrWhiteSpace(request.ProsumerNic) ? null : request.ProsumerNic.Trim().ToUpperInvariant();
+        var station = string.IsNullOrWhiteSpace(request.StationId) ? null : request.StationId.Trim();
+        var reservations = await _reservations.ListAsync(request.Status, nic, station, ct);
+        // Preserve the existing fail-closed policy for records missing accepted schedule snapshots.
+        return reservations.Select(Response).ToList();
+    }
+
     public async Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default)
     {
         // Enforce ownership before exposing reservation data or legacy schedule errors.
@@ -305,4 +320,3 @@ public sealed class ReservationService : IReservationService
         }
     }
 }
-

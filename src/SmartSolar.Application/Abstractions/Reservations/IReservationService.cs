@@ -11,10 +11,10 @@ namespace SmartSolar.Application.Abstractions.Reservations;
 // actorNic must come from authenticated server context, never a request body.
 public interface IReservationService
 {
+    Task<IReadOnlyList<ReservationResponse>> ListAsync(string actorNic, ListReservationsRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CreateAsync(string actorNic, CreateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CreateForAsync(string actorNic, string prosumerNic, CreateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default);
     Task<ReservationResponse> UpdateAsync(string actorNic, string reservationId, UpdateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CancelAsync(string actorNic, string reservationId, CancellationToken ct = default);
 }
-

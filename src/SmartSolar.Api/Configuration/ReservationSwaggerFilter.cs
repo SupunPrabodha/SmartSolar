@@ -23,6 +23,9 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
         var creates = action is nameof(ReservationsController.Create) or nameof(ReservationsController.CreateFor);
         (operation.Summary, operation.Description) = action switch
         {
+            nameof(ReservationsController.List) => (
+                "List reservations (GridOperator)",
+                "Requires an active GridOperator. Optional status, prosumerNic and stationId filters are exact matches combined with AND. Blank filters are omitted; NIC is trimmed and uppercased. Returns an array ordered by createdAtUtc descending, then reservationId. No matches returns []. Legacy records missing accepted snapshots return 409 until backfilled."),
             nameof(ReservationsController.Create) => (
                 "Create my reservation (Prosumer)",
                 "Requires an active Prosumer. Ownership comes from the signed-in account. The slot must start after server UTC now and no later than seven days from now (inclusive)."),
@@ -44,17 +47,23 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
             operation.Description += "\n\nReplace the example slotId with an existing active EnergyBookingSlots document's _id. Its SolarStationInfo record must exist and be active. Energy must be greater than zero; a new slot needs available capacity. The example ID is a placeholder, not seeded data. Slot/station CRUD and listing endpoints are not part of this checkpoint.";
 
         foreach (var parameter in operation.Parameters)
-            parameter.Description = parameter.Name == "prosumerNic"
-                ? "Existing active Prosumer NIC; supplied only on the GridOperator assistance route."
-                : "Use reservationId returned by a successful create response.";
+            parameter.Description = parameter.Name.ToLowerInvariant() switch
+            {
+                "status" => "Optional: Pending, Approved, Rejected, Cancelled or Completed.",
+                "stationid" => "Optional exact station GUID string; copy the persisted ID.",
+                "prosumernic" => action == nameof(ReservationsController.List)
+                    ? "Optional exact Prosumer NIC; whitespace is trimmed and letters uppercased."
+                    : "Existing active Prosumer NIC for assisted creation.",
+                _ => "Use reservationId returned by a successful create response."
+            };
 
         operation.Responses.Clear();
         var success = new OpenApiResponse
         {
-            Description = creates ? "Created Pending reservation. Use Location to retrieve it." : "Reservation summary.",
+            Description = creates ? "Created Pending reservation. Use Location to retrieve it." : action == nameof(ReservationsController.List) ? "Matching reservation summaries; an empty array means no matches." : "Reservation summary.",
             Content = new Dictionary<string, OpenApiMediaType>
             {
-                ["application/json"] = new() { Schema = context.SchemaGenerator.GenerateSchema(typeof(ReservationResponse), context.SchemaRepository) }
+                ["application/json"] = new() { Schema = context.SchemaGenerator.GenerateSchema(action == nameof(ReservationsController.List) ? typeof(IReadOnlyList<ReservationResponse>) : typeof(ReservationResponse), context.SchemaRepository) }
             }
         };
         if (creates)
@@ -100,4 +109,3 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
         };
     }
 }
-

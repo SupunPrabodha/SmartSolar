@@ -24,9 +24,18 @@ export async function apiFetch(path, options = {}) {
     throw error;
   }
   if (!response.ok) {
-    const error = new Error(typeof payload === 'object' && payload?.detail
-      ? payload.detail : `Request failed with status ${response.status}.`);
+    const problem = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
+    const errors = problem.errors && typeof problem.errors === 'object' && !Array.isArray(problem.errors)
+      ? Object.fromEntries(Object.entries(problem.errors)
+        .filter(([, messages]) => Array.isArray(messages) && messages.every(message => typeof message === 'string')))
+      : {};
+    const detail = typeof problem.detail === 'string' ? problem.detail : '';
+    const title = typeof problem.title === 'string' ? problem.title : '';
+    const error = new Error(detail || Object.values(errors).flat().join(' ') || title
+      || `Request failed with status ${response.status}.`);
     error.status = response.status;
+    error.errors = errors;
+    if (typeof problem.traceId === 'string') error.traceId = problem.traceId;
     throw error;
   }
   return payload;

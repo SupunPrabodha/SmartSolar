@@ -397,6 +397,11 @@ public sealed class ReservationApiTests
         await WithApi(f =>
         {
             var swagger = f.Swagger();
+            var listing = swagger.Paths[Root].Operations[Microsoft.OpenApi.Models.OperationType.Get];
+            Assert.Contains("GridOperator", listing.Summary);
+            Assert.Equal("array", listing.Responses["200"].Content["application/json"].Schema.Type);
+            Assert.Equal(new[] { "prosumernic", "stationid", "status" },
+                listing.Parameters.Select(x => x.Name.ToLowerInvariant()).OrderBy(x => x).ToArray());
             var create = swagger.Paths[Root].Operations[Microsoft.OpenApi.Models.OperationType.Post];
             Assert.Contains("Prosumer", create.Summary);
             Assert.Contains("placeholder", create.Description);
@@ -422,6 +427,112 @@ public sealed class ReservationApiTests
                 Assert.Equal(2, schema.Properties.Count);
             }
             return Task.CompletedTask;
+        });
+    }
+
+
+    [MongoFact]
+    public async Task ListingRequiresCurrentGridOperatorRole()
+    {
+        // The collection endpoint must not bypass the ownership restrictions on individual records.
+        await WithApi(async f =>
+        {
+            await f.Create("P1");
+            foreach (var nic in new[] { "P1", "P2", "BO" })
+            {
+                using var denied = f.Client(nic);
+                using var response = await denied.GetAsync(Root + "?prosumerNic=P1");
+                await Problem(response, HttpStatusCode.Forbidden);
+            }
+            using var anonymous = f.Client();
+            using var missingAuth = await anonymous.GetAsync(Root);
+            await Problem(missingAuth, HttpStatusCode.Unauthorized);
+            using var op = f.Client("OP");
+            using var allowed = await op.GetAsync(Root);
+            Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+            Assert.Single((await Body(allowed)).EnumerateArray());
+            await f.Users.UpdateOneAsync(x => x.Nic == "OP", Builders<User>.Update.Set(x => x.Status, UserStatus.Deactivated));
+            using var revoked = await op.GetAsync(Root);
+            await Problem(revoked, HttpStatusCode.Unauthorized);
+        });
+    }
+
+    [MongoFact]
+    public async Task ListingCombinesExactFiltersAndUsesStableOrder()
+    {
+        // Seed independent persisted summaries so filters are tested against both matches and near misses.
+        await WithApi(async f =>
+        {
+            var otherStation = Guid.NewGuid().ToString("N");
+            var rows = new[]
+            {
+                ("a", "P1", f.Station.StationId, ReservationStatus.Pending, Now),
+                ("b", "P1", otherStation, ReservationStatus.Approved, Now.AddHours(1)),
+                ("c", "P2", f.Station.StationId, ReservationStatus.Pending, Now.AddHours(1)),
+                ("d", "P1", f.Station.StationId, ReservationStatus.Cancelled, Now.AddHours(-1))
+            }.Select(row => new EnergyReservation
+            {
+                ReservationId = row.Item1, ProsumerNic = row.Item2, StationId = row.Item3,
+                SlotId = f.Slot.SlotId, Status = row.Item4, CreatedAtUtc = row.Item5, UpdatedAtUtc = row.Item5,
+                EnergyAmountKwh = 1, ScheduledStartAtUtc = Now.AddDays(2), ScheduledEndAtUtc = Now.AddDays(2).AddHours(1),
+                QrToken = "must-not-leak"
+            });
+            await f.Reservations.InsertManyAsync(rows);
+            using var op = f.Client("OP");
+            var cases = new (string Query, string[] Ids)[]
+            {
+                ("", ["b", "c", "a", "d"]),
+                ("?status=Pending", ["c", "a"]),
+                ("?prosumerNic=%20p1%20", ["b", "a", "d"]),
+                ("?stationId=" + f.Station.StationId, ["c", "a", "d"]),
+                ("?status=Pending&prosumerNic=P1&stationId=" + f.Station.StationId, ["a"]),
+                ("?prosumerNic=P", []),
+                ("?status=Rejected", []),
+                ("?status=Pending&prosumerNic=P2&stationId=" + otherStation, []),
+                ("?prosumerNic=%20&stationId=%20", ["b", "c", "a", "d"])
+            };
+            foreach (var (query, ids) in cases)
+            {
+                using var response = await op.GetAsync(Root + query);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var records = (await Body(response)).EnumerateArray().ToArray();
+                Assert.Equal(ids, records.Select(x => x.GetProperty("reservationId").GetString()));
+                Assert.All(records, x => Assert.False(x.TryGetProperty("qrToken", out _)));
+            }
+        });
+    }
+
+    [MongoFact]
+    public async Task ListingRejectsInvalidFiltersWithProblem400()
+    {
+        // Reject unrecognized names/numeric enum values and malformed station GUIDs.
+        await WithApi(async f =>
+        {
+            using var op = f.Client("OP");
+            foreach (var query in new[] { "?status=Unknown", "?status=999", "?stationId=bad",
+                "?stationId=00000000-0000-0000-0000-000000000000" })
+            {
+                using var response = await op.GetAsync(Root + query);
+                await Problem(response, HttpStatusCode.BadRequest);
+            }
+        });
+    }
+
+    [MongoFact]
+    public async Task ListingPreservesLegacySnapshotRecoveryPolicy()
+    {
+        // Do not invent accepted times or silently omit a matching record that requires backfill.
+        await WithApi(async f =>
+        {
+            var id = await f.Create("P1");
+            await f.Reservations.UpdateOneAsync(x => x.ReservationId == id,
+                Builders<EnergyReservation>.Update.Unset(x => x.ScheduledStartAtUtc));
+            using var op = f.Client("OP");
+            using var response = await op.GetAsync(Root);
+            await Problem(response, HttpStatusCode.Conflict);
+            using var empty = await op.GetAsync(Root + "?prosumerNic=P2");
+            Assert.Equal(HttpStatusCode.OK, empty.StatusCode);
+            Assert.Empty((await Body(empty)).EnumerateArray());
         });
     }
 
@@ -560,4 +671,3 @@ public sealed class ReservationApiTests
         }
     }
 }
-

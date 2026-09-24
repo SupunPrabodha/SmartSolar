@@ -25,6 +25,15 @@ public sealed class ReservationsController : ControllerBase
         _reservations = reservations;
     }
 
+    [HttpGet]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<IReadOnlyList<ReservationResponse>>> List(
+        [FromQuery] ListReservationsRequest request, CancellationToken cancellationToken)
+    {
+        // Limit operational listing to active GridOperators and server-validated exact filters.
+        return Ok(await _reservations.ListAsync(User.GetNic(), request, cancellationToken));
+    }
+
     [HttpPost]
     [Authorize(Roles = "Prosumer")]
     public async Task<ActionResult<ReservationResponse>> Create(
@@ -67,4 +76,3 @@ public sealed class ReservationsController : ControllerBase
         return Ok(await _reservations.CancelAsync(User.GetNic(), reservationId, cancellationToken));
     }
 }
-

@@ -382,6 +382,26 @@ public sealed class ReservationServiceTests
         Assert.Equal(2, f.Slot.AvailableSlots);
     }
 
+
+    [Fact]
+    public async Task ListingAuthorizesServiceCallersAndValidatesFilters()
+    {
+        // Direct application calls must be as restricted as the HTTP route.
+        var f = new Fixture();
+        await f.Create();
+        foreach (var actor in new[] { "P1", "P2", "BO" })
+            await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ListAsync(actor, new ListReservationsRequest()));
+        await Assert.ThrowsAsync<BadRequestException>(() => f.Service.ListAsync("OP",
+            new ListReservationsRequest { Status = (ReservationStatus)999 }));
+        await Assert.ThrowsAsync<BadRequestException>(() => f.Service.ListAsync("OP",
+            new ListReservationsRequest { StationId = "bad" }));
+        var rows = await f.Service.ListAsync("OP", new ListReservationsRequest { ProsumerNic = " p1 ", StationId = f.Station.StationId });
+        Assert.Single(rows);
+        Assert.Equal("P1", rows[0].ProsumerNic);
+        f.Users.Items["OP"].Status = UserStatus.Deactivated;
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ListAsync("OP", new ListReservationsRequest()));
+    }
+
     private sealed class Fixture
     {
         public MemoryReservations Store { get; } = new();
@@ -450,6 +470,15 @@ public sealed class ReservationServiceTests
         {
             // Return detached objects so tests detect writes accidentally made before persistence.
             return value is null ? default : JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value));
+        }
+
+        public Task<IReadOnlyList<EnergyReservation>> ListAsync(ReservationStatus? status, string? prosumerNic, string? stationId, CancellationToken ct = default)
+        {
+            // Match the real repository's exact filters and deterministic ordering with detached records.
+            return Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values
+                .Where(x => (!status.HasValue || x.Status == status.Value) &&
+                    (prosumerNic is null || x.ProsumerNic == prosumerNic) && (stationId is null || x.StationId == stationId))
+                .OrderByDescending(x => x.CreatedAtUtc).ThenBy(x => x.ReservationId).Select(x => Copy(x)!).ToList());
         }
 
         public Task<EnergyReservation?> GetAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Reservations.GetValueOrDefault(id)));
@@ -529,4 +558,3 @@ public sealed class ReservationServiceTests
         public Task ReplaceAsync(User user, CancellationToken cancellationToken = default) { Items[user.Nic] = user; return Task.CompletedTask; }
     }
 }
-

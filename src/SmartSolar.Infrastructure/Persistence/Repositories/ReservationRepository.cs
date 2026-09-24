@@ -30,6 +30,19 @@ public sealed class ReservationRepository : IReservationRepository
         _users = database.GetCollection<User>(CollectionNames.Users).WithWriteConcern(WriteConcern.WMajority);
     }
 
+    public async Task<IReadOnlyList<EnergyReservation>> ListAsync(
+        ReservationStatus? status, string? prosumerNic, string? stationId, CancellationToken ct = default)
+    {
+        // Combine exact optional filters; stable newest-first ordering has no dashboard aggregation.
+        var filters = Builders<EnergyReservation>.Filter;
+        var filter = filters.Empty;
+        if (status.HasValue) filter &= filters.Eq(x => x.Status, status.Value);
+        if (prosumerNic is not null) filter &= filters.Eq(x => x.ProsumerNic, prosumerNic);
+        if (stationId is not null) filter &= filters.Eq(x => x.StationId, stationId);
+        return await _reservations.Find(filter).SortByDescending(x => x.CreatedAtUtc)
+            .ThenBy(x => x.ReservationId).ToListAsync(ct);
+    }
+
     public async Task<EnergyReservation?> GetAsync(string id, CancellationToken ct = default)
     {
         // Read the existing reservation schema by its stable string identifier.
@@ -120,4 +133,3 @@ public sealed class ReservationRepository : IReservationRepository
         return result.MatchedCount == 1;
     }
 }
-
