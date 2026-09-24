@@ -60,6 +60,10 @@ public final class ReservationRepository implements AutoCloseable {
         executeCall(api::getMyReservations, callback);
     }
 
+    public void getAvailableSlots(Callback<List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse>> callback) {
+        executeCall(api::getAvailableSlots, callback);
+    }
+
     public void getReservation(String reservationId, Callback<ReservationResponse> callback) {
         executeCall(() -> api.getReservation(reservationId), callback);
     }

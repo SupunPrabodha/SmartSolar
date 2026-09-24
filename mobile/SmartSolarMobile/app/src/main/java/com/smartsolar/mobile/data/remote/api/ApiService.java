@@ -28,6 +28,9 @@ public interface ApiService {
     @GET("reservations/my")
     Call<java.util.List<ReservationResponse>> getMyReservations();
 
+    @GET("reservations/slots")
+    Call<java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse>> getAvailableSlots();
+
     @GET("reservations/{reservationId}")
     Call<ReservationResponse> getReservation(@Path("reservationId") String reservationId);
 

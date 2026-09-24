@@ -62,11 +62,60 @@
             android:orientation="vertical"
             android:layout_marginTop="20dp">
 
+            <!-- Slot Selection Header with Manual Input Toggle -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    style="@style/Solar.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_slot_id"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonToggleManualSlot"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="36dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:text="@string/btn_type_custom_slot"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Slot Dropdown Container (Default) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layoutSlotDropdown"
+                style="@style/Solar.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp">
+
+                <Spinner
+                    android:id="@+id/spinnerSlots"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:spinnerMode="dropdown" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Manual Slot Entry Container (When Toggled) -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutSlotManual"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/slot_id_hint">
+                android:layout_marginTop="6dp"
+                android:hint="@string/slot_id_hint"
+                android:visibility="gone">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editSlotId"
                     android:layout_width="match_parent"
@@ -79,9 +128,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Enter a known active slot ID from your station records."
+                android:text="Select an active slot or enter a known slot GUID."
                 android:textSize="12sp" />
 
+            <!-- Energy Amount Input -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"

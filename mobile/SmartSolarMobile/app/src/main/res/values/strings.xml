@@ -90,4 +90,10 @@
     <string name="no_reservations_found">No reservations found. Tap \'New reservation\' to book energy.</string>
     <string name="btn_refresh_details">Refresh details</string>
     <string name="btn_new_reservation_header">+ New reservation</string>
+    <string name="btn_type_custom_slot">Type custom Slot ID</string>
+    <string name="btn_select_active_slot">Select from active slots list</string>
+    <string name="loading_active_slots">Loading active slots&#8230;</string>
+    <string name="no_active_slots_available">-- No active slots available (use manual entry) --</string>
+    <string name="select_slot_prompt">-- Select an active slot --</string>
+    <string name="error_select_slot_required">Please select an active slot or enter a custom slot ID.</string>
 </resources>

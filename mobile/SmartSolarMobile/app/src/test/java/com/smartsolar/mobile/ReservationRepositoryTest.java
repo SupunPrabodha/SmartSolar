@@ -482,5 +482,46 @@ public class ReservationRepositoryTest {
         assertEquals(1, resultRef.get().size());
         assertEquals("res-uuid-1", resultRef.get().get(0).getReservationId());
     }
+
+    @Test
+    public void getAvailableSlotsGetsSlotsList() throws Exception {
+        String slotJson = "{" +
+                "\"slotId\":\"slot-111\"," +
+                "\"stationId\":\"sta-222\"," +
+                "\"startAtUtc\":\"2026-09-30T10:00:00Z\"," +
+                "\"endAtUtc\":\"2026-09-30T11:00:00Z\"," +
+                "\"availableSlots\":3," +
+                "\"totalSlots\":5" +
+                "}";
+
+        server.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("[" + slotJson + "]"));
+
+        AtomicReference<java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse>> resultRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.getAvailableSlots(new ReservationRepository.Callback<java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse>>() {
+            @Override
+            public void onSuccess(java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse> result) {
+                resultRef.set(result);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        RecordedRequest recorded = server.takeRequest();
+        assertEquals("GET", recorded.getMethod());
+        assertEquals("/api/v1/reservations/slots", recorded.getPath());
+        assertNotNull(resultRef.get());
+        assertEquals(1, resultRef.get().size());
+        assertEquals("slot-111", resultRef.get().get(0).getSlotId());
+    }
 }
 

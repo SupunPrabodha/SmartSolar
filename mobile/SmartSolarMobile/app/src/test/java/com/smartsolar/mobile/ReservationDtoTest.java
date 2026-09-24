@@ -100,4 +100,26 @@ public class ReservationDtoTest {
         assertEquals(1, error.getValidationErrors().size());
         assertFalse(error.isSessionExpired());
     }
+
+    @Test
+    public void deserializesAvailableSlotResponseCorrectly() {
+        String json = "{" +
+                "\"slotId\":\"slot-111\"," +
+                "\"stationId\":\"sta-222\"," +
+                "\"startAtUtc\":\"2026-09-30T10:00:00Z\"," +
+                "\"endAtUtc\":\"2026-09-30T11:00:00Z\"," +
+                "\"availableSlots\":3," +
+                "\"totalSlots\":5" +
+                "}";
+
+        com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse slot =
+                gson.fromJson(json, com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse.class);
+        assertNotNull(slot);
+        assertEquals("slot-111", slot.getSlotId());
+        assertEquals("sta-222", slot.getStationId());
+        assertEquals("2026-09-30T10:00:00Z", slot.getStartAtUtc());
+        assertEquals("2026-09-30T11:00:00Z", slot.getEndAtUtc());
+        assertEquals(3, slot.getAvailableSlots());
+        assertEquals(5, slot.getTotalSlots());
+    }
 }

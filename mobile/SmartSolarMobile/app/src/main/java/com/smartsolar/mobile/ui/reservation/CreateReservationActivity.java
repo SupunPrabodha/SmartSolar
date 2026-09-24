@@ -3,9 +3,11 @@ package com.smartsolar.mobile.ui.reservation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,11 +19,14 @@ import com.smartsolar.mobile.BuildConfig;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.RetrofitClient;
 import com.smartsolar.mobile.data.remote.api.ApiService;
+import com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse;
 import com.smartsolar.mobile.data.remote.dto.ReservationResponse;
 import com.smartsolar.mobile.data.repository.ReservationError;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.ui.auth.LoginActivity;
 import com.smartsolar.mobile.util.ReservationUiUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CreateReservationActivity extends AppCompatActivity {
     private static final Gson GSON = new Gson();
@@ -29,6 +34,10 @@ public final class CreateReservationActivity extends AppCompatActivity {
     private ReservationRepository repository;
     private View layoutForm;
     private View layoutReview;
+    private View layoutSlotDropdown;
+    private View layoutSlotManual;
+    private Spinner spinnerSlots;
+    private Button buttonToggleManualSlot;
     private EditText editSlotId;
     private EditText editEnergyAmount;
     private TextView textError;
@@ -39,6 +48,11 @@ public final class CreateReservationActivity extends AppCompatActivity {
     private Button buttonReview;
     private Button buttonConfirm;
     private Button buttonBackToForm;
+
+    private final List<AvailableSlotResponse> availableSlots = new ArrayList<>();
+    private boolean isManualSlotMode = false;
+    private boolean slotsLoading = true;
+    private String selectedSlotId = "";
     private boolean busy;
 
     @Override
@@ -54,6 +68,10 @@ public final class CreateReservationActivity extends AppCompatActivity {
 
         layoutForm = findViewById(R.id.layoutForm);
         layoutReview = findViewById(R.id.layoutReview);
+        layoutSlotDropdown = findViewById(R.id.layoutSlotDropdown);
+        layoutSlotManual = findViewById(R.id.layoutSlotManual);
+        spinnerSlots = findViewById(R.id.spinnerSlots);
+        buttonToggleManualSlot = findViewById(R.id.buttonToggleManualSlot);
         editSlotId = findViewById(R.id.editSlotId);
         editEnergyAmount = findViewById(R.id.editEnergyAmount);
         textError = findViewById(R.id.textError);
@@ -74,19 +92,101 @@ public final class CreateReservationActivity extends AppCompatActivity {
             return;
         }
 
+        buttonToggleManualSlot.setOnClickListener(v -> toggleManualSlotMode());
         buttonReview.setOnClickListener(v -> onReviewClicked());
         buttonBackToForm.setOnClickListener(v -> onBackToFormClicked());
         buttonConfirm.setOnClickListener(v -> onConfirmClicked());
+
+        loadAvailableSlots();
+    }
+
+    private void loadAvailableSlots() {
+        slotsLoading = true;
+        List<String> placeholder = new ArrayList<>();
+        placeholder.add(getString(R.string.loading_active_slots));
+        ArrayAdapter<String> loadingAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, placeholder);
+        spinnerSlots.setAdapter(loadingAdapter);
+
+        repository.getAvailableSlots(new ReservationRepository.Callback<List<AvailableSlotResponse>>() {
+            @Override
+            public void onSuccess(List<AvailableSlotResponse> result) {
+                if (isFinishing() || isDestroyed()) return;
+                slotsLoading = false;
+                availableSlots.clear();
+                if (result != null) availableSlots.addAll(result);
+
+                List<String> items = new ArrayList<>();
+                if (availableSlots.isEmpty()) {
+                    items.add(getString(R.string.no_active_slots_available));
+                } else {
+                    items.add(getString(R.string.select_slot_prompt));
+                    for (AvailableSlotResponse slot : availableSlots) {
+                        String idSnippet = slot.getSlotId() != null && slot.getSlotId().length() > 8
+                                ? slot.getSlotId().substring(0, 8) + "…"
+                                : String.valueOf(slot.getSlotId());
+                        String formatted = idSnippet + " — Station: " + slot.getStationId()
+                                + " (" + ReservationUiUtils.formatUtc(slot.getStartAtUtc())
+                                + " | " + slot.getAvailableSlots() + " avail)";
+                        items.add(formatted);
+                    }
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(CreateReservationActivity.this,
+                        android.R.layout.simple_spinner_dropdown_item, items);
+                spinnerSlots.setAdapter(adapter);
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                if (isFinishing() || isDestroyed()) return;
+                slotsLoading = false;
+                availableSlots.clear();
+                List<String> items = new ArrayList<>();
+                items.add(getString(R.string.no_active_slots_available));
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(CreateReservationActivity.this,
+                        android.R.layout.simple_spinner_dropdown_item, items);
+                spinnerSlots.setAdapter(adapter);
+            }
+        });
+    }
+
+    private void toggleManualSlotMode() {
+        isManualSlotMode = !isManualSlotMode;
+        if (isManualSlotMode) {
+            layoutSlotDropdown.setVisibility(View.GONE);
+            layoutSlotManual.setVisibility(View.VISIBLE);
+            buttonToggleManualSlot.setText(R.string.btn_select_active_slot);
+            editSlotId.requestFocus();
+        } else {
+            layoutSlotManual.setVisibility(View.GONE);
+            layoutSlotDropdown.setVisibility(View.VISIBLE);
+            buttonToggleManualSlot.setText(R.string.btn_type_custom_slot);
+        }
     }
 
     private void onReviewClicked() {
         textError.setVisibility(View.GONE);
-        String slotId = editSlotId.getText() != null ? editSlotId.getText().toString().trim() : "";
+
+        String slotId;
+        if (isManualSlotMode) {
+            slotId = editSlotId.getText() != null ? editSlotId.getText().toString().trim() : "";
+        } else {
+            if (slotsLoading) {
+                showError(getString(R.string.loading_active_slots));
+                return;
+            }
+            int selectedIndex = spinnerSlots.getSelectedItemPosition();
+            if (availableSlots.isEmpty() || selectedIndex <= 0) {
+                showError(getString(R.string.error_select_slot_required));
+                return;
+            }
+            slotId = availableSlots.get(selectedIndex - 1).getSlotId();
+        }
+
         String energyStr = editEnergyAmount.getText() != null ? editEnergyAmount.getText().toString().trim() : "";
 
         if (!ReservationUiUtils.isValidGuid(slotId)) {
             showError(getString(R.string.error_slot_required));
-            editSlotId.requestFocus();
+            if (isManualSlotMode) editSlotId.requestFocus();
             return;
         }
         if (!ReservationUiUtils.isValidEnergy(energyStr)) {
@@ -95,7 +195,8 @@ public final class CreateReservationActivity extends AppCompatActivity {
             return;
         }
 
-        textReviewSlotId.setText(slotId);
+        selectedSlotId = slotId;
+        textReviewSlotId.setText(selectedSlotId);
         textReviewEnergy.setText(energyStr + " kWh");
         layoutForm.setVisibility(View.GONE);
         layoutReview.setVisibility(View.VISIBLE);
@@ -110,10 +211,9 @@ public final class CreateReservationActivity extends AppCompatActivity {
     private void onConfirmClicked() {
         if (busy || repository == null) return;
         setBusy(true);
-        String slotId = editSlotId.getText().toString().trim();
         double energy = Double.parseDouble(editEnergyAmount.getText().toString().trim());
 
-        repository.createReservation(slotId, energy, new ReservationRepository.Callback<ReservationResponse>() {
+        repository.createReservation(selectedSlotId, energy, new ReservationRepository.Callback<ReservationResponse>() {
             @Override
             public void onSuccess(ReservationResponse result) {
                 if (isFinishing() || isDestroyed()) return;
