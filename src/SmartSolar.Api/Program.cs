@@ -35,6 +35,8 @@ builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>("mongodb");
 
 builder.Services.AddSwaggerGen(options =>
 {
+    options.OperationFilter<ReservationSwaggerFilter>();
+    options.SchemaFilter<ReservationSwaggerFilter>();
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Smart Solar Microgrid API",
