@@ -102,9 +102,7 @@ public final class CreateReservationActivity extends AppCompatActivity {
 
     private void loadAvailableSlots() {
         slotsLoading = true;
-        List<String> placeholder = new ArrayList<>();
-        placeholder.add(getString(R.string.loading_active_slots));
-        ArrayAdapter<String> loadingAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, placeholder);
+        SlotSpinnerAdapter loadingAdapter = new SlotSpinnerAdapter(this, null, getString(R.string.loading_active_slots));
         spinnerSlots.setAdapter(loadingAdapter);
 
         repository.getAvailableSlots(new ReservationRepository.Callback<List<AvailableSlotResponse>>() {
@@ -115,23 +113,11 @@ public final class CreateReservationActivity extends AppCompatActivity {
                 availableSlots.clear();
                 if (result != null) availableSlots.addAll(result);
 
-                List<String> items = new ArrayList<>();
-                if (availableSlots.isEmpty()) {
-                    items.add(getString(R.string.no_active_slots_available));
-                } else {
-                    items.add(getString(R.string.select_slot_prompt));
-                    for (AvailableSlotResponse slot : availableSlots) {
-                        String idSnippet = slot.getSlotId() != null && slot.getSlotId().length() > 8
-                                ? slot.getSlotId().substring(0, 8) + "…"
-                                : String.valueOf(slot.getSlotId());
-                        String formatted = idSnippet + " — Station: " + slot.getStationId()
-                                + " (" + ReservationUiUtils.formatUtc(slot.getStartAtUtc())
-                                + " | " + slot.getAvailableSlots() + " avail)";
-                        items.add(formatted);
-                    }
-                }
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(CreateReservationActivity.this,
-                        android.R.layout.simple_spinner_dropdown_item, items);
+                String prompt = availableSlots.isEmpty()
+                        ? getString(R.string.no_active_slots_available)
+                        : getString(R.string.select_slot_prompt);
+
+                SlotSpinnerAdapter adapter = new SlotSpinnerAdapter(CreateReservationActivity.this, availableSlots, prompt);
                 spinnerSlots.setAdapter(adapter);
             }
 
@@ -140,10 +126,8 @@ public final class CreateReservationActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 slotsLoading = false;
                 availableSlots.clear();
-                List<String> items = new ArrayList<>();
-                items.add(getString(R.string.no_active_slots_available));
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(CreateReservationActivity.this,
-                        android.R.layout.simple_spinner_dropdown_item, items);
+                SlotSpinnerAdapter adapter = new SlotSpinnerAdapter(CreateReservationActivity.this, availableSlots,
+                        getString(R.string.no_active_slots_available));
                 spinnerSlots.setAdapter(adapter);
             }
         });
