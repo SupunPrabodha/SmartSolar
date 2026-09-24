@@ -8,7 +8,7 @@ using SmartSolar.Domain.Enums;
 
 namespace SmartSolar.Application.DTOs.Reservations;
 
-// Schedule values must be resolved by the server; this DTO adds no persisted entity fields.
+// Schedule values come from the server-owned accepted reservation snapshots.
 public sealed record ReservationResponse(
     string ReservationId,
     string ProsumerNic,

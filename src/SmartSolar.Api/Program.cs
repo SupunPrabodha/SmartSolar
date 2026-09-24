@@ -87,6 +87,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddScoped<ReservationRules>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<SmartSolar.Application.Abstractions.Reservations.IReservationService, ReservationService>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
