@@ -31,3 +31,55 @@ Profile and staff DTOs require name (2-120 characters), email, phone (7-20 chara
 `GET /health` is outside `/api/v1`: 200/Healthy when MongoDB responds, 503 when unavailable. Swagger UI `/swagger` and OpenAPI `/swagger/v1/swagger.json` are available only in Development. CORS origins are configured in `Cors:AllowedOrigins`; these are browser access settings, not authorization.
 
 No station, booking, reservation, Maps or QR feature endpoints are implemented in Phase 0.
+
+## Member 3 Checkpoint 1: planned reservation contract
+
+Checkpoint 1 adds request/response types and isolated application policy tests only.
+**The following reservation routes are planned, not implemented or available.**
+
+| Method | Planned route under /api/v1 | Planned access | Purpose |
+| --- | --- | --- | --- |
+| POST | /reservations | Active Prosumer | Create own Pending reservation |
+| GET | /reservations/{reservationId} | Owning Prosumer or GridOperator | Inspect summary |
+| PUT | /reservations/{reservationId} | Owning Prosumer or GridOperator | Modify, returning to Pending |
+| PATCH | /reservations/{reservationId}/cancel | Owning Prosumer or GridOperator | Cancel with the same cutoff |
+| POST | /reservations/prosumers/{prosumerNic} | GridOperator | Assisted creation for an active Prosumer |
+| GET | /reservations | GridOperator | Limited operational management list |
+
+Backoffice access is not extended by this proposal. A future Prosumer list/entry-point
+contract needs to be finalized with the Android flow; no Member 4 history/search
+endpoint is introduced.
+
+CreateReservationRequest and UpdateReservationRequest both accept only:
+```json
+{
+  "slotId": "11111111111111111111111111111111",
+  "energyAmountKwh": 1.5
+}
+```
+
+SlotId must parse as a nonempty GUID; both existing N and D string formats work.
+EnergyAmountKwh is a decimal strictly greater than zero. No minimum trade size or
+maximum energy limit is invented; station/slot energy validation remains a service concern.
+The future service must invoke the existing application RequestValidation mechanism,
+then verify referenced records and apply authoritative policy.
+
+ReservationResponse contains reservationId, prosumerNic, stationId, slotId,
+energyAmountKwh, scheduledStartAtUtc, scheduledEndAtUtc, status, createdAtUtc and
+updatedAtUtc. Dates are UTC; status uses the existing string enum. No QR credential
+is returned. Scheduled response fields do not add fields to MongoDB entities.
+
+Identity, station, schedule, status and timestamps must be resolved server-side.
+The DTOs cannot bind client-supplied prosumerNic, stationId, status, qrToken or
+schedule fields. Existing JSON behavior ignores extra properties; this is not
+evidence of endpoint authorization, which is deferred.
+
+Planned successful responses: 201 for creation, 200 with the summary for retrieval,
+update and cancellation. Existing ProblemDetails conventions remain: 400 for input,
+schedule or horizon errors; 401 for missing/invalid authentication; 403 for access
+restrictions; 404 for missing resources; 409 for cutoff, state, overlap or capacity
+conflicts. No new global JSON/error behavior is introduced.
+
+See BUSINESS-RULES.md for exact policy and DATABASE.md for the unresolved accepted
+schedule persistence decision. There are no DTO-to-entity mappings or reservation
+controllers in Checkpoint 1.
