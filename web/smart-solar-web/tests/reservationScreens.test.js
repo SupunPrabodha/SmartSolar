@@ -214,3 +214,103 @@ test('detail 404 shows error and allows read retry', async () => {
   assert.match(text(view.root), /Reservation not found/);
   assert.ok(button('Try again'));
 });
+
+test('station filter applies and clear filters resets both inputs and results', async () => {
+  await mount(base);
+  await fill('filter-station', '22222222222222222222222222222222');
+  await review();
+  await settle();
+  const query = new URL(calls.at(-1).url).searchParams;
+  assert.equal(query.get('stationId'), '22222222222222222222222222222222');
+  await click('Clear filters');
+  await settle();
+  assert.equal(view.root.findByProps({ id: 'filter-station' }).props.value, '');
+  assert.equal(view.root.findByProps({ id: 'filter-nic' }).props.value, '');
+  assert.equal(view.root.findByProps({ id: 'filter-status' }).props.value, '');
+});
+
+test('create handles 409 conflict ProblemDetails and displays error trace', async () => {
+  await mount(base + '/new');
+  await fill('prosumerNic', '200012345678');
+  await fill('slotId', row.slotId);
+  await fill('energyAmountKwh', '1.5');
+  await review();
+  globalThis.fetch = async () => response({
+    title: 'Conflict', status: 409, detail: 'The requested slot has no available capacity.', traceId: 'trace-conflict-123'
+  }, 409);
+  await click('Confirm reservation');
+  assert.match(text(view.root), /The requested slot has no available capacity/);
+  assert.match(text(view.root), /trace-conflict-123/);
+  assert.doesNotMatch(text(view.root), /Reservation created/);
+  assert.equal(button('Confirm reservation').props.disabled, false);
+});
+
+test('create displays 401 session expiration error notice', async () => {
+  await mount(base + '/new');
+  await fill('prosumerNic', '200012345678');
+  await fill('slotId', row.slotId);
+  await fill('energyAmountKwh', '1.5');
+  await review();
+  globalThis.fetch = async () => response({ title: 'Unauthorized', status: 401 }, 401);
+  await click('Confirm reservation');
+  assert.match(text(view.root), /Your session has expired/);
+});
+
+test('update handles 409 conflict and keeps editable form available', async () => {
+  await mount(base + '/reservation-1/edit');
+  await fill('energyAmountKwh', '3.0');
+  await review();
+  globalThis.fetch = async () => response({
+    title: 'Conflict', status: 409, detail: 'Modifications require at least 12 hours notice.'
+  }, 409);
+  await click('Confirm changes');
+  assert.match(text(view.root), /Modifications require at least 12 hours notice/);
+  await click('Back to form');
+  assert.equal(view.root.findByProps({ id: 'energyAmountKwh' }).props.value, '3.0');
+});
+
+test('cancellation 409 conflict stays in dialog and displays server problem', async () => {
+  await mount(base + '/reservation-1');
+  await click('Cancel reservation');
+  globalThis.fetch = async () => response({
+    title: 'Conflict', status: 409, detail: 'Reservation cannot be cancelled within 12 hours of start.'
+  }, 409);
+  await click('Confirm cancellation');
+  assert.match(text(view.root), /Reservation cannot be cancelled within 12 hours/);
+  assert.doesNotMatch(text(view.root), /Reservation cancelled/);
+  assert.equal(button('Keep reservation').props.disabled, false);
+});
+
+test('client validation flags all invalid fields with aria-invalid', async () => {
+  await mount(base + '/new');
+  await fill('prosumerNic', 'invalid-nic');
+  await fill('slotId', 'not-a-guid');
+  await fill('energyAmountKwh', '-5');
+  await review();
+  assert.equal(view.root.findByProps({ id: 'prosumerNic' }).props['aria-invalid'], 'true');
+  assert.equal(view.root.findByProps({ id: 'slotId' }).props['aria-invalid'], 'true');
+  assert.equal(view.root.findByProps({ id: 'energyAmountKwh' }).props['aria-invalid'], 'true');
+  assert.match(text(view.root), /Enter a valid Prosumer NIC/);
+  assert.match(text(view.root), /Enter a nonempty slot GUID/);
+  assert.match(text(view.root), /Enter an energy amount greater than zero/);
+});
+
+test('error notice displays multiple validation error messages from ProblemDetails', async () => {
+  await mount(base + '/new');
+  await fill('prosumerNic', '200012345678');
+  await fill('slotId', row.slotId);
+  await fill('energyAmountKwh', '1.0');
+  await review();
+  globalThis.fetch = async () => response({
+    title: 'Validation Failed', status: 400,
+    errors: {
+      SlotId: ['Slot is inactive.', 'Slot does not exist.'],
+      EnergyAmountKwh: ['Exceeds station storage capacity.']
+    }
+  }, 400);
+  await click('Confirm reservation');
+  assert.match(text(view.root), /Slot is inactive/);
+  assert.match(text(view.root), /Slot does not exist/);
+  assert.match(text(view.root), /Exceeds station storage capacity/);
+});
+
