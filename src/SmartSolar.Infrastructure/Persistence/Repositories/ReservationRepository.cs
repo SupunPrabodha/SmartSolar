@@ -56,10 +56,23 @@ public sealed class ReservationRepository : IReservationRepository
             (x.Status == ReservationStatus.Pending || x.Status == ReservationStatus.Approved)).ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<EnergyReservation>> GetActiveBySlotAsync(string slotId, CancellationToken ct = default)
+    {
+        // Find active reservations consuming energy capacity on this slot.
+        return await _reservations.Find(x => x.SlotId == slotId &&
+            (x.Status == ReservationStatus.Pending || x.Status == ReservationStatus.Approved)).ToListAsync(ct);
+    }
+
     public async Task<EnergyBookingSlot?> GetSlotAsync(string id, CancellationToken ct = default)
     {
         // Read a slot without taking ownership of station/slot CRUD.
         return await _slots.Find(x => x.SlotId == id).FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<EnergyBookingSlot>> GetActiveSlotsAsync(CancellationToken ct = default)
+    {
+        // Read active slots with remaining capacity.
+        return await _slots.Find(x => x.IsActive && x.AvailableSlots > 0).ToListAsync(ct);
     }
 
     public async Task<SolarStation?> GetStationAsync(string id, CancellationToken ct = default)

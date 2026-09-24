@@ -75,3 +75,13 @@ export function listReservations({ status, prosumerNic, stationId } = {}, { sign
   }
   return apiFetch('/reservations' + (query.size ? `?${query}` : ''), { signal });
 }
+
+/**
+ * Lists active booking slots with capacity starting within 7 days.
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<Array<{ slotId: string, stationId: string, startAtUtc: string, endAtUtc: string, availableSlots: number, totalSlots: number }>>}
+ */
+export function listAvailableSlots({ signal } = {}) {
+  return apiFetch('/reservations/slots', { signal });
+}
+

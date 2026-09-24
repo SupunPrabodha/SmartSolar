@@ -12,6 +12,7 @@ namespace SmartSolar.Application.Abstractions.Reservations;
 public interface IReservationService
 {
     Task<IReadOnlyList<ReservationResponse>> ListAsync(string actorNic, ListReservationsRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<AvailableSlotResponse>> GetAvailableSlotsAsync(string actorNic, CancellationToken ct = default);
     Task<ReservationResponse> CreateAsync(string actorNic, CreateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CreateForAsync(string actorNic, string prosumerNic, CreateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default);
