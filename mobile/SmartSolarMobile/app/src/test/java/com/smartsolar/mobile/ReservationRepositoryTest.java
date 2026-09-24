@@ -450,5 +450,37 @@ public class ReservationRepositoryTest {
         assertEquals(400, errorRef.get().getStatusCode());
         assertEquals("Invalid reservation request.", errorRef.get().getMessage());
     }
+
+    @Test
+    public void getMyReservationsGetsReservationsList() throws Exception {
+        server.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("[" + SAMPLE_RESERVATION_JSON + "]"));
+
+        AtomicReference<java.util.List<ReservationResponse>> resultRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        repository.getMyReservations(new ReservationRepository.Callback<java.util.List<ReservationResponse>>() {
+            @Override
+            public void onSuccess(java.util.List<ReservationResponse> result) {
+                resultRef.set(result);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        RecordedRequest recorded = server.takeRequest();
+        assertEquals("GET", recorded.getMethod());
+        assertEquals("/api/v1/reservations/my", recorded.getPath());
+        assertNotNull(resultRef.get());
+        assertEquals(1, resultRef.get().size());
+        assertEquals("res-uuid-1", resultRef.get().get(0).getReservationId());
+    }
 }
 

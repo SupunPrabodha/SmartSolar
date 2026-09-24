@@ -482,6 +482,25 @@ public sealed class ReservationServiceTests
         await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ListAsync("OP", new ListReservationsRequest()));
     }
 
+    [Fact]
+    public async Task GetMyReservationsReturnsOnlyCallerReservations()
+    {
+        var f = new Fixture();
+        await f.Create("P1");
+        await f.Create("P2");
+
+        var p1Rows = await f.Service.GetMyReservationsAsync("P1");
+        Assert.Single(p1Rows);
+        Assert.Equal("P1", p1Rows[0].ProsumerNic);
+
+        var p2Rows = await f.Service.GetMyReservationsAsync("P2");
+        Assert.Single(p2Rows);
+        Assert.Equal("P2", p2Rows[0].ProsumerNic);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.GetMyReservationsAsync("OP"));
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.GetMyReservationsAsync("BO"));
+    }
+
     private sealed class Fixture
     {
         public MemoryReservations Store { get; } = new();

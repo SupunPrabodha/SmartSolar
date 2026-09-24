@@ -34,6 +34,14 @@ public sealed class ReservationsController : ControllerBase
         return Ok(await _reservations.ListAsync(User.GetNic(), request, cancellationToken));
     }
 
+    [HttpGet("my")]
+    [Authorize(Roles = "Prosumer")]
+    public async Task<ActionResult<IReadOnlyList<ReservationResponse>>> GetMy(CancellationToken cancellationToken)
+    {
+        // Prosumers can inspect their own reservation history.
+        return Ok(await _reservations.GetMyReservationsAsync(User.GetNic(), cancellationToken));
+    }
+
     [HttpGet("slots")]
     public async Task<ActionResult<IReadOnlyList<AvailableSlotResponse>>> GetAvailableSlots(CancellationToken cancellationToken)
     {

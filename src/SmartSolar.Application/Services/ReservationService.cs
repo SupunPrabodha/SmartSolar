@@ -97,6 +97,17 @@ public sealed class ReservationService : IReservationService
         return reservations.Select(Response).ToList();
     }
 
+    public async Task<IReadOnlyList<ReservationResponse>> GetMyReservationsAsync(string actorNic, CancellationToken ct = default)
+    {
+        // Active prosumers can inspect their own reservation history.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.Prosumer)
+            throw new ForbiddenException("Only Prosumers may access their own reservations.");
+
+        var reservations = await _reservations.ListAsync(null, actor.Nic, null, ct);
+        return reservations.Select(Response).ToList();
+    }
+
     public async Task<IReadOnlyList<AvailableSlotResponse>> GetAvailableSlotsAsync(string actorNic, CancellationToken ct = default)
     {
         // Active Prosumers and GridOperators can inspect available slots for booking.

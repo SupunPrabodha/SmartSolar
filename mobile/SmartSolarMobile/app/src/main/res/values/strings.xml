@@ -86,4 +86,8 @@
     <string name="label_energy_amount">Energy amount</string>
     <string name="label_status">Status</string>
     <string name="label_change_cutoff">Change cutoff (UTC)</string>
+    <string name="title_my_reservations">My Reservations</string>
+    <string name="no_reservations_found">No reservations found. Tap \'New reservation\' to book energy.</string>
+    <string name="btn_refresh_details">Refresh details</string>
+    <string name="btn_new_reservation_header">+ New reservation</string>
 </resources>

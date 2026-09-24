@@ -56,6 +56,10 @@ public final class ReservationRepository implements AutoCloseable {
         executeCall(() -> api.createReservation(new CreateReservationRequest(slotId, energyAmountKwh)), callback);
     }
 
+    public void getMyReservations(Callback<List<ReservationResponse>> callback) {
+        executeCall(api::getMyReservations, callback);
+    }
+
     public void getReservation(String reservationId, Callback<ReservationResponse> callback) {
         executeCall(() -> api.getReservation(reservationId), callback);
     }

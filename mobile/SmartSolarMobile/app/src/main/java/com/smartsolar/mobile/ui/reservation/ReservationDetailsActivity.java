@@ -2,13 +2,13 @@ package com.smartsolar.mobile.ui.reservation;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,38 +24,22 @@ import com.smartsolar.mobile.data.repository.ReservationError;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.ui.auth.LoginActivity;
 import com.smartsolar.mobile.util.ReservationUiUtils;
+import java.util.List;
+import java.util.Locale;
 
 public final class ReservationDetailsActivity extends AppCompatActivity {
     public static final String EXTRA_RESERVATION_ID = "com.smartsolar.mobile.RESERVATION_ID";
     private static final Gson GSON = new Gson();
 
     private ReservationRepository repository;
-    private ReservationResponse currentReservation;
-    private String reservationId;
-
-    private View layoutLookup;
-    private View cardDetails;
-    private View layoutActions;
-    private EditText editLookupReservationId;
-    private Button buttonLookup;
+    private Button buttonHeaderNewReservation;
+    private Button buttonRefreshDetails;
+    private Button buttonBackHome;
+    private LinearLayout layoutReservationsList;
+    private TextView textEmptyState;
     private TextView textError;
     private TextView textSuccess;
     private ProgressBar progress;
-
-    private TextView textDetailsReservationId;
-    private TextView textDetailsStatus;
-    private TextView textDetailsStationId;
-    private TextView textDetailsSlotId;
-    private TextView textDetailsEnergy;
-    private TextView textDetailsStart;
-    private TextView textDetailsEnd;
-    private TextView textDetailsCutoff;
-    private TextView textDetailsRestriction;
-
-    private Button buttonModify;
-    private Button buttonCancel;
-    private Button buttonRefreshDetails;
-    private Button buttonBackHome;
     private boolean busy;
 
     @Override
@@ -69,29 +53,14 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             return insets;
         });
 
-        layoutLookup = findViewById(R.id.layoutLookup);
-        cardDetails = findViewById(R.id.cardDetails);
-        layoutActions = findViewById(R.id.layoutActions);
-        editLookupReservationId = findViewById(R.id.editLookupReservationId);
-        buttonLookup = findViewById(R.id.buttonLookup);
+        buttonHeaderNewReservation = findViewById(R.id.buttonHeaderNewReservation);
+        buttonRefreshDetails = findViewById(R.id.buttonRefreshDetails);
+        buttonBackHome = findViewById(R.id.buttonBackHome);
+        layoutReservationsList = findViewById(R.id.layoutReservationsList);
+        textEmptyState = findViewById(R.id.textEmptyState);
         textError = findViewById(R.id.textError);
         textSuccess = findViewById(R.id.textSuccess);
         progress = findViewById(R.id.progress);
-
-        textDetailsReservationId = findViewById(R.id.textDetailsReservationId);
-        textDetailsStatus = findViewById(R.id.textDetailsStatus);
-        textDetailsStationId = findViewById(R.id.textDetailsStationId);
-        textDetailsSlotId = findViewById(R.id.textDetailsSlotId);
-        textDetailsEnergy = findViewById(R.id.textDetailsEnergy);
-        textDetailsStart = findViewById(R.id.textDetailsStart);
-        textDetailsEnd = findViewById(R.id.textDetailsEnd);
-        textDetailsCutoff = findViewById(R.id.textDetailsCutoff);
-        textDetailsRestriction = findViewById(R.id.textDetailsRestriction);
-
-        buttonModify = findViewById(R.id.buttonModify);
-        buttonCancel = findViewById(R.id.buttonCancel);
-        buttonRefreshDetails = findViewById(R.id.buttonRefreshDetails);
-        buttonBackHome = findViewById(R.id.buttonBackHome);
 
         try {
             ApiService api = RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
@@ -102,170 +71,209 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             return;
         }
 
-        reservationId = getIntent().getStringExtra(EXTRA_RESERVATION_ID);
-        if (reservationId != null && !reservationId.trim().isEmpty()) {
-            layoutLookup.setVisibility(View.GONE);
-            fetchReservation(reservationId.trim());
-        } else {
-            layoutLookup.setVisibility(View.VISIBLE);
-        }
+        buttonHeaderNewReservation.setOnClickListener(v ->
+                startActivity(new Intent(this, CreateReservationActivity.class)));
 
-        buttonLookup.setOnClickListener(v -> {
-            String input = editLookupReservationId.getText() != null ? editLookupReservationId.getText().toString().trim() : "";
-            if (input.isEmpty()) {
-                showError(getString(R.string.error_res_id_required));
-                return;
-            }
-            reservationId = input;
-            fetchReservation(reservationId);
-        });
-
-        buttonModify.setOnClickListener(v -> {
-            if (currentReservation == null) return;
-            Intent intent = new Intent(this, ModifyReservationActivity.class);
-            intent.putExtra(ModifyReservationActivity.EXTRA_RESERVATION_JSON, GSON.toJson(currentReservation));
-            startActivity(intent);
-        });
-
-        buttonCancel.setOnClickListener(v -> showCancelConfirmationDialog());
-        buttonRefreshDetails.setOnClickListener(v -> {
-            if (reservationId != null) fetchReservation(reservationId);
-        });
+        buttonRefreshDetails.setOnClickListener(v -> loadReservations());
         buttonBackHome.setOnClickListener(v -> finish());
-    }
-
-    private void fetchReservation(String id) {
-        if (busy || repository == null) return;
-        setBusy(true);
-        textSuccess.setVisibility(View.GONE);
-
-        repository.getReservation(id, new ReservationRepository.Callback<ReservationResponse>() {
-            @Override
-            public void onSuccess(ReservationResponse result) {
-                if (isFinishing() || isDestroyed()) return;
-                setBusy(false);
-                displayReservation(result);
-            }
-
-            @Override
-            public void onError(ReservationError error) {
-                if (isFinishing() || isDestroyed()) return;
-                setBusy(false);
-                if (error.isSessionExpired()) {
-                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                    finish();
-                    return;
-                }
-                showError(error.getMessage());
-                cardDetails.setVisibility(View.GONE);
-                layoutActions.setVisibility(View.GONE);
-                if (reservationId == null || reservationId.isEmpty()) {
-                    layoutLookup.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-    }
-
-    private void displayReservation(ReservationResponse res) {
-        currentReservation = res;
-        textError.setVisibility(View.GONE);
-        cardDetails.setVisibility(View.VISIBLE);
-        layoutActions.setVisibility(View.VISIBLE);
-
-        textDetailsReservationId.setText(res.getReservationId());
-        textDetailsStatus.setText(res.getStatus());
-        textDetailsStationId.setText(res.getStationId());
-        textDetailsSlotId.setText(res.getSlotId());
-        textDetailsEnergy.setText(String.format("%s kWh", res.getEnergyAmountKwh()));
-        textDetailsStart.setText(ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
-        textDetailsEnd.setText(ReservationUiUtils.formatUtc(res.getScheduledEndAtUtc()));
-        textDetailsCutoff.setText(ReservationUiUtils.formatCutoffUtc(res.getScheduledStartAtUtc()));
-
-        boolean terminal = ReservationUiUtils.isTerminalStatus(res.getStatus());
-        boolean cutoffPassed = ReservationUiUtils.isCutoffPassed(res.getScheduledStartAtUtc(), System.currentTimeMillis());
-
-        if (terminal) {
-            textDetailsRestriction.setText(getString(R.string.terminal_status_notice));
-            textDetailsRestriction.setVisibility(View.VISIBLE);
-            buttonModify.setEnabled(false);
-            buttonCancel.setEnabled(false);
-        } else if (cutoffPassed) {
-            textDetailsRestriction.setText(getString(R.string.cutoff_passed_notice));
-            textDetailsRestriction.setVisibility(View.VISIBLE);
-            buttonModify.setEnabled(false);
-            buttonCancel.setEnabled(false);
-        } else {
-            textDetailsRestriction.setVisibility(View.GONE);
-            buttonModify.setEnabled(true);
-            buttonCancel.setEnabled(true);
-        }
-    }
-
-    private void showCancelConfirmationDialog() {
-        if (currentReservation == null) return;
-        String msg = getString(R.string.dialog_cancel_message,
-                currentReservation.getReservationId(),
-                String.valueOf(currentReservation.getEnergyAmountKwh()));
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.dialog_cancel_title)
-                .setMessage(msg)
-                .setPositiveButton(R.string.dialog_confirm_cancellation, (dialog, which) -> executeCancel())
-                .setNegativeButton(R.string.dialog_keep_reservation, null)
-                .show();
-    }
-
-    private void executeCancel() {
-        if (currentReservation == null || busy || repository == null) return;
-        setBusy(true);
-
-        repository.cancelReservation(currentReservation.getReservationId(), new ReservationRepository.Callback<ReservationResponse>() {
-            @Override
-            public void onSuccess(ReservationResponse result) {
-                if (isFinishing() || isDestroyed()) return;
-                setBusy(false);
-                displayReservation(result);
-                textSuccess.setText(R.string.reservation_cancelled_banner);
-                textSuccess.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onError(ReservationError error) {
-                if (isFinishing() || isDestroyed()) return;
-                setBusy(false);
-                if (error.isSessionExpired()) {
-                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                    finish();
-                    return;
-                }
-                showError(error.getMessage());
-            }
-        });
-    }
-
-    private void showError(String message) {
-        textError.setText(message);
-        textError.setVisibility(View.VISIBLE);
-    }
-
-    private void setBusy(boolean value) {
-        busy = value;
-        progress.setVisibility(value ? View.VISIBLE : View.GONE);
-        buttonLookup.setEnabled(!value);
-        buttonModify.setEnabled(!value && currentReservation != null && !ReservationUiUtils.isTerminalStatus(currentReservation.getStatus()));
-        buttonCancel.setEnabled(!value && currentReservation != null && !ReservationUiUtils.isTerminalStatus(currentReservation.getStatus()));
-        buttonRefreshDetails.setEnabled(!value);
-        if (value) textError.setVisibility(View.GONE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (reservationId != null && !reservationId.isEmpty()) {
-            fetchReservation(reservationId);
+        loadReservations();
+    }
+
+    private void loadReservations() {
+        if (repository == null || busy) return;
+        setBusy(true);
+        textError.setVisibility(View.GONE);
+        textSuccess.setVisibility(View.GONE);
+
+        repository.getMyReservations(new ReservationRepository.Callback<List<ReservationResponse>>() {
+            @Override
+            public void onSuccess(List<ReservationResponse> reservations) {
+                if (isFinishing() || isDestroyed()) return;
+                setBusy(false);
+                displayReservations(reservations);
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                if (isFinishing() || isDestroyed()) return;
+                setBusy(false);
+                if (error.isSessionExpired()) {
+                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class));
+                    finish();
+                    return;
+                }
+                textError.setText(error.getMessage());
+                textError.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void displayReservations(List<ReservationResponse> reservations) {
+        layoutReservationsList.removeAllViews();
+
+        if (reservations == null || reservations.isEmpty()) {
+            textEmptyState.setVisibility(View.VISIBLE);
+            return;
         }
+
+        textEmptyState.setVisibility(View.GONE);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        long nowMillis = System.currentTimeMillis();
+
+        for (ReservationResponse res : reservations) {
+            View card = inflater.inflate(R.layout.item_reservation_card, layoutReservationsList, false);
+
+            TextView textCardIdSnippet = card.findViewById(R.id.textCardIdSnippet);
+            TextView textCardStatus = card.findViewById(R.id.textCardStatus);
+            TextView textCardStation = card.findViewById(R.id.textCardStation);
+            TextView textCardEnergy = card.findViewById(R.id.textCardEnergy);
+            TextView textCardStartPreview = card.findViewById(R.id.textCardStartPreview);
+            TextView textChevron = card.findViewById(R.id.textChevron);
+            View cardHeader = card.findViewById(R.id.cardHeader);
+            View layoutExpandedDetails = card.findViewById(R.id.layoutExpandedDetails);
+
+            TextView textExpandedReservationId = card.findViewById(R.id.textExpandedReservationId);
+            TextView textExpandedSlotId = card.findViewById(R.id.textExpandedSlotId);
+            TextView textExpandedStart = card.findViewById(R.id.textExpandedStart);
+            TextView textExpandedEnd = card.findViewById(R.id.textExpandedEnd);
+            TextView textExpandedCutoff = card.findViewById(R.id.textExpandedCutoff);
+            TextView textExpandedRestriction = card.findViewById(R.id.textExpandedRestriction);
+            Button buttonCardModify = card.findViewById(R.id.buttonCardModify);
+            Button buttonCardCancel = card.findViewById(R.id.buttonCardCancel);
+
+            // Bind Essential Preview Info
+            String idSnippet = res.getReservationId() != null && res.getReservationId().length() > 8
+                    ? res.getReservationId().substring(0, 8) + "…"
+                    : String.valueOf(res.getReservationId());
+            textCardIdSnippet.setText("Reservation: " + idSnippet);
+
+            textCardStatus.setText(res.getStatus());
+            formatStatusBadge(textCardStatus, res.getStatus());
+
+            textCardStation.setText("Station: " + (res.getStationId() != null ? res.getStationId() : "—"));
+            textCardEnergy.setText(String.format(Locale.US, "%.1f kWh", res.getEnergyAmountKwh()));
+            textCardStartPreview.setText("Starts: " + ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
+
+            // Bind Expanded Details
+            textExpandedReservationId.setText(res.getReservationId());
+            textExpandedSlotId.setText(res.getSlotId() != null ? res.getSlotId() : "—");
+            textExpandedStart.setText(ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
+            textExpandedEnd.setText(ReservationUiUtils.formatUtc(res.getScheduledEndAtUtc()));
+            textExpandedCutoff.setText(ReservationUiUtils.formatCutoffUtc(res.getScheduledStartAtUtc()));
+
+            // Restrictions
+            boolean terminal = ReservationUiUtils.isTerminalStatus(res.getStatus());
+            boolean cutoffPassed = ReservationUiUtils.isCutoffPassed(res.getScheduledStartAtUtc(), nowMillis);
+
+            if (terminal) {
+                textExpandedRestriction.setText(R.string.terminal_status_notice);
+                textExpandedRestriction.setVisibility(View.VISIBLE);
+                buttonCardModify.setEnabled(false);
+                buttonCardCancel.setEnabled(false);
+            } else if (cutoffPassed) {
+                textExpandedRestriction.setText(R.string.cutoff_passed_notice);
+                textExpandedRestriction.setVisibility(View.VISIBLE);
+                buttonCardModify.setEnabled(false);
+                buttonCardCancel.setEnabled(false);
+            } else {
+                textExpandedRestriction.setVisibility(View.GONE);
+                buttonCardModify.setEnabled(true);
+                buttonCardCancel.setEnabled(true);
+            }
+
+            // Expand/Collapse Chevron interaction
+            View.OnClickListener toggleListener = v -> {
+                boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
+                layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
+                textChevron.setText(isExpanded ? "▼" : "▲");
+            };
+            cardHeader.setOnClickListener(toggleListener);
+
+            // Action Buttons
+            buttonCardModify.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ModifyReservationActivity.class);
+                intent.putExtra(ModifyReservationActivity.EXTRA_RESERVATION_JSON, GSON.toJson(res));
+                startActivity(intent);
+            });
+
+            buttonCardCancel.setOnClickListener(v -> showCancelConfirmDialog(res));
+
+            layoutReservationsList.addView(card);
+        }
+    }
+
+    private void formatStatusBadge(TextView view, String status) {
+        if (status == null) return;
+        if ("Approved".equalsIgnoreCase(status)) {
+            view.setTextColor(getColor(R.color.solar_status_approved));
+            view.setBackgroundColor(0x1F2E7D32);
+        } else if ("Pending".equalsIgnoreCase(status)) {
+            view.setTextColor(getColor(R.color.solar_status_pending));
+            view.setBackgroundColor(0x1FE65100);
+        } else if ("Cancelled".equalsIgnoreCase(status)) {
+            view.setTextColor(getColor(R.color.solar_status_cancelled));
+            view.setBackgroundColor(0x1FC62828);
+        } else if ("Completed".equalsIgnoreCase(status)) {
+            view.setTextColor(getColor(R.color.solar_status_completed));
+            view.setBackgroundColor(0x1F1565C0);
+        } else {
+            view.setTextColor(getColor(R.color.solar_on_surface_variant));
+            view.setBackgroundColor(0x1F000000);
+        }
+    }
+
+    private void showCancelConfirmDialog(ReservationResponse reservation) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_cancel_title)
+                .setMessage(getString(R.string.dialog_cancel_message,
+                        reservation.getReservationId(),
+                        String.format(Locale.US, "%.1f", reservation.getEnergyAmountKwh())))
+                .setNegativeButton(R.string.dialog_keep_reservation, null)
+                .setPositiveButton(R.string.dialog_confirm_cancellation, (dialog, which) -> executeCancel(reservation))
+                .show();
+    }
+
+    private void executeCancel(ReservationResponse reservation) {
+        setBusy(true);
+        textError.setVisibility(View.GONE);
+        textSuccess.setVisibility(View.GONE);
+
+        repository.cancelReservation(reservation.getReservationId(), new ReservationRepository.Callback<ReservationResponse>() {
+            @Override
+            public void onSuccess(ReservationResponse result) {
+                if (isFinishing() || isDestroyed()) return;
+                setBusy(false);
+                Intent intent = new Intent(ReservationDetailsActivity.this, ReservationSummaryActivity.class);
+                intent.putExtra(ReservationSummaryActivity.EXTRA_RESERVATION_JSON, GSON.toJson(result));
+                intent.putExtra(ReservationSummaryActivity.EXTRA_MODE, ReservationSummaryActivity.MODE_CANCELLED);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onError(ReservationError error) {
+                if (isFinishing() || isDestroyed()) return;
+                setBusy(false);
+                if (error.isSessionExpired()) {
+                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class));
+                    finish();
+                    return;
+                }
+                textError.setText(error.getMessage());
+                textError.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void setBusy(boolean value) {
+        busy = value;
+        progress.setVisibility(value ? View.VISIBLE : View.GONE);
+        buttonRefreshDetails.setEnabled(!value);
+        buttonHeaderNewReservation.setEnabled(!value);
     }
 
     @Override

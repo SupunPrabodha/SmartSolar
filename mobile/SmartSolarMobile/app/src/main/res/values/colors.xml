@@ -5,4 +5,9 @@
     <color name="solar_accent">#EFC86B</color>
     <color name="solar_hero">#1B5141</color>
     <color name="solar_hero_text">#FFFFFF</color>
+    <color name="solar_status_pending">#E65100</color>
+    <color name="solar_status_approved">#2E7D32</color>
+    <color name="solar_status_cancelled">#C62828</color>
+    <color name="solar_status_completed">#1565C0</color>
+    <color name="solar_on_surface_variant">#757575</color>
 </resources>

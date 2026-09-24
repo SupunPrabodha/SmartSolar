@@ -12,52 +12,46 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <TextView
-            style="@style/Solar.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/home_eyebrow"
-            android:textSize="11sp"
-            android:letterSpacing="0.12" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/title_reservation_details"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textStyle="bold" />
-
-        <!-- Lookup container when no ID provided -->
+        <!-- Top Header & New Reservation button -->
         <LinearLayout
-            android:id="@+id/layoutLookup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="16dp"
-            android:visibility="gone">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="@string/reservation_id_hint">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editLookupReservationId"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textNoSuggestions" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:text="@string/home_eyebrow"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.12" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/title_my_reservations"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonLookup"
-                android:layout_width="match_parent"
+                android:id="@+id/buttonHeaderNewReservation"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:minHeight="56dp"
-                android:text="@string/btn_inspect_by_id" />
+                android:minHeight="44dp"
+                android:text="@string/btn_new_reservation_header"
+                android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Feedback & Status Messages -->
         <TextView
             android:id="@+id/textError"
             style="@style/Solar.Body"
@@ -88,196 +82,52 @@
             android:contentDescription="@string/working"
             android:visibility="gone" />
 
-        <!-- Details Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardDetails"
-            style="@style/Solar.Card"
+        <!-- Empty State View -->
+        <TextView
+            android:id="@+id/textEmptyState"
+            style="@style/Solar.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:visibility="gone">
+            android:layout_marginTop="24dp"
+            android:padding="20dp"
+            android:gravity="center"
+            android:background="@color/solar_background"
+            android:text="@string/no_reservations_found"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_reservation_id"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsReservationId"
-                    style="@style/Solar.Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="15sp" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_status"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsStatus"
-                    style="@style/Solar.Title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginBottom="12dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_station_id"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsStationId"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_slot_id"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsSlotId"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_energy_amount"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsEnergy"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_accepted_start"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsStart"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_accepted_end"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsEnd"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/label_change_cutoff"
-                    android:textSize="12sp" />
-                <TextView
-                    android:id="@+id/textDetailsCutoff"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/textDetailsRestriction"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:padding="12dp"
-                    android:background="@color/solar_background"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Actions -->
+        <!-- Dynamic List Container for Reservation Cards -->
         <LinearLayout
-            android:id="@+id/layoutActions"
+            android:id="@+id/layoutReservationsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="20dp"
-            android:visibility="gone">
+            android:layout_marginTop="16dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonModify"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:text="@string/btn_modify_reservation" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonCancel"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:minHeight="56dp"
-                android:text="@string/btn_cancel_reservation" />
+        <!-- Bottom Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonRefreshDetails"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:text="@string/btn_refresh_details" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonBackHome"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="48dp"
-                android:text="Refresh details" />
-
+                android:text="@string/btn_back_to_workspace" />
         </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonBackHome"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:minHeight="48dp"
-            android:text="@string/btn_back_to_workspace" />
 
     </LinearLayout>
 </ScrollView>

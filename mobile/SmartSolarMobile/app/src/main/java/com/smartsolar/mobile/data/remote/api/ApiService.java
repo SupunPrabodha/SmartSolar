@@ -25,6 +25,9 @@ public interface ApiService {
     @POST("reservations")
     Call<ReservationResponse> createReservation(@Body CreateReservationRequest request);
 
+    @GET("reservations/my")
+    Call<java.util.List<ReservationResponse>> getMyReservations();
+
     @GET("reservations/{reservationId}")
     Call<ReservationResponse> getReservation(@Path("reservationId") String reservationId);
 

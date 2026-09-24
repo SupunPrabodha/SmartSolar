@@ -117,9 +117,9 @@ public final class HomeActivity extends AppCompatActivity {
         Button buttonModuleTwo = findViewById(R.id.buttonModuleTwo);
         if (!operator) {
             buttonModuleTwo.setEnabled(true);
-            buttonModuleTwo.setText(R.string.new_reservation);
+            buttonModuleTwo.setText(R.string.manage_reservations);
             buttonModuleTwo.setOnClickListener(v ->
-                    startActivity(new Intent(this, com.smartsolar.mobile.ui.reservation.CreateReservationActivity.class)));
+                    startActivity(new Intent(this, com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class)));
             findViewById(R.id.moduleTwo).setOnClickListener(v ->
                     startActivity(new Intent(this, com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class)));
         } else {
