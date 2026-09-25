@@ -2,7 +2,7 @@
 
 SE4040 Enterprise Application Development assignment: a shared foundation for a four-member team building a microgrid energy trading system.
 
-Phase 0 provides account/authentication services, persistence contracts, a responsive web workspace and a native Android home screen. Business modules are explicitly deferred; the home cards are disabled placeholders with no fabricated statistics.
+Phase 0 provides account/authentication services, persistence contracts, a responsive web workspace and a native Android home screen. Member 1 now adds station management, operator slot inventory and Android Maps/nearby discovery. Other members' modules remain deferred. See [Member 1 implementation and manual checks](docs/MEMBER-1-IMPLEMENTATION-REPORT.md) for validation and the unresolved active-reservation policy.
 
 ## Architecture
 
