@@ -24,4 +24,7 @@ public interface IReservationRepository
     Task<bool> ReleaseCapacityAsync(string slotId, CancellationToken ct = default);
     Task InsertAsync(EnergyReservation reservation, CancellationToken ct = default);
     Task<bool> TryReplaceAsync(EnergyReservation expected, EnergyReservation replacement, CancellationToken ct = default);
+    Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default);
+    Task<bool> TryUpdateQrHashAsync(string reservationId, string? expectedHash, string newHash, DateTime issuedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default);
+    Task<bool> TryCompleteReservationAsync(string reservationId, string qrTokenHash, string operatorNic, DateTime completedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default);
 }

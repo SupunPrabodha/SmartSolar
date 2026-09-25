@@ -136,14 +136,94 @@ public sealed class ReservationRepository : IReservationRepository
             x.StationId == expected.StationId && x.SlotId == expected.SlotId && x.Status == expected.Status &&
             x.EnergyAmountKwh == expected.EnergyAmountKwh && x.UpdatedAtUtc == expected.UpdatedAtUtc &&
             x.ScheduledStartAtUtc == expected.ScheduledStartAtUtc && x.ScheduledEndAtUtc == expected.ScheduledEndAtUtc &&
-            x.QrToken == expected.QrToken && x.RejectionRemark == expected.RejectionRemark);
+    public async Task<bool> TryReplaceAsync(
+        EnergyReservation expected,
+        EnergyReservation replacement,
+        CancellationToken ct = default)
+    {
+        // CAS detects concurrent changes while updating all lifecycle fields.
+        var filter = Builders<EnergyReservation>.Filter.Where(x =>
+            x.ReservationId == expected.ReservationId
+            && x.ProsumerNic == expected.ProsumerNic
+            && x.StationId == expected.StationId
+            && x.SlotId == expected.SlotId
+            && x.Status == expected.Status
+            && x.EnergyAmountKwh == expected.EnergyAmountKwh
+            && x.UpdatedAtUtc == expected.UpdatedAtUtc
+            && x.ScheduledStartAtUtc == expected.ScheduledStartAtUtc
+            && x.ScheduledEndAtUtc == expected.ScheduledEndAtUtc
+            && x.QrToken == expected.QrToken
+            && x.QrTokenHash == expected.QrTokenHash
+            && x.QrIssuedAtUtc == expected.QrIssuedAtUtc
+            && x.CompletedAtUtc == expected.CompletedAtUtc
+            && x.CompletedByOperatorNic == expected.CompletedByOperatorNic
+            && x.RejectionRemark == expected.RejectionRemark);
+
         var update = Builders<EnergyReservation>.Update
-            .Set(x => x.StationId, replacement.StationId).Set(x => x.SlotId, replacement.SlotId)
-            .Set(x => x.EnergyAmountKwh, replacement.EnergyAmountKwh).Set(x => x.Status, replacement.Status)
-            .Set(x => x.QrToken, replacement.QrToken).Set(x => x.RejectionRemark, replacement.RejectionRemark)
+            .Set(x => x.StationId, replacement.StationId)
+            .Set(x => x.SlotId, replacement.SlotId)
+            .Set(x => x.EnergyAmountKwh, replacement.EnergyAmountKwh)
+            .Set(x => x.Status, replacement.Status)
+            .Set(x => x.QrToken, replacement.QrToken)
+            .Set(x => x.QrTokenHash, replacement.QrTokenHash)
+            .Set(x => x.QrIssuedAtUtc, replacement.QrIssuedAtUtc)
+            .Set(x => x.CompletedAtUtc, replacement.CompletedAtUtc)
+            .Set(x => x.CompletedByOperatorNic, replacement.CompletedByOperatorNic)
+            .Set(x => x.RejectionRemark, replacement.RejectionRemark)
+            .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
+            .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc)
+            .Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
+
+        var result = await _reservations.UpdateOneAsync(
+            filter,
+            update,
+            cancellationToken: ct);
+
+        return result.MatchedCount == 1;
+    }
             .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
             .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc).Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
         var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
         return result.MatchedCount == 1;
+    }
+
+    public async Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default)
+    {
+        // Lookup an authoritative reservation by its deterministic SHA-256 token hash.
+        if (string.IsNullOrWhiteSpace(qrTokenHash)) return null;
+        return await _reservations.Find(x => x.QrTokenHash == qrTokenHash).FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<bool> TryUpdateQrHashAsync(
+        string reservationId, string? expectedHash, string newHash, DateTime issuedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
+    {
+        // Replaces the previous token hash conditionally so old tokens are immediately invalidated.
+        var filter = Builders<EnergyReservation>.Filter.Where(x =>
+            x.ReservationId == reservationId &&
+            x.Status == ReservationStatus.Approved &&
+            x.QrTokenHash == expectedHash);
+        var update = Builders<EnergyReservation>.Update
+            .Set(x => x.QrTokenHash, newHash)
+            .Set(x => x.QrIssuedAtUtc, issuedAtUtc)
+            .Set(x => x.UpdatedAtUtc, updatedAtUtc);
+        var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
+        return result.MatchedCount == 1;
+    }
+
+    public async Task<bool> TryCompleteReservationAsync(
+        string reservationId, string qrTokenHash, string operatorNic, DateTime completedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
+    {
+        // Atomically transitions from Approved to Completed ensuring single-completion protection.
+        var filter = Builders<EnergyReservation>.Filter.Where(x =>
+            x.ReservationId == reservationId &&
+            x.Status == ReservationStatus.Approved &&
+            x.QrTokenHash == qrTokenHash);
+        var update = Builders<EnergyReservation>.Update
+            .Set(x => x.Status, ReservationStatus.Completed)
+            .Set(x => x.CompletedAtUtc, completedAtUtc)
+            .Set(x => x.CompletedByOperatorNic, operatorNic)
+            .Set(x => x.UpdatedAtUtc, updatedAtUtc);
+        var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
+        return result.MatchedCount == 1 && result.ModifiedCount == 1;
     }
 }

@@ -58,6 +58,14 @@ export default function HomePage() {
         <div className="page-heading"><div><p className="eyebrow">YOUR WORKSPACE</p>
           <h1>Welcome, {user.fullName}</h1><p className="text-secondary mb-0">Your account and shared workspace, in one place.</p></div>
           <span className="role-pill">{user.role}</span></div>
+        {user.role === 'GridOperator' && <div className="d-flex flex-wrap gap-2 mb-4">
+          <Link className="btn btn-primary" to="/operator/reservations/dashboard">Operations Dashboard</Link>
+          <Link className="btn btn-outline-primary" to="/operator/reservations/current">Current Bookings</Link>
+          <Link className="btn btn-outline-primary" to="/operator/reservations/pending">Pending Queue</Link>
+          <Link className="btn btn-outline-primary" to="/operator/reservations/history">History</Link>
+          <Link className="btn btn-outline-primary" to="/operator/reservations/search">Search</Link>
+          <Link className="btn btn-outline-secondary" to="/operator/reservations">Manage reservations</Link>
+        </div>}
         <section className="foundation-banner" aria-labelledby="foundation-title">
           <span className="banner-orbit" aria-hidden="true" />
           <div className="position-relative"><p className="eyebrow">CONNECTED COMMUNITY. SHARED ENERGY.</p>

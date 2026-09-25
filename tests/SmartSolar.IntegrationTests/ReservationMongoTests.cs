@@ -242,7 +242,7 @@ public sealed class ReservationMongoTests
         {
             // Independent clients rule out accidental in-process-only synchronization.
             var database = new MongoClient(_settings).GetDatabase(Database.DatabaseNamespace.DatabaseName);
-            return new ReservationService(new ReservationRepository(database), new UserRepository(database), new FixedClock());
+            return new ReservationService(new ReservationRepository(database), new UserRepository(database), new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock());
         }
 
         public CreateReservationRequest Request(EnergyBookingSlot? slot = null)
