@@ -36,7 +36,7 @@
     <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
         <TextView android:id="@+id/moduleOne" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/find_stations" android:textSize="18sp" />
-        <com.google.android.material.button.MaterialButton style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:enabled="false" android:text="@string/coming_next" android:textSize="12sp" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/buttonFindStations" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/find_stations" android:textSize="14sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">

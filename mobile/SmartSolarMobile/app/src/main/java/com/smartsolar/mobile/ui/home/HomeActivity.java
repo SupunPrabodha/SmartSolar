@@ -23,7 +23,7 @@ import com.smartsolar.mobile.util.SessionManager;
 import java.text.DateFormat;
 import java.util.Date;
 
-/** Common authenticated home only. Disabled module cards contain no feature workflows. */
+/** Authenticated home with station discovery; other member modules remain disabled. */
 public final class HomeActivity extends AppCompatActivity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable expiryCheck = this::signOut;
@@ -68,6 +68,8 @@ public final class HomeActivity extends AppCompatActivity {
         }
         buttonRefresh.setOnClickListener(view -> restore());
         buttonLogout.setOnClickListener(view -> signOut());
+        findViewById(R.id.buttonFindStations).setOnClickListener(view ->
+            startActivity(new Intent(this, com.smartsolar.mobile.ui.stations.StationDiscoveryActivity.class)));
     }
 
     @Override
