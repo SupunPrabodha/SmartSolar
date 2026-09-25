@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import Brand from '../components/Brand';
+import { Link } from 'react-router-dom';
 
 const modulesByRole = {
   Backoffice: [
@@ -32,7 +33,8 @@ export default function HomePage({ children }) {
         <Link to="/" className="workspace-nav-item" onClick={() => setMenuOpen(false)}>
           <span aria-hidden="true">01</span>Home</Link><Link to="/stations" className="workspace-nav-item">Microgrid stations / slots</Link>
         <span className="nav-caption mt-4">UPCOMING MODULES</span>
-        {modules.filter(([name]) => name !== 'Microgrid Stations').map(([name], index) => <button className="workspace-nav-item" key={name} disabled>
+        {modules.map(([name], index) => name === 'User Management' ? <Link to="/users" className="workspace-nav-item" key={name}>
+          <span aria-hidden="true">0{index + 2}</span>{name}<small>Open</small></Link> : <button className="workspace-nav-item" key={name} disabled>
           <span aria-hidden="true">0{index + 2}</span>{name}<small>Planned</small></button>)}
       </nav>
       <div className="sidebar-footer"><span className="status-dot" />Phase 0 foundation

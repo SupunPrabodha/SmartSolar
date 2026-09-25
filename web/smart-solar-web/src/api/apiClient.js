@@ -24,10 +24,10 @@ export async function apiFetch(path, options = {}) {
     throw error;
   }
   if (!response.ok) {
-    const validationMessages = payload?.errors && typeof payload.errors === 'object'
-      ? Object.values(payload.errors).flat().filter(value => typeof value === 'string').join(' ') : '';
-    const error = new Error(typeof payload === 'object' && payload?.detail
-      ? payload.detail : validationMessages || `Request failed with status ${response.status}.`);
+    const validationMessages = typeof payload === 'object' && payload?.errors
+      ? Object.values(payload.errors).flat().filter(Boolean).join(' ') : '';
+    const error = new Error(typeof payload === 'object' && (payload?.detail || validationMessages || payload?.title)
+      ? (payload.detail || validationMessages || payload.title) : `Request failed with status ${response.status}.`);
     error.status = response.status;
     throw error;
   }

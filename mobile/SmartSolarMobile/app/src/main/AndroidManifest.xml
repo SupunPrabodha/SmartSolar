@@ -16,6 +16,7 @@
         <activity android:name=".ui.stations.StationDiscoveryActivity" android:exported="false" />
         <activity android:name=".ui.stations.StationDetailActivity" android:exported="false" />
         <activity android:name=".ui.home.HomeActivity" android:exported="false" />
+        <activity android:name=".ui.account.AccountActivity" android:exported="false" />
         <activity android:name=".ui.auth.LoginActivity" android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
