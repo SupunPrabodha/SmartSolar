@@ -84,6 +84,22 @@ public sealed class AuthFoundationTests
         Assert.False(passwords.VerifyPassword(user, first, "wrong"));
     }
 
+    [Fact]
+    public async Task BackofficeProsumerUpdateKeepsIdentityAndRejectsStaffProfiles()
+    {
+        // Managed profile edits preserve the NIC, role and lifecycle state required by account administration.
+        var users = new MemoryUsers();
+        var prosumer = new User { Nic = "200012345678", FullName = "Before", Email = "before@example.com", PhoneNumber = "0771234567", Role = UserRole.Prosumer, Status = UserStatus.Active };
+        var otherProsumer = new User { Nic = "200012345677", Email = "taken@example.com", Role = UserRole.Prosumer, Status = UserStatus.Active };
+        var operatorUser = new User { Nic = "200012345679", Role = UserRole.GridOperator, Status = UserStatus.Active };
+        users.Items.Add(prosumer); users.Items.Add(otherProsumer); users.Items.Add(operatorUser);
+        var service = new UserService(users, new PasswordService());
+        var updated = await service.UpdateProsumerAsync(prosumer.Nic, new UpdateProsumerRequest { FullName = "After Name", Email = "after@example.com", PhoneNumber = "0712345678" });
+        Assert.Equal("200012345678", updated.Nic); Assert.Equal(UserRole.Prosumer, updated.Role); Assert.Equal(UserStatus.Active, updated.Status);
+        await Assert.ThrowsAsync<ConflictException>(() => service.UpdateProsumerAsync(prosumer.Nic, new UpdateProsumerRequest { FullName = "Duplicate", Email = "taken@example.com", PhoneNumber = "0712345678" }));
+        await Assert.ThrowsAsync<BadRequestException>(() => service.UpdateProsumerAsync(operatorUser.Nic, new UpdateProsumerRequest { FullName = "Operator", Email = "operator@example.com", PhoneNumber = "0712345678" }));
+    }
+
     private sealed class TestTokens : IJwtTokenService
     {
         public int Issued { get; private set; }

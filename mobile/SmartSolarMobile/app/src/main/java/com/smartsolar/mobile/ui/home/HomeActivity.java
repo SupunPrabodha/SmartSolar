@@ -18,6 +18,7 @@ import com.smartsolar.mobile.data.remote.RetrofitClient;
 import com.smartsolar.mobile.data.remote.dto.UserResponse;
 import com.smartsolar.mobile.data.repository.AuthRepository;
 import com.smartsolar.mobile.ui.auth.LoginActivity;
+import com.smartsolar.mobile.ui.account.AccountActivity;
 import com.smartsolar.mobile.util.SessionManager;
 import java.text.DateFormat;
 import java.util.Date;
@@ -53,6 +54,7 @@ public final class HomeActivity extends AppCompatActivity {
         progress = findViewById(R.id.progress);
         buttonRefresh = findViewById(R.id.buttonRefresh);
         buttonLogout = findViewById(R.id.buttonLogout);
+        findViewById(R.id.buttonAccount).setOnClickListener(view -> { });
         ((TextView) findViewById(R.id.textEnvironment)).setText(
                 BuildConfig.DEBUG ? R.string.environment_development : R.string.environment_release);
         SessionManager sessions = new SessionManager(this);
@@ -110,6 +112,10 @@ public final class HomeActivity extends AppCompatActivity {
         textSession.setText(getString(R.string.profile_verified,
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())));
         boolean operator = "GridOperator".equals(user.getRole());
+        View account = findViewById(R.id.buttonAccount);
+        account.setVisibility(operator ? View.GONE : View.VISIBLE);
+        account.setOnClickListener(view -> startActivity(new Intent(this, AccountActivity.class)
+                .putExtra("name", user.getFullName()).putExtra("email", user.getEmail()).putExtra("phone", user.getPhoneNumber())));
         ((TextView) findViewById(R.id.moduleOne)).setText(operator ? R.string.operations : R.string.find_stations);
         ((TextView) findViewById(R.id.moduleTwo)).setText(operator ? R.string.scan_transaction : R.string.my_reservations);
         ((TextView) findViewById(R.id.moduleThree)).setText(operator ? R.string.transaction_history : R.string.booking_history);

@@ -9,6 +9,7 @@ Authoritative validation must be implemented in the C# service layer.
 - Backoffice controls activation/reactivation and staff creation. Prosumer self-deactivation is preserved from the starter.
 - NIC is immutable and normalized; normalized email and NIC must be unique. Passwords are stored only as salted one-way hashes.
 - Staff role is explicitly required and limited to Backoffice or GridOperator. User profile changes cannot change identity, role or account status.
+- Backoffice may update only a Prosumer's editable contact fields through the managed profile route. Backoffice activates pending Prosumers and is the sole authority for reactivating a deactivated account.
 
 ## Assignment rules reserved for later feature packages
 
