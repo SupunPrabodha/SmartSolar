@@ -118,7 +118,7 @@ public final class HomeActivity extends AppCompatActivity {
         account.setVisibility(operator ? View.GONE : View.VISIBLE);
         account.setOnClickListener(view -> startActivity(new Intent(this, AccountActivity.class)
                 .putExtra("name", user.getFullName()).putExtra("email", user.getEmail()).putExtra("phone", user.getPhoneNumber())));
-        ((TextView) findViewById(R.id.moduleOne)).setText(operator ? R.string.operations : R.string.find_stations);
+        ((TextView) findViewById(R.id.moduleOne)).setText(R.string.find_stations);
         ((TextView) findViewById(R.id.moduleTwo)).setText(operator ? R.string.scan_transaction : R.string.my_reservations);
         ((TextView) findViewById(R.id.moduleThree)).setText(operator ? R.string.transaction_history : R.string.booking_history);
         scheduleExpiry();

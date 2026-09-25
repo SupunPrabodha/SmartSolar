@@ -23,8 +23,8 @@ export default function App() {
             )}
           />
           <Route path="/users" element={<ProtectedRoute roles={['Backoffice']}><UserManagementPage /></ProtectedRoute>} />
+          <Route path="/stations" element={<ProtectedRoute roles={['Backoffice', 'GridOperator']}><StationsPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
-          <Route path="/stations" element={<ProtectedRoute roles={['Backoffice', 'GridOperator']}><StationsPage /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

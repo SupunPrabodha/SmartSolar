@@ -2,7 +2,7 @@
 
 SE4040 Enterprise Application Development assignment: a shared foundation for a four-member team building a microgrid energy trading system.
 
-Phase 0 provides account/authentication services, persistence contracts, a responsive web workspace and a native Android home screen. Member 1 now adds station management, operator slot inventory and Android Maps/nearby discovery. Other members' modules remain deferred. See [Member 1 implementation and manual checks](docs/MEMBER-1-IMPLEMENTATION-REPORT.md) for validation and the unresolved active-reservation policy.
+Phase 0 provides account/authentication services, persistence contracts, a responsive web workspace and a native Android home screen. Member 1 now adds station management, operator slot inventory and Android Maps/nearby discovery. Member 2 adds Backoffice User Management and Android Prosumer profile editing/deactivation. Pending and Approved reservations protect station/slot changes; Rejected, Cancelled and Completed do not. Member 3/4 workflows remain deferred. See the [integration audit](docs/M1-M2-INTEGRATION-REPORT.md) for validation, the actual audited branch and remaining handoff actions.
 
 ## Architecture
 
@@ -83,7 +83,7 @@ The `https` launch profile serves both development ports. The `http` profile ser
 
 Prosumer registration starts in `PendingActivation`; Backoffice activates accounts. Active users may log in; inactive users are rejected. Roles remain `Backoffice`, `GridOperator`, `Prosumer`, and states remain `PendingActivation`, `Active`, `Deactivated`. NIC is the Prosumer business identifier.
 
-Web supports Backoffice/GridOperator; Android supports Prosumer/GridOperator and directs Backoffice users to web. JWT expiry, `/users/me`, invalid-session clearing and logout are common foundation behavior.
+Web supports Backoffice/GridOperator: `/stations` serves both roles and `/users` is Backoffice-only. Android supports Prosumer/GridOperator station discovery and Prosumer My Account; Backoffice uses web. JWT expiry, `/users/me`, invalid-session clearing and logout are common foundation behavior.
 
 MongoDB collections are `UsersDetail`, `SolarStationInfo`, `EnergyBookingSlots`, `EnergyReservation`. Compose uses MongoDB 7, a health check, named persistent volume and localhost-only binding. Android SQLite stores only a local profile cache; passwords are never stored there.
 

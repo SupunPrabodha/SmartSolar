@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import Brand from '../components/Brand';
-import { Link } from 'react-router-dom';
+
+const moduleRoutes = { 'User Management': '/users', 'Microgrid Stations': '/stations' };
 
 const modulesByRole = {
   Backoffice: [
@@ -31,14 +32,16 @@ export default function HomePage({ children }) {
       <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
         <span className="nav-caption">WORKSPACE</span>
         <Link to="/" className="workspace-nav-item" onClick={() => setMenuOpen(false)}>
-          <span aria-hidden="true">01</span>Home</Link><Link to="/stations" className="workspace-nav-item">Microgrid stations / slots</Link>
+          <span aria-hidden="true">01</span>Home</Link>
+        {modules.filter(([name]) => moduleRoutes[name]).map(([name], index) =>
+          <Link to={moduleRoutes[name]} className="workspace-nav-item" key={name} onClick={() => setMenuOpen(false)}>
+            <span aria-hidden="true">0{index + 2}</span>{name}</Link>)}
         <span className="nav-caption mt-4">UPCOMING MODULES</span>
-        {modules.map(([name], index) => name === 'User Management' ? <Link to="/users" className="workspace-nav-item" key={name}>
-          <span aria-hidden="true">0{index + 2}</span>{name}<small>Open</small></Link> : <button className="workspace-nav-item" key={name} disabled>
-          <span aria-hidden="true">0{index + 2}</span>{name}<small>Planned</small></button>)}
+        {modules.filter(([name]) => !moduleRoutes[name]).map(([name]) =>
+          <button className="workspace-nav-item" key={name} disabled>{name}<small>Planned</small></button>)}
       </nav>
-      <div className="sidebar-footer"><span className="status-dot" />Phase 0 foundation
-        <small>Shared starting point for the team</small></div>
+      <div className="sidebar-footer"><span className="status-dot" />Shared workspace
+        <small>Accounts and station network</small></div>
     </aside>
     <div className="workspace-body">
       <header className="workspace-topbar">
@@ -53,9 +56,9 @@ export default function HomePage({ children }) {
         <section className="foundation-banner" aria-labelledby="foundation-title">
           <span className="banner-orbit" aria-hidden="true" />
           <div className="position-relative"><p className="eyebrow">CONNECTED COMMUNITY. SHARED ENERGY.</p>
-            <h2 id="foundation-title">Station workspace ready.</h2>
-            <p>Your common account workspace is available. Station management and slot inventory are available. Other modules remain planned.</p>
-            <span className="banner-tag">Station network / Member 1</span></div>
+            <h2 id="foundation-title">Your workspace is ready.</h2>
+            <p>Account management and station tools are available for your role. Reservation and transaction modules remain planned.</p>
+            <span className="banner-tag">Accounts and station network</span></div>
         </section>
         <section aria-label="Account and session" className="session-grid">
           <article className="surface-card"><p className="card-label">ACCOUNT ROLE</p>
@@ -70,14 +73,14 @@ export default function HomePage({ children }) {
         {sessionError && <div className="alert alert-warning mt-3" role="alert">{sessionError} Previously verified profile shown.</div>}
         <section className="modules-section" aria-labelledby="modules-title">
           <div className="section-heading"><div><p className="eyebrow">YOUR MODULES</p><h2 id="modules-title">Your workspace modules</h2></div>
-            <span className="text-secondary small">Stations available; other modules planned</span></div>
+            <span className="text-secondary small">Account and station tools available by role</span></div>
           <div className="module-grid">{modules.map(([name, description], index) => <article className="surface-card module-card" key={name}>
-            <span className="module-number" aria-hidden="true">0{index + 1}</span>{name === 'Microgrid Stations' ? <span className="planned-badge">Available</span> : <span className="planned-badge">Not implemented</span>}
+            <span className="module-number" aria-hidden="true">0{index + 1}</span>{moduleRoutes[name] ? <span className="planned-badge">Available</span> : <span className="planned-badge">Not implemented</span>}
             <h3>{name}</h3><p>{description}</p>
-            {name === 'Microgrid Stations' ? <Link className="btn btn-primary w-100 mt-auto" to="/stations">Open stations</Link> : <button className="btn btn-light w-100 mt-auto" disabled>Coming in feature development</button>}
+            {moduleRoutes[name] ? <Link className="btn btn-primary w-100 mt-auto" to={moduleRoutes[name]}>Open {name}</Link> : <button className="btn btn-light w-100 mt-auto" disabled>Coming in feature development</button>}
           </article>)}</div>
         </section>
-        </>}<footer className="workspace-footer">Smart Solar Microgrid <span>Shared Phase-0 foundation</span></footer>
+        </>}<footer className="workspace-footer">Smart Solar Microgrid <span>Accounts and station network</span></footer>
       </main>
     </div>
   </div>;
