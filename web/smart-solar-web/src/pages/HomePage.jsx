@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import Brand from '../components/Brand';
 
@@ -20,6 +20,7 @@ const modulesByRole = {
 export default function HomePage() {
   const { user, logout, refreshProfile, refreshing, sessionError, lastVerifiedAt } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  if (!user) return null;
   const modules = modulesByRole[user.role] ?? [];
   return <div className="workspace">
     <a className="skip-link" href="#main">Skip to content</a>
@@ -29,11 +30,20 @@ export default function HomePage() {
           onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close menu' : 'Menu'}</button></div>
       <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
         <span className="nav-caption">WORKSPACE</span>
-        <a href="#main" className="workspace-nav-item active" aria-current="page" onClick={() => setMenuOpen(false)}>
-          <span aria-hidden="true">01</span>Home</a>
+        <NavLink to="/" end className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <span aria-hidden="true">01</span>Home</NavLink>
+        {user.role === 'GridOperator' && (
+          <NavLink
+            to="/operator/reservations"
+            className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <span aria-hidden="true">02</span>Manage Reservations
+          </NavLink>
+        )}
         <span className="nav-caption mt-4">UPCOMING MODULES</span>
         {modules.map(([name], index) => <button className="workspace-nav-item" key={name} disabled>
-          <span aria-hidden="true">0{index + 2}</span>{name}<small>Planned</small></button>)}
+          <span aria-hidden="true">0{index + (user.role === 'GridOperator' ? 3 : 2)}</span>{name}<small>Planned</small></button>)}
       </nav>
       <div className="sidebar-footer"><span className="status-dot" />Phase 0 foundation
         <small>Shared starting point for the team</small></div>
@@ -48,9 +58,6 @@ export default function HomePage() {
         <div className="page-heading"><div><p className="eyebrow">YOUR WORKSPACE</p>
           <h1>Welcome, {user.fullName}</h1><p className="text-secondary mb-0">Your account and shared workspace, in one place.</p></div>
           <span className="role-pill">{user.role}</span></div>
-        {user.role === 'GridOperator' && <div className="mb-4">
-          <Link className="btn btn-outline-primary" to="/operator/reservations">Manage reservations</Link>
-        </div>}
         <section className="foundation-banner" aria-labelledby="foundation-title">
           <span className="banner-orbit" aria-hidden="true" />
           <div className="position-relative"><p className="eyebrow">CONNECTED COMMUNITY. SHARED ENERGY.</p>

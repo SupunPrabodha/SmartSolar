@@ -168,9 +168,9 @@ All test suites were executed cleanly in Release mode:
 |---|---|---|---|---|
 | **Backend Unit Tests** (`SmartSolar.UnitTests`) | 117 | **117** | 0 | 0 |
 | **Backend Integration Tests** (`SmartSolar.IntegrationTests` with live Mongo) | 38 | **38** | 0 | 0 |
-| **Web Frontend Tests** (`npm test` in `smart-solar-web`) | 50 | **50** | 0 | 0 |
+| **Web Frontend Tests** (`npm test` in `smart-solar-web`) | 52 | **52** | 0 | 0 |
 | **Android JVM Unit Tests** (`:app:testDebugUnitTest`) | 28 | **28** | 0 | 0 |
-| **Total Automated Tests** | **233** | **233** | **0** | **0** |
+| **Total Automated Tests** | **235** | **235** | **0** | **0** |
 
 ### Build & Lint Summary
 - **.NET Solution Build**: Succeeded (`0 Warning(s)`, `0 Error(s)`).

@@ -58,7 +58,15 @@ export default function ReservationListPage() {
                 </div>
               )}
             </td>
-            <td><Link className="btn btn-outline-primary btn-sm" aria-label={`View reservation ${row.reservationId}`} to={encodeURIComponent(row.reservationId)}>View</Link></td>
+            <td>
+              <Link
+                className="btn btn-outline-primary btn-sm"
+                aria-label={`${row.status === 'Pending' ? 'Review' : 'View'} reservation ${row.reservationId}`}
+                to={encodeURIComponent(row.reservationId)}
+              >
+                {row.status === 'Pending' ? 'Review' : 'View'}
+              </Link>
+            </td>
           </tr>)}</tbody>
         </table>
       </div>

@@ -1,29 +1,68 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import Brand from '../../components/Brand';
 import { errorMessage, formatUtc } from './reservationUi.js';
 
+const operatorModules = [
+  ['Operations', 'Your station operations workspace.'],
+  ['Microgrid Stations', 'Access your assigned station information.'],
+  ['Transactions', 'Review and complete energy transactions.']
+];
+
 export function ReservationLayout() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const main = useRef(null);
   useEffect(() => { main.current?.focus(); }, [pathname]);
-  return <div className="reservation-workspace container py-4">
+  return <div className="workspace">
     <a className="skip-link" href="#reservation-main">Skip to content</a>
-    <header className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-      <Brand />
-      <div className="d-flex flex-wrap align-items-center gap-3">
-        <span>{user.fullName}</span><span className="role-pill">Grid Operator</span>
-        <button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button>
+    <aside className="workspace-sidebar">
+      <div className="sidebar-heading">
+        <Brand />
+        <button
+          className="nav-toggle"
+          aria-expanded={menuOpen}
+          aria-controls="workspace-navigation"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? 'Close menu' : 'Menu'}
+        </button>
       </div>
-    </header>
-    <nav className="d-flex flex-wrap gap-3 mb-4" aria-label="Reservation navigation">
-      <Link to="/">Back to workspace</Link>
-      <NavLink end to="/operator/reservations">Reservations</NavLink>
-      <NavLink to="/operator/reservations/new">New reservation</NavLink>
-    </nav>
-    <main ref={main} id="reservation-main" tabIndex="-1"><Outlet /></main>
+      <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
+        <span className="nav-caption">WORKSPACE</span>
+        <NavLink to="/" end className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <span aria-hidden="true">01</span>Home
+        </NavLink>
+        <NavLink to="/operator/reservations" className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <span aria-hidden="true">02</span>Manage Reservations
+        </NavLink>
+        <span className="nav-caption mt-4">UPCOMING MODULES</span>
+        {operatorModules.map(([name], index) => (
+          <button className="workspace-nav-item" key={name} disabled>
+            <span aria-hidden="true">0{index + 3}</span>{name}<small>Planned</small>
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-footer">
+        <span className="status-dot" />Phase 0 foundation
+        <small>Shared starting point for the team</small>
+      </div>
+    </aside>
+    <div className="workspace-body">
+      <header className="workspace-topbar">
+        <span className="environment-label">{import.meta.env.DEV ? 'Development' : 'Production build'}</span>
+        <div className="topbar-account">
+          <span className="account-name">{user?.fullName}</span>
+          <span className="role-pill">{user?.role ?? 'Grid Operator'}</span>
+          <button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button>
+        </div>
+      </header>
+      <main ref={main} id="reservation-main" className="workspace-main pb-5" tabIndex="-1">
+        <Outlet />
+      </main>
+    </div>
   </div>;
 }
 
