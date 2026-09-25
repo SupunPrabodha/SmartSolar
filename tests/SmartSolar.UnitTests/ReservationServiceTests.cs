@@ -228,6 +228,80 @@ public sealed class ReservationServiceTests
         }
     }
 
+    [Fact]
+    public async Task GridOperatorCanApprovePendingReservation()
+    {
+        // Approval sets status to Approved and retains allocated slot capacity.
+        var f = new Fixture();
+        var created = await f.Create();
+        Assert.Equal(1, f.Slot.AvailableSlots);
+
+        var approved = await f.Service.ApproveAsync("OP", created.ReservationId);
+        Assert.Equal(ReservationStatus.Approved, approved.Status);
+        Assert.Equal(1, f.Slot.AvailableSlots);
+        Assert.Empty(f.Store.Locks);
+        Assert.Equal(ReservationStatus.Approved, f.Store.Reservations[created.ReservationId].Status);
+    }
+
+    [Fact]
+    public async Task ApproveRejectsNonOperatorOrNonPending()
+    {
+        // Only GridOperator can approve, and only when Pending.
+        var f = new Fixture();
+        var created = await f.Create();
+
+        // Prosumer and Backoffice cannot approve
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ApproveAsync("P1", created.ReservationId));
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ApproveAsync("BO", created.ReservationId));
+
+        // Operator approves
+        await f.Service.ApproveAsync("OP", created.ReservationId);
+
+        // Cannot approve again
+        await Assert.ThrowsAsync<ConflictException>(() => f.Service.ApproveAsync("OP", created.ReservationId));
+    }
+
+    [Fact]
+    public async Task GridOperatorCanRejectPendingReservationWithRemarkAndReleasesCapacity()
+    {
+        // Rejection sets status to Rejected, stores RejectionRemark, and releases slot capacity.
+        var f = new Fixture();
+        var created = await f.Create();
+        Assert.Equal(1, f.Slot.AvailableSlots);
+
+        var request = new RejectReservationRequest { Remark = "Grid maintenance scheduled during this slot." };
+        var rejected = await f.Service.RejectAsync("OP", created.ReservationId, request);
+
+        Assert.Equal(ReservationStatus.Rejected, rejected.Status);
+        Assert.Equal("Grid maintenance scheduled during this slot.", rejected.RejectionRemark);
+        Assert.Equal(2, f.Slot.AvailableSlots);
+        Assert.Empty(f.Store.Locks);
+        Assert.Equal("Grid maintenance scheduled during this slot.", f.Store.Reservations[created.ReservationId].RejectionRemark);
+    }
+
+    [Fact]
+    public async Task RejectRejectsNonOperatorOrNonPendingOrMissingRemark()
+    {
+        // Only GridOperator can reject, only when Pending, with a valid remark.
+        var f = new Fixture();
+        var created = await f.Create();
+
+        // Prosumer and Backoffice cannot reject
+        var validReq = new RejectReservationRequest { Remark = "Reason" };
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.RejectAsync("P1", created.ReservationId, validReq));
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.RejectAsync("BO", created.ReservationId, validReq));
+
+        // Missing or whitespace remark rejected
+        var invalidReq = new RejectReservationRequest { Remark = "   " };
+        await Assert.ThrowsAsync<BadRequestException>(() => f.Service.RejectAsync("OP", created.ReservationId, invalidReq));
+
+        // Operator rejects
+        await f.Service.RejectAsync("OP", created.ReservationId, validReq);
+
+        // Cannot reject already-rejected reservation
+        await Assert.ThrowsAsync<ConflictException>(() => f.Service.RejectAsync("OP", created.ReservationId, validReq));
+    }
+
     [Theory]
     [InlineData(ReservationStatus.Rejected)]
     [InlineData(ReservationStatus.Cancelled)]

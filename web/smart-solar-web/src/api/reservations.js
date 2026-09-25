@@ -61,6 +61,36 @@ export function cancelReservation(reservationId, { signal } = {}) {
   });
 }
 
+/**
+ * GridOperator approval for a pending reservation.
+ * @param {string} reservationId
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<Reservation>}
+ */
+export function approveReservation(reservationId, { signal } = {}) {
+  return apiFetch(`/reservations/${pathSegment(reservationId, 'Reservation ID')}/approve`, {
+    method: 'PATCH', signal
+  });
+}
+
+/**
+ * GridOperator rejection for a pending reservation with a mandatory remark.
+ * @param {string} reservationId
+ * @param {{ remark: string }} data
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<Reservation>}
+ */
+export function rejectReservation(reservationId, { remark }, { signal } = {}) {
+  if (!remark || typeof remark !== 'string' || !remark.trim()) {
+    throw new TypeError('Rejection remark is required.');
+  }
+  return apiFetch(`/reservations/${pathSegment(reservationId, 'Reservation ID')}/reject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ remark: remark.trim() }),
+    signal
+  });
+}
+
 
 /**
  * GridOperator-only management listing; filters are exact matches combined by the API.

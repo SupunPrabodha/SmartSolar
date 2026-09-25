@@ -46,6 +46,28 @@ public sealed class ReservationRules
         return ReservationStatus.Cancelled;
     }
 
+    public ReservationStatus ValidateApproval(ReservationStatus status, DateTime scheduledStartAtUtc)
+    {
+        // Approval is permitted only for Pending reservations whose start time is in the future.
+        var now = _clock.GetUtcNow().UtcDateTime;
+        if (status != ReservationStatus.Pending)
+            throw new ConflictException("Only Pending reservations may be approved.");
+        EnsureUtc(scheduledStartAtUtc);
+        if (scheduledStartAtUtc <= now)
+            throw new ConflictException("Cannot approve an expired or past reservation.");
+        return ReservationStatus.Approved;
+    }
+
+    public ReservationStatus ValidateRejection(ReservationStatus status, string remark)
+    {
+        // Rejection is permitted only for Pending reservations with a mandatory non-empty remark.
+        if (status != ReservationStatus.Pending)
+            throw new ConflictException("Only Pending reservations may be rejected.");
+        if (string.IsNullOrWhiteSpace(remark))
+            throw new BadRequestException("Rejection remark is required.");
+        return ReservationStatus.Rejected;
+    }
+
     public static bool Conflicts(
         ReservationStatus existingStatus, DateTime existingStartAtUtc, DateTime existingEndAtUtc,
         DateTime requestedStartAtUtc, DateTime requestedEndAtUtc)

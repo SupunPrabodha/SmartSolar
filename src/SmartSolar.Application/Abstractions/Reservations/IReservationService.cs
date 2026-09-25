@@ -19,4 +19,6 @@ public interface IReservationService
     Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default);
     Task<ReservationResponse> UpdateAsync(string actorNic, string reservationId, UpdateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CancelAsync(string actorNic, string reservationId, CancellationToken ct = default);
+    Task<ReservationResponse> ApproveAsync(string actorNic, string reservationId, CancellationToken ct = default);
+    Task<ReservationResponse> RejectAsync(string actorNic, string reservationId, RejectReservationRequest request, CancellationToken ct = default);
 }

@@ -90,4 +90,21 @@ public sealed class ReservationsController : ControllerBase
         // Cancellation is a guarded state transition, not document deletion.
         return Ok(await _reservations.CancelAsync(User.GetNic(), reservationId, cancellationToken));
     }
+
+    [HttpPatch("{reservationId}/approve")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationResponse>> Approve(string reservationId, CancellationToken cancellationToken)
+    {
+        // Only active GridOperators can approve a pending reservation.
+        return Ok(await _reservations.ApproveAsync(User.GetNic(), reservationId, cancellationToken));
+    }
+
+    [HttpPatch("{reservationId}/reject")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationResponse>> Reject(
+        string reservationId, [FromBody] RejectReservationRequest request, CancellationToken cancellationToken)
+    {
+        // Only active GridOperators can reject a pending reservation with a mandatory remark.
+        return Ok(await _reservations.RejectAsync(User.GetNic(), reservationId, request, cancellationToken));
+    }
 }

@@ -70,6 +70,7 @@ All authoritative business logic is enforced within the C# application layer (`R
                       │                   │
          ┌────────────┼────────────┐      │ Update
          │ (Approve)  │ (Reject)   │      │ (Notice >= 12h)
+         │ Future     │ + Remark   │      │
          ▼            ▼            │      │
    ┌──────────┐  ┌──────────┐      │      │
    │ Approved │  │ Rejected │      │      │
@@ -91,9 +92,20 @@ All authoritative business logic is enforced within the C# application layer (`R
    └───────────┘
 ```
 
+- **Approval Policy**:
+  - Only reservations in `Pending` status can be approved.
+  - The scheduled start time must be strictly in the future (`ScheduledStartAtUtc > UtcNow`). Attempting to approve an expired schedule returns `409 Conflict`.
+  - Authorized role: `GridOperator`.
+  - Transitions status to `Approved`. The slot capacity remains allocated.
+- **Rejection Policy**:
+  - Only reservations in `Pending` status can be rejected.
+  - A non-empty rejection remark is strictly required (`1..500` characters). Empty, null, or whitespace-only remarks are rejected with `400 Bad Request`.
+  - Authorized role: `GridOperator`.
+  - Transitions status to `Rejected`, records `RejectionRemark`, and atomically releases 1 slot capacity back to `EnergyBookingSlots`.
+  - Prosumers can inspect the rejection reason on their Android client.
 - **Reapproval Policy**: Modifying an `Approved` reservation reverts its status to `Pending` and clears any existing `QrToken`.
-- **Cancellation**: Transitions status to `Cancelled`, clears `QrToken`, and atomically releases 1 available slot capacity back to the slot.
-- **Terminal States**: `Rejected`, `Cancelled`, and `Completed` are immutable. Any attempt to update or cancel a terminal reservation is rejected with `409 Conflict`.
+- **Cancellation Policy**: Transitions status to `Cancelled`, clears `QrToken`, and atomically releases 1 available slot capacity back to the slot.
+- **Terminal States**: `Rejected`, `Cancelled`, and `Completed` are immutable. Any attempt to update, approve, reject, or cancel a terminal reservation is rejected with `409 Conflict`.
 
 ---
 
@@ -102,12 +114,16 @@ All authoritative business logic is enforced within the C# application layer (`R
 - **Prosumer (Self-Service)**:
   - Can create reservations for their own NIC only (`POST /api/v1/reservations`).
   - Can view their own reservations (`GET /api/v1/reservations/my`, `GET /api/v1/reservations/{id}`).
+  - Can view rejection remark on rejected reservations.
   - Can update or cancel their own active reservations (`PUT /api/v1/reservations/{id}`, `PATCH /api/v1/reservations/{id}/cancel`).
   - Can view available slots (`GET /api/v1/reservations/slots`).
   - Cannot access or manipulate another Prosumer's reservation (returns `403 Forbidden`).
-- **Grid Operator (Assisted Operations)**:
+  - Cannot approve or reject reservations (returns `403 Forbidden`).
+- **Grid Operator (Assisted & Operational Management)**:
   - Can list reservations with filters (`GET /api/v1/reservations`).
   - Can create assisted reservations on behalf of active Prosumers (`POST /api/v1/reservations/prosumers/{nic}`).
   - Can view, update, and cancel any reservation subject to all business rules.
+  - Can approve pending reservations (`PATCH /api/v1/reservations/{id}/approve`).
+  - Can reject pending reservations with a mandatory remark (`PATCH /api/v1/reservations/{id}/reject`).
 - **Backoffice**:
   - Strictly prohibited from reservation operations (returns `403 Forbidden`).

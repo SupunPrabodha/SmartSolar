@@ -136,11 +136,12 @@ public sealed class ReservationRepository : IReservationRepository
             x.StationId == expected.StationId && x.SlotId == expected.SlotId && x.Status == expected.Status &&
             x.EnergyAmountKwh == expected.EnergyAmountKwh && x.UpdatedAtUtc == expected.UpdatedAtUtc &&
             x.ScheduledStartAtUtc == expected.ScheduledStartAtUtc && x.ScheduledEndAtUtc == expected.ScheduledEndAtUtc &&
-            x.QrToken == expected.QrToken);
+            x.QrToken == expected.QrToken && x.RejectionRemark == expected.RejectionRemark);
         var update = Builders<EnergyReservation>.Update
             .Set(x => x.StationId, replacement.StationId).Set(x => x.SlotId, replacement.SlotId)
             .Set(x => x.EnergyAmountKwh, replacement.EnergyAmountKwh).Set(x => x.Status, replacement.Status)
-            .Set(x => x.QrToken, replacement.QrToken).Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
+            .Set(x => x.QrToken, replacement.QrToken).Set(x => x.RejectionRemark, replacement.RejectionRemark)
+            .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
             .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc).Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
         var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
         return result.MatchedCount == 1;

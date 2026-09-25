@@ -343,3 +343,36 @@ test('error notice displays multiple validation error messages from ProblemDetai
   assert.match(text(view.root), /Exceeds station storage capacity/);
 });
 
+test('details approval requires confirmation and shows approved summary', async () => {
+  await mount(base + '/reservation-1');
+  await click('Approve reservation');
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...row, status: 'Approved' });
+  };
+  await click('Confirm approval');
+  assert.equal(calls.at(-1).options.method, 'PATCH');
+  assert.ok(calls.at(-1).url.endsWith('/approve'));
+  assert.match(text(view.root), /Reservation approved successfully/);
+});
+
+test('details rejection requires remark and shows rejected summary with released capacity note', async () => {
+  await mount(base + '/reservation-1');
+  await click('Reject reservation');
+  // Attempt submit without remark
+  await click('Confirm rejection');
+  assert.match(text(view.root), /Please provide a reason/);
+
+  // Fill remark and submit
+  await fill('reject-remark', 'Grid maintenance');
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...row, status: 'Rejected', rejectionRemark: 'Grid maintenance' });
+  };
+  await click('Confirm rejection');
+  assert.equal(calls.at(-1).options.method, 'PATCH');
+  assert.ok(calls.at(-1).url.endsWith('/reject'));
+  assert.match(text(view.root), /Reservation rejected/);
+});
+
+

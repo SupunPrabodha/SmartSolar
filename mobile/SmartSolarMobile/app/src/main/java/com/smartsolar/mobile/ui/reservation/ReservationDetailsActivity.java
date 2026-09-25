@@ -143,6 +143,8 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             TextView textExpandedEnd = card.findViewById(R.id.textExpandedEnd);
             TextView textExpandedCutoff = card.findViewById(R.id.textExpandedCutoff);
             TextView textExpandedRestriction = card.findViewById(R.id.textExpandedRestriction);
+            View layoutRejectionNotice = card.findViewById(R.id.layoutRejectionNotice);
+            TextView textRejectionRemark = card.findViewById(R.id.textRejectionRemark);
             Button buttonCardModify = card.findViewById(R.id.buttonCardModify);
             Button buttonCardCancel = card.findViewById(R.id.buttonCardCancel);
 
@@ -165,6 +167,14 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             textExpandedStart.setText(ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
             textExpandedEnd.setText(ReservationUiUtils.formatUtc(res.getScheduledEndAtUtc()));
             textExpandedCutoff.setText(ReservationUiUtils.formatCutoffUtc(res.getScheduledStartAtUtc()));
+
+            // Rejection remark notice
+            if ("Rejected".equalsIgnoreCase(res.getStatus()) && res.getRejectionRemark() != null && !res.getRejectionRemark().trim().isEmpty()) {
+                textRejectionRemark.setText(res.getRejectionRemark());
+                layoutRejectionNotice.setVisibility(View.VISIBLE);
+            } else {
+                layoutRejectionNotice.setVisibility(View.GONE);
+            }
 
             // Restrictions
             boolean terminal = ReservationUiUtils.isTerminalStatus(res.getStatus());
@@ -215,9 +225,12 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
         } else if ("Pending".equalsIgnoreCase(status)) {
             view.setTextColor(getColor(R.color.solar_status_pending));
             view.setBackgroundColor(0x1FE65100);
+        } else if ("Rejected".equalsIgnoreCase(status)) {
+            view.setTextColor(getColor(R.color.solar_status_rejected));
+            view.setBackgroundColor(0x1FC62828);
         } else if ("Cancelled".equalsIgnoreCase(status)) {
             view.setTextColor(getColor(R.color.solar_status_cancelled));
-            view.setBackgroundColor(0x1FC62828);
+            view.setBackgroundColor(0x1F757575);
         } else if ("Completed".equalsIgnoreCase(status)) {
             view.setTextColor(getColor(R.color.solar_status_completed));
             view.setBackgroundColor(0x1F1565C0);

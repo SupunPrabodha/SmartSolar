@@ -222,6 +222,87 @@ public sealed class ReservationService : IReservationService
         }, ct);
     }
 
+    public async Task<ReservationResponse> ApproveAsync(string actorNic, string reservationId, CancellationToken ct = default)
+    {
+        // Only active GridOperators can approve reservations.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.GridOperator)
+            throw new ForbiddenException("Only GridOperators may approve reservations.");
+
+        var initial = await RequiredAsync(reservationId, ct);
+        return await WithLockAsync(initial.ProsumerNic, async write =>
+        {
+            actor = await ActorAsync(actorNic, ct);
+            if (actor.Role != UserRole.GridOperator)
+                throw new ForbiddenException("Only GridOperators may approve reservations.");
+
+            var current = await RequiredAsync(reservationId, ct);
+            EnsureSameProsumer(initial, current);
+            var accepted = Schedule(current);
+            var now = _clock.GetUtcNow();
+            var status = new ReservationRules(new OperationClock(now)).ValidateApproval(current.Status, accepted.Start);
+            var replacement = new EnergyReservation
+            {
+                ReservationId = current.ReservationId, ProsumerNic = current.ProsumerNic,
+                StationId = current.StationId, SlotId = current.SlotId, EnergyAmountKwh = current.EnergyAmountKwh,
+                Status = status, QrToken = null, RejectionRemark = null,
+                ScheduledStartAtUtc = accepted.Start, ScheduledEndAtUtc = accepted.End,
+                CreatedAtUtc = current.CreatedAtUtc, UpdatedAtUtc = now.UtcDateTime
+            };
+            ct.ThrowIfCancellationRequested();
+            write.Uncertain = true;
+            if (!await _reservations.TryReplaceAsync(current, replacement, CancellationToken.None))
+            {
+                write.Uncertain = false;
+                throw new ConflictException("Reservation changed concurrently. Refresh and retry.");
+            }
+            write.Uncertain = false;
+            return Response(replacement);
+        }, ct);
+    }
+
+    public async Task<ReservationResponse> RejectAsync(string actorNic, string reservationId, RejectReservationRequest request, CancellationToken ct = default)
+    {
+        // Only active GridOperators can reject reservations with a mandatory remark.
+        ArgumentNullException.ThrowIfNull(request);
+        RequestValidation.EnsureValid(request);
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.GridOperator)
+            throw new ForbiddenException("Only GridOperators may reject reservations.");
+
+        var initial = await RequiredAsync(reservationId, ct);
+        return await WithLockAsync(initial.ProsumerNic, async write =>
+        {
+            actor = await ActorAsync(actorNic, ct);
+            if (actor.Role != UserRole.GridOperator)
+                throw new ForbiddenException("Only GridOperators may reject reservations.");
+
+            var current = await RequiredAsync(reservationId, ct);
+            EnsureSameProsumer(initial, current);
+            var accepted = Schedule(current);
+            var now = _clock.GetUtcNow();
+            var status = new ReservationRules(new OperationClock(now)).ValidateRejection(current.Status, request.Remark);
+            var replacement = new EnergyReservation
+            {
+                ReservationId = current.ReservationId, ProsumerNic = current.ProsumerNic,
+                StationId = current.StationId, SlotId = current.SlotId, EnergyAmountKwh = current.EnergyAmountKwh,
+                Status = status, QrToken = null, RejectionRemark = request.Remark.Trim(),
+                ScheduledStartAtUtc = accepted.Start, ScheduledEndAtUtc = accepted.End,
+                CreatedAtUtc = current.CreatedAtUtc, UpdatedAtUtc = now.UtcDateTime
+            };
+            ct.ThrowIfCancellationRequested();
+            write.Uncertain = true;
+            if (!await _reservations.TryReplaceAsync(current, replacement, CancellationToken.None))
+            {
+                write.Uncertain = false;
+                throw new ConflictException("Reservation changed concurrently. Refresh and retry.");
+            }
+            await ReleaseAsync(current.SlotId);
+            write.Uncertain = false;
+            return Response(replacement);
+        }, ct);
+    }
+
     private async Task<T> WithLockAsync<T>(string nic, Func<WriteState, Task<T>> action, CancellationToken ct)
     {
         // Locks never expire automatically: a crashed writer must not overlap a replacement writer.
@@ -354,7 +435,8 @@ public sealed class ReservationService : IReservationService
         var schedule = Schedule(reservation);
         return new ReservationResponse(reservation.ReservationId, reservation.ProsumerNic,
             reservation.StationId, reservation.SlotId, reservation.EnergyAmountKwh,
-            schedule.Start, schedule.End, reservation.Status, reservation.CreatedAtUtc, reservation.UpdatedAtUtc);
+            schedule.Start, schedule.End, reservation.Status, reservation.CreatedAtUtc, reservation.UpdatedAtUtc,
+            reservation.RejectionRemark);
     }
 
     private sealed class WriteState

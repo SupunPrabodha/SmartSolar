@@ -100,6 +100,64 @@ public sealed class ReservationRulesTests
         Assert.Throws<ConflictException>(() => _rules.ValidateCancellation(status, start));
     }
 
+    [Fact]
+    public void ApprovePendingInFutureReturnsApproved()
+    {
+        // Approval is permitted only for Pending reservations whose start time is in the future.
+        var start = Now.AddHours(2);
+        Assert.Equal(ReservationStatus.Approved, _rules.ValidateApproval(ReservationStatus.Pending, start));
+    }
+
+    [Theory]
+    [InlineData(ReservationStatus.Approved)]
+    [InlineData(ReservationStatus.Rejected)]
+    [InlineData(ReservationStatus.Cancelled)]
+    [InlineData(ReservationStatus.Completed)]
+    public void ApproveNonPendingRejects(ReservationStatus status)
+    {
+        // Approving a non-Pending reservation must fail with ConflictException.
+        var start = Now.AddHours(2);
+        Assert.Throws<ConflictException>(() => _rules.ValidateApproval(status, start));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ApproveExpiredOrPastScheduleRejects(int seconds)
+    {
+        // Approving an expired or current schedule must fail with ConflictException.
+        var start = Now.AddSeconds(seconds);
+        Assert.Throws<ConflictException>(() => _rules.ValidateApproval(ReservationStatus.Pending, start));
+    }
+
+    [Fact]
+    public void RejectPendingWithRemarkReturnsRejected()
+    {
+        // Rejection is permitted for Pending reservations with a non-empty remark.
+        Assert.Equal(ReservationStatus.Rejected, _rules.ValidateRejection(ReservationStatus.Pending, "Insufficient solar generation."));
+    }
+
+    [Theory]
+    [InlineData(ReservationStatus.Approved)]
+    [InlineData(ReservationStatus.Rejected)]
+    [InlineData(ReservationStatus.Cancelled)]
+    [InlineData(ReservationStatus.Completed)]
+    public void RejectNonPendingRejects(ReservationStatus status)
+    {
+        // Rejecting a non-Pending reservation must fail with ConflictException.
+        Assert.Throws<ConflictException>(() => _rules.ValidateRejection(status, "Some remark"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void RejectWithoutRemarkRejects(string? remark)
+    {
+        // Rejecting without a remark must fail with BadRequestException.
+        Assert.Throws<BadRequestException>(() => _rules.ValidateRejection(ReservationStatus.Pending, remark!));
+    }
+
     [Theory]
     [InlineData(ReservationStatus.Pending, true)]
     [InlineData(ReservationStatus.Approved, true)]

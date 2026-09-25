@@ -38,9 +38,15 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
             nameof(ReservationsController.Update) => (
                 "Modify a reservation (owner or GridOperator)",
                 "Only Pending or Approved reservations can change. Both the accepted start and replacement start must be at least 12 hours away (inclusive); the replacement must also be within seven days. Successful updates return Pending and clear stale QR data."),
-            _ => (
+            nameof(ReservationsController.Cancel) => (
                 "Cancel a reservation (owner or GridOperator)",
-                "Only Pending or Approved reservations can be cancelled, at least 12 hours before the accepted start (inclusive). No request body is needed. Returns the Cancelled summary; a repeated cancellation returns 409.")
+                "Only Pending or Approved reservations can be cancelled, at least 12 hours before the accepted start (inclusive). No request body is needed. Returns the Cancelled summary; a repeated cancellation returns 409."),
+            nameof(ReservationsController.Approve) => (
+                "Approve a reservation (GridOperator)",
+                "Requires an active GridOperator. Only Pending reservations can be approved. Returns the Approved summary; retains slot capacity."),
+            _ => (
+                "Reject a reservation (GridOperator)",
+                "Requires an active GridOperator. Only Pending reservations can be rejected with a mandatory remark. Returns the Rejected summary and releases slot capacity.")
         };
         operation.Description += "\n\nBackoffice is not permitted. Log in via POST /api/v1/auth/login, then use Authorize and paste only accessToken (without the Bearer prefix).";
         if (creates || action == nameof(ReservationsController.Update))

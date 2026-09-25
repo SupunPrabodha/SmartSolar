@@ -52,14 +52,18 @@ export function StatusBadge({ status }) {
 }
 
 export function ReservationSummary({ reservation }) {
+  const fields = [
+    ['Reservation ID', reservation.reservationId], ['Prosumer NIC', reservation.prosumerNic],
+    ['Station ID', reservation.stationId], ['Slot ID', reservation.slotId],
+    ['Accepted start', formatUtc(reservation.scheduledStartAtUtc)], ['Accepted end', formatUtc(reservation.scheduledEndAtUtc)],
+    ['Energy amount', `${reservation.energyAmountKwh} kWh`], ['Status', <StatusBadge key="status" status={reservation.status} />],
+    ['Change cutoff', formatUtc(new Date(Date.parse(reservation.scheduledStartAtUtc) - 12 * 3600000))]
+  ];
+  if (reservation.status === 'Rejected' && reservation.rejectionRemark) {
+    fields.push(['Rejection Reason', <span key="remark" className="text-danger fw-bold">{reservation.rejectionRemark}</span>]);
+  }
   return <dl className="row reservation-summary mb-0">
-    {[
-      ['Reservation ID', reservation.reservationId], ['Prosumer NIC', reservation.prosumerNic],
-      ['Station ID', reservation.stationId], ['Slot ID', reservation.slotId],
-      ['Accepted start', formatUtc(reservation.scheduledStartAtUtc)], ['Accepted end', formatUtc(reservation.scheduledEndAtUtc)],
-      ['Energy amount', `${reservation.energyAmountKwh} kWh`], ['Status', <StatusBadge key="status" status={reservation.status} />],
-      ['Change cutoff', formatUtc(new Date(Date.parse(reservation.scheduledStartAtUtc) - 12 * 3600000))]
-    ].map(([label, value]) => <div className="col-md-6 mb-3" key={label}>
+    {fields.map(([label, value]) => <div className="col-md-6 mb-3" key={label}>
       <dt className="small text-secondary">{label}</dt><dd className="text-break mb-0">{value}</dd>
     </div>)}
   </dl>;
