@@ -42,6 +42,10 @@ public static class MongoMappings
             map.SetIgnoreExtraElements(true);
             map.MapIdMember(x => x.ReservationId);
             map.MapMember(x => x.Status).SetSerializer(new EnumSerializer<ReservationStatus>(BsonType.String));
+            map.MapMember(x => x.QrTokenHash).SetIgnoreIfNull(true);
+            map.MapMember(x => x.QrIssuedAtUtc).SetIgnoreIfNull(true);
+            map.MapMember(x => x.CompletedAtUtc).SetIgnoreIfNull(true);
+            map.MapMember(x => x.CompletedByOperatorNic).SetIgnoreIfNull(true);
         });
         return true;
     });

@@ -25,7 +25,29 @@
  * @property {string} [prosumerNic]
  * @property {string} [stationId]
  *
+ * @typedef {Object} ReservationSearchFilters
+ * @property {string} [reservationId]
+ * @property {string} [prosumerNic]
+ * @property {string} [stationId]
+ * @property {ReservationStatus} [status]
+ * @property {string} [fromUtc]
+ * @property {string} [toUtc]
+ * @property {number} [page]
+ * @property {number} [pageSize]
+ *
+ * @typedef {Object} ReservationPage
+ * @property {Reservation[]} items
+ * @property {number} page
+ * @property {number} pageSize
+ * @property {boolean} hasMore
+ *
+ * @typedef {Object} ReservationDashboardSummary
+ * @property {number} pendingReservations
+ * @property {number} approvedFutureReservations
+ * @property {string} generatedAtUtc
+ *
  * @typedef {Object} ReservationCallOptions
  * @property {AbortSignal} [signal]
  */
 export {};
+

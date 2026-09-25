@@ -5,6 +5,7 @@
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 using SmartSolar.Domain.Constants;
 using SmartSolar.Domain.Entities;
@@ -97,7 +98,24 @@ public sealed class MongoDbInitializer
                     Builders<EnergyReservation>.IndexKeys
                         .Ascending(x => x.StationId)
                         .Ascending(x => x.Status),
-                    new CreateIndexOptions { Name = "ix_reservations_station_status" })
+                    new CreateIndexOptions { Name = "ix_reservations_station_status" }),
+                // Support global and owner-scoped status counts plus approved-future start ranges.
+                new CreateIndexModel<EnergyReservation>(
+                    Builders<EnergyReservation>.IndexKeys.Ascending(x => x.Status).Ascending(x => x.ScheduledStartAtUtc),
+                    new CreateIndexOptions { Name = "ix_reservations_status_start" }),
+                new CreateIndexModel<EnergyReservation>(
+                    Builders<EnergyReservation>.IndexKeys.Ascending(x => x.ProsumerNic)
+                        .Ascending(x => x.Status).Ascending(x => x.ScheduledStartAtUtc),
+                    new CreateIndexOptions { Name = "ix_reservations_prosumer_status_start" }),
+                // Fast lookup for secure QR reference verification, indexing only documents with an issued QR token string.
+                new CreateIndexModel<EnergyReservation>(
+                    Builders<EnergyReservation>.IndexKeys.Ascending(x => x.QrTokenHash),
+                    new CreateIndexOptions<EnergyReservation>
+                    {
+                        Name = "ux_reservations_qr_token_hash",
+                        Unique = true,
+                        PartialFilterExpression = Builders<EnergyReservation>.Filter.Type(x => x.QrTokenHash, BsonType.String)
+                    })
             },
             cancellationToken: cancellationToken);
     }

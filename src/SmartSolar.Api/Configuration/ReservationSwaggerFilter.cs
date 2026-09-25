@@ -38,9 +38,19 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
             nameof(ReservationsController.Update) => (
                 "Modify a reservation (owner or GridOperator)",
                 "Only Pending or Approved reservations can change. Both the accepted start and replacement start must be at least 12 hours away (inclusive); the replacement must also be within seven days. Successful updates return Pending and clear stale QR data."),
-            _ => (
+            nameof(ReservationsController.Cancel) => (
                 "Cancel a reservation (owner or GridOperator)",
-                "Only Pending or Approved reservations can be cancelled, at least 12 hours before the accepted start (inclusive). No request body is needed. Returns the Cancelled summary; a repeated cancellation returns 409.")
+                "Only Pending or Approved reservations can be cancelled, at least 12 hours before the accepted start (inclusive). No request body is needed. Returns the Cancelled summary; a repeated cancellation returns 409."),
+            nameof(ReservationsController.IssueQr) => (
+                "Issue/rotate transaction QR reference (owner)",
+                "Requires the owning active Prosumer (or GridOperator). Reservation must be exactly in Approved state. Issues a cryptographically strong opaque reference and rotates any previous reference."),
+            nameof(ReservationsController.VerifyQr) => (
+                "Verify transaction QR reference (GridOperator)",
+                "Requires an active GridOperator. Scans and verifies the opaque QR reference against server-side authoritative state. Returns trusted reservation details."),
+            nameof(ReservationsController.CompleteTransfer) or nameof(ReservationsController.CompleteTransferById) => (
+                "Complete energy transfer transaction (GridOperator)",
+                "Requires an active GridOperator. Revalidates server state, transitions Approved reservation to Completed, records server completion timestamp and operator identity, and enforces single completion."),
+            _ => ("Reservation operation", "Authorized reservation operation.")
         };
         operation.Description += "\n\nBackoffice is not permitted. Log in via POST /api/v1/auth/login, then use Authorize and paste only accessToken (without the Bearer prefix).";
         if (creates || action == nameof(ReservationsController.Update))
@@ -58,12 +68,20 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
             };
 
         operation.Responses.Clear();
+        Type responseType = action switch
+        {
+            nameof(ReservationsController.List) => typeof(IReadOnlyList<ReservationResponse>),
+            nameof(ReservationsController.IssueQr) => typeof(ReservationQrResponse),
+            nameof(ReservationsController.VerifyQr) => typeof(ReservationVerificationResponse),
+            nameof(ReservationsController.CompleteTransfer) or nameof(ReservationsController.CompleteTransferById) => typeof(ReservationCompletionResponse),
+            _ => typeof(ReservationResponse)
+        };
         var success = new OpenApiResponse
         {
-            Description = creates ? "Created Pending reservation. Use Location to retrieve it." : action == nameof(ReservationsController.List) ? "Matching reservation summaries; an empty array means no matches." : "Reservation summary.",
+            Description = creates ? "Created Pending reservation. Use Location to retrieve it." : action == nameof(ReservationsController.List) ? "Matching reservation summaries; an empty array means no matches." : action == nameof(ReservationsController.IssueQr) ? "Secure QR reference payload." : action == nameof(ReservationsController.VerifyQr) ? "Authoritative reservation verification result." : action is nameof(ReservationsController.CompleteTransfer) or nameof(ReservationsController.CompleteTransferById) ? "Authoritative completion confirmation result." : "Reservation summary.",
             Content = new Dictionary<string, OpenApiMediaType>
             {
-                ["application/json"] = new() { Schema = context.SchemaGenerator.GenerateSchema(action == nameof(ReservationsController.List) ? typeof(IReadOnlyList<ReservationResponse>) : typeof(ReservationResponse), context.SchemaRepository) }
+                ["application/json"] = new() { Schema = context.SchemaGenerator.GenerateSchema(responseType, context.SchemaRepository) }
             }
         };
         if (creates)
