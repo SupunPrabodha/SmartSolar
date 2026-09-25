@@ -135,15 +135,6 @@ public final class ReservationRepository implements AutoCloseable {
         executeDashboardCall(() -> api.getCurrentBookings(query), callback);
     }
 
-    public void getPendingBookings(
-            Map<String, String> filters,
-            DashboardCallback<ReservationPageResponse> callback
-    ) {
-        Map<String, String> query =
-                filters != null ? filters : Collections.emptyMap();
-        executeDashboardCall(() -> api.getPendingBookings(query), callback);
-    }
-
     public void getBookingHistory(
             Map<String, String> filters,
             DashboardCallback<ReservationPageResponse> callback
@@ -151,15 +142,6 @@ public final class ReservationRepository implements AutoCloseable {
         Map<String, String> query =
                 filters != null ? filters : Collections.emptyMap();
         executeDashboardCall(() -> api.getBookingHistory(query), callback);
-    }
-
-    public void searchBookings(
-            Map<String, String> filters,
-            DashboardCallback<ReservationPageResponse> callback
-    ) {
-        Map<String, String> query =
-                filters != null ? filters : Collections.emptyMap();
-        executeDashboardCall(() -> api.searchBookings(query), callback);
     }
 
     public void issueQr(

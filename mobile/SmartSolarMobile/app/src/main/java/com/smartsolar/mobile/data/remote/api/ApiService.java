@@ -67,18 +67,8 @@ public interface ApiService {
             @QueryMap Map<String, String> query
     );
 
-    @GET("reservations/pending")
-    Call<ReservationPageResponse> getPendingBookings(
-            @QueryMap Map<String, String> query
-    );
-
     @GET("reservations/history")
     Call<ReservationPageResponse> getBookingHistory(
-            @QueryMap Map<String, String> query
-    );
-
-    @GET("reservations/search")
-    Call<ReservationPageResponse> searchBookings(
             @QueryMap Map<String, String> query
     );
 

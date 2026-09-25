@@ -23,8 +23,6 @@ import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.ui.auth.LoginActivity;
 import com.smartsolar.mobile.ui.reservations.BookingHistoryActivity;
 import com.smartsolar.mobile.ui.reservations.CurrentBookingsActivity;
-import com.smartsolar.mobile.ui.reservations.PendingBookingsActivity;
-import com.smartsolar.mobile.ui.reservations.SearchBookingsActivity;
 import com.smartsolar.mobile.util.MobileAccess;
 import com.smartsolar.mobile.util.SessionManager;
 import java.text.DateFormat;
@@ -48,9 +46,7 @@ public final class HomeActivity extends AppCompatActivity {
     private TextView textMetricsStatus;
 
     private Button buttonCurrentBookings;
-    private Button buttonPendingBookings;
     private Button buttonBookingHistory;
-    private Button buttonSearchBookings;
     private Button buttonScanTransaction;
     private View cardScanTransaction;
 
@@ -80,9 +76,7 @@ public final class HomeActivity extends AppCompatActivity {
         textMetricsStatus = findViewById(R.id.textMetricsStatus);
 
         buttonCurrentBookings = findViewById(R.id.buttonCurrentBookings);
-        buttonPendingBookings = findViewById(R.id.buttonPendingBookings);
         buttonBookingHistory = findViewById(R.id.buttonBookingHistory);
-        buttonSearchBookings = findViewById(R.id.buttonSearchBookings);
         buttonScanTransaction = findViewById(R.id.buttonScanTransaction);
         cardScanTransaction = findViewById(R.id.cardScanTransaction);
         cardScanTransaction.setVisibility(View.GONE);
@@ -105,12 +99,8 @@ public final class HomeActivity extends AppCompatActivity {
 
         buttonCurrentBookings.setOnClickListener(view ->
                 startActivity(new Intent(this, CurrentBookingsActivity.class)));
-        buttonPendingBookings.setOnClickListener(view ->
-                startActivity(new Intent(this, PendingBookingsActivity.class)));
         buttonBookingHistory.setOnClickListener(view ->
                 startActivity(new Intent(this, BookingHistoryActivity.class)));
-        buttonSearchBookings.setOnClickListener(view ->
-                startActivity(new Intent(this, SearchBookingsActivity.class)));
         if (buttonScanTransaction != null) {
             buttonScanTransaction.setOnClickListener(view ->
                     startActivity(new Intent(this, com.smartsolar.mobile.ui.reservations.QrScannerActivity.class)));

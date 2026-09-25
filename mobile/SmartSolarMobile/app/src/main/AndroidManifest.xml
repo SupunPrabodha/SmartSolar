@@ -38,9 +38,7 @@
             android:exported="false" />
 
         <activity android:name=".ui.reservations.CurrentBookingsActivity" android:exported="false" />
-        <activity android:name=".ui.reservations.PendingBookingsActivity" android:exported="false" />
         <activity android:name=".ui.reservations.BookingHistoryActivity" android:exported="false" />
-        <activity android:name=".ui.reservations.SearchBookingsActivity" android:exported="false" />
         <activity android:name=".ui.reservations.ReservationQrActivity" android:exported="false" />
         <activity android:name=".ui.reservations.QrScannerActivity" android:exported="false" />
         <activity android:name=".ui.reservations.QrVerificationResultActivity" android:exported="false" />

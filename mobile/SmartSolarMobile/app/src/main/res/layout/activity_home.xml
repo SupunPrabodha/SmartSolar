@@ -41,12 +41,6 @@
     </com.google.android.material.card.MaterialCardView>
     <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="@string/modules_heading" />
     <TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/modules_description" android:layout_marginTop="8dp" />
-<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-        <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/pending_bookings" android:textSize="18sp" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/buttonPendingBookings" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/pending_bookings" android:textSize="14sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
     <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
         <TextView android:id="@+id/moduleOne" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/current_bookings" android:textSize="18sp" />
@@ -79,12 +73,6 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
         <TextView android:id="@+id/moduleThree" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/booking_history" android:textSize="18sp" />
         <com.google.android.material.button.MaterialButton android:id="@+id/buttonBookingHistory" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/booking_history" android:textSize="14sp" />
-    </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
-<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-        <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/search_bookings" android:textSize="18sp" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/buttonSearchBookings" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/search_bookings" android:textSize="14sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 <com.google.android.material.card.MaterialCardView android:id="@+id/cardScanTransaction" style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">

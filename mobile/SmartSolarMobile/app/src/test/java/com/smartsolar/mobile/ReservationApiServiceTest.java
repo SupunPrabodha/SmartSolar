@@ -79,19 +79,6 @@ public class ReservationApiServiceTest {
     }
 
     @Test
-    public void getPendingBookingsHitsExpectedEndpoint() throws Exception {
-        String json = "{\"items\":[],\"page\":1,\"pageSize\":20,\"hasMore\":false}";
-        server.enqueue(new MockResponse().setBody(json).setHeader("Content-Type", "application/json"));
-
-        Response<ReservationPageResponse> response = api.getPendingBookings(new HashMap<>()).execute();
-
-        assertTrue(response.isSuccessful());
-        RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
-        assertNotNull(request);
-        assertTrue(request.getPath().startsWith("/reservations/pending"));
-    }
-
-    @Test
     public void getBookingHistoryHitsExpectedEndpoint() throws Exception {
         String json = "{\"items\":[],\"page\":1,\"pageSize\":20,\"hasMore\":false}";
         server.enqueue(new MockResponse().setBody(json).setHeader("Content-Type", "application/json"));
@@ -102,24 +89,5 @@ public class ReservationApiServiceTest {
         RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
         assertNotNull(request);
         assertTrue(request.getPath().startsWith("/reservations/history"));
-    }
-
-    @Test
-    public void searchBookingsPassesExactFilterParameters() throws Exception {
-        String json = "{\"items\":[],\"page\":1,\"pageSize\":20,\"hasMore\":false}";
-        server.enqueue(new MockResponse().setBody(json).setHeader("Content-Type", "application/json"));
-
-        Map<String, String> query = new HashMap<>();
-        query.put("status", "Approved");
-        query.put("stationId", "sta-123");
-
-        Response<ReservationPageResponse> response = api.searchBookings(query).execute();
-
-        assertTrue(response.isSuccessful());
-        RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
-        assertNotNull(request);
-        assertTrue(request.getPath().startsWith("/reservations/search"));
-        assertTrue(request.getPath().contains("status=Approved"));
-        assertTrue(request.getPath().contains("stationId=sta-123"));
     }
 }
