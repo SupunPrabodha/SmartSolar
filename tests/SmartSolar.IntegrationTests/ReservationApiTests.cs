@@ -89,6 +89,44 @@ public sealed class ReservationApiTests
     }
 
     [MongoFact]
+    public async Task GridOperatorCanApproveAndRejectThroughHttp()
+    {
+        // GridOperator can approve a pending reservation and reject another with a remark.
+        await WithApi(async f =>
+        {
+            var id1 = await f.Create("P1");
+            var slot2 = await f.AddSlot(Now.AddDays(3));
+            using var p2Client = f.Client("P2");
+            using var p2Resp = await p2Client.PostAsJsonAsync(Root, f.Request(slot2));
+            Assert.Equal(HttpStatusCode.Created, p2Resp.StatusCode);
+            var id2 = (await Body(p2Resp)).GetProperty("reservationId").GetString()!;
+
+            using var opClient = f.Client("OP");
+
+            // Approve id1
+            using var approved = await opClient.PatchAsync(Root + "/" + id1 + "/approve", null);
+            Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
+            var approvedBody = await Body(approved);
+            Assert.Equal("Approved", approvedBody.GetProperty("status").GetString());
+
+            // Reject id2 with remark
+            using var rejected = await opClient.PatchAsJsonAsync(Root + "/" + id2 + "/reject", new { remark = "Station solar panels undergoing maintenance." });
+            Assert.Equal(HttpStatusCode.OK, rejected.StatusCode);
+            var rejectedBody = await Body(rejected);
+            Assert.Equal("Rejected", rejectedBody.GetProperty("status").GetString());
+            Assert.Equal("Station solar panels undergoing maintenance.", rejectedBody.GetProperty("rejectionRemark").GetString());
+
+            // Prosumer cannot approve or reject
+            using var p1Client = f.Client("P1");
+            using var p1Approve = await p1Client.PatchAsync(Root + "/" + id1 + "/approve", null);
+            await Problem(p1Approve, HttpStatusCode.Forbidden);
+
+            using var p1Reject = await p1Client.PatchAsJsonAsync(Root + "/" + id1 + "/reject", new { remark = "prosumer attempt" });
+            await Problem(p1Reject, HttpStatusCode.Forbidden);
+        });
+    }
+
+    [MongoFact]
     public async Task OtherProsumerCannotReadUpdateOrCancel()
     {
         // The NIC in the signed identity, not URL knowledge, determines Prosumer access.

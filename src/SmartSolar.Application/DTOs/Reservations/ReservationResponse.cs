@@ -19,4 +19,5 @@ public sealed record ReservationResponse(
     DateTime ScheduledEndAtUtc,
     ReservationStatus Status,
     DateTime CreatedAtUtc,
-    DateTime UpdatedAtUtc);
+    DateTime UpdatedAtUtc,
+    string? RejectionRemark = null);

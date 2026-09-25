@@ -77,6 +77,29 @@ public class ReservationDtoTest {
         assertEquals("Pending", response.getStatus());
         assertEquals("2026-09-24T12:00:00Z", response.getCreatedAtUtc());
         assertEquals("2026-09-24T12:00:00Z", response.getUpdatedAtUtc());
+        assertNull(response.getRejectionRemark());
+    }
+
+    @Test
+    public void deserializesRejectedReservationResponseWithRemark() {
+        String json = "{" +
+                "\"reservationId\":\"res-123\"," +
+                "\"prosumerNic\":\"200012345678\"," +
+                "\"stationId\":\"sta-456\"," +
+                "\"slotId\":\"slo-789\"," +
+                "\"energyAmountKwh\":1.5," +
+                "\"scheduledStartAtUtc\":\"2026-09-30T10:00:00Z\"," +
+                "\"scheduledEndAtUtc\":\"2026-09-30T11:00:00Z\"," +
+                "\"status\":\"Rejected\"," +
+                "\"createdAtUtc\":\"2026-09-24T12:00:00Z\"," +
+                "\"updatedAtUtc\":\"2026-09-24T12:00:00Z\"," +
+                "\"rejectionRemark\":\"Station undergoing routine grid maintenance.\"" +
+                "}";
+
+        ReservationResponse response = gson.fromJson(json, ReservationResponse.class);
+        assertNotNull(response);
+        assertEquals("Rejected", response.getStatus());
+        assertEquals("Station undergoing routine grid maintenance.", response.getRejectionRemark());
     }
 
     @Test

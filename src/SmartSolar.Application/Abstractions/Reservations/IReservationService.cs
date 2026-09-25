@@ -19,7 +19,29 @@ public interface IReservationService
     Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default);
     Task<ReservationResponse> UpdateAsync(string actorNic, string reservationId, UpdateReservationRequest request, CancellationToken ct = default);
     Task<ReservationResponse> CancelAsync(string actorNic, string reservationId, CancellationToken ct = default);
-    Task<ReservationQrResponse> IssueQrAsync(string actorNic, string reservationId, CancellationToken ct = default);
-    Task<ReservationVerificationResponse> VerifyQrAsync(string actorNic, VerifyReservationQrRequest request, CancellationToken ct = default);
-    Task<ReservationCompletionResponse> CompleteTransferAsync(string actorNic, CompleteReservationTransferRequest request, CancellationToken ct = default);
+    Task<ReservationResponse> ApproveAsync(
+        string actorNic,
+        string reservationId,
+        CancellationToken ct = default);
+
+    Task<ReservationResponse> RejectAsync(
+        string actorNic,
+        string reservationId,
+        RejectReservationRequest request,
+        CancellationToken ct = default);
+
+    Task<ReservationQrResponse> IssueQrAsync(
+        string actorNic,
+        string reservationId,
+        CancellationToken ct = default);
+
+    Task<ReservationVerificationResponse> VerifyQrAsync(
+        string actorNic,
+        VerifyReservationQrRequest request,
+        CancellationToken ct = default);
+
+    Task<ReservationCompletionResponse> CompleteTransferAsync(
+        string actorNic,
+        CompleteReservationTransferRequest request,
+        CancellationToken ct = default);
 }

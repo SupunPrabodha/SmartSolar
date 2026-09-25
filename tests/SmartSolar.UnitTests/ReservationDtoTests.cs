@@ -51,6 +51,17 @@ public sealed class ReservationDtoTests
         Assert.True(IsValid(new UpdateReservationRequest { SlotId = id, EnergyAmountKwh = 1 }));
     }
 
+    [Theory]
+    [InlineData("Station is under maintenance", true)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    public void RejectRequestRequiresNonEmptyRemark(string remark, bool valid)
+    {
+        // Reject request requires a non-empty remark.
+        var request = new RejectReservationRequest { Remark = remark };
+        Assert.Equal(valid, IsValid(request));
+    }
+
     [Fact]
     public void RequestsCannotBindServerOwnedFields()
     {

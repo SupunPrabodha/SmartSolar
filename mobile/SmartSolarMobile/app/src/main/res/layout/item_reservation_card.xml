@@ -197,6 +197,33 @@
                 android:textStyle="bold"
                 android:textSize="13sp" />
 
+            <LinearLayout
+                android:id="@+id/layoutRejectionNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_rejection_notice"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Rejection Reason"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#C62828" />
+
+                <TextView
+                    android:id="@+id/textRejectionRemark"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="13sp"
+                    android:textColor="?attr/colorOnSurface" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/textExpandedRestriction"
                 style="@style/Solar.Body"

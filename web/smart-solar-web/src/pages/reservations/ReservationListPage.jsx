@@ -49,8 +49,24 @@ export default function ReservationListPage() {
             <td className="text-break">{row.reservationId}</td><td>{row.prosumerNic}</td>
             <td className="text-break"><div>{row.stationId}</div><small className="text-secondary">Slot: {row.slotId}</small></td>
             <td><div>{formatUtc(row.scheduledStartAtUtc)}</div><small>to {formatUtc(row.scheduledEndAtUtc)}</small></td>
-            <td>{row.energyAmountKwh} kWh</td><td><StatusBadge status={row.status} /></td>
-            <td><Link className="btn btn-outline-primary btn-sm" aria-label={`View reservation ${row.reservationId}`} to={encodeURIComponent(row.reservationId)}>View</Link></td>
+            <td>{row.energyAmountKwh} kWh</td>
+            <td>
+              <StatusBadge status={row.status} />
+              {row.status === 'Rejected' && row.rejectionRemark && (
+                <div className="small text-danger text-truncate" style={{ maxWidth: '160px' }} title={row.rejectionRemark}>
+                  {row.rejectionRemark}
+                </div>
+              )}
+            </td>
+            <td>
+              <Link
+                className="btn btn-outline-primary btn-sm"
+                aria-label={`${row.status === 'Pending' ? 'Review' : 'View'} reservation ${row.reservationId}`}
+                to={encodeURIComponent(row.reservationId)}
+              >
+                {row.status === 'Pending' ? 'Review' : 'View'}
+              </Link>
+            </td>
           </tr>)}</tbody>
         </table>
       </div>

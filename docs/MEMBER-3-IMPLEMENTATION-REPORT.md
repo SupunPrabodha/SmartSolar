@@ -83,6 +83,8 @@ Member 3 implements the end-to-end **Energy Reservation Management & Lifecycle**
 | `POST` | `/api/v1/reservations/prosumers/{nic}` | `GridOperator` | `{ slotId, energyAmountKwh }` | `201 Created` (`Location` header + summary) |
 | `GET` | `/api/v1/reservations/{id}` | `Prosumer` (owner), `GridOperator` | None | `200 OK` (Reservation summary) |
 | `PUT` | `/api/v1/reservations/{id}` | `Prosumer` (owner), `GridOperator` | `{ slotId, energyAmountKwh }` | `200 OK` (Updated summary in `Pending`) |
+| `PATCH` | `/api/v1/reservations/{id}/approve` | `GridOperator` | None | `200 OK` (Approved summary) |
+| `PATCH` | `/api/v1/reservations/{id}/reject` | `GridOperator` | `{ remark }` (1..500 chars) | `200 OK` (Rejected summary) |
 | `PATCH` | `/api/v1/reservations/{id}/cancel` | `Prosumer` (owner), `GridOperator` | None | `200 OK` (Cancelled summary) |
 
 ---
@@ -95,29 +97,33 @@ Member 3 implements the end-to-end **Energy Reservation Management & Lifecycle**
 2. **12-Hour Modification / Cancellation Notice**:
    - `ScheduledStartAtUtc - UtcNow >= 12 hours` (inclusive boundary: exactly 12 hours allowed, 11h 59m 59s rejected with 409).
    - Moving to a later slot cannot bypass the 12-hour cutoff on the existing slot.
-3. **Station Energy Capacity**:
+3. **Approval & Rejection Rules**:
+   - Only `Pending` reservations can be approved or rejected.
+   - Approval requires the schedule to be in the future (`ScheduledStartAtUtc > UtcNow`).
+   - Rejection strictly requires a non-empty `Remark` (`1..500` characters) explaining the rejection cause, which is persisted and returned to the prosumer. Rejection atomically returns 1 slot capacity.
+4. **Station Energy Capacity**:
    - `EnergyAmountKwh <= Station.CapacityKwh` (station total limit).
    - `AllocatedKwh + RequestedKwh <= Station.CapacityKwh` (cumulative slot limit).
-4. **Overlap & Half-Open Intervals**:
+5. **Overlap & Half-Open Intervals**:
    - Overlap condition: `ExistingStart < RequestedEnd AND RequestedStart < ExistingEnd`.
    - Adjacency (e.g. 10:00–11:00 and 11:00–12:00) is allowed.
-5. **Role & Ownership Isolation**:
-   - Prosumers can access and modify only their own reservations.
-   - Grid Operators can create, inspect, modify, and cancel on behalf of active Prosumers.
+6. **Role & Ownership Isolation**:
+   - Prosumers can access, modify, and cancel only their own reservations.
+   - Grid Operators can create, inspect, modify, approve, reject, and cancel reservations.
    - Backoffice role is rejected with 403 Forbidden.
 
 ---
 
 ## 6. Client Implementations
 
-### Web Client (Grid Operator Assisted Flow)
-- **Reservation List Page (`/reservations`)**: Filterable table by status, Prosumer NIC, and Station ID. Shows real-time status badges, schedule intervals, energy amounts, and action buttons.
-- **Reservation Details Page (`/reservations/:id`)**: Comprehensive reservation inspection with full metadata breakdown, direct modification link, and guarded cancellation confirmation dialog.
+### Web Client (Grid Operator Assisted & Management Flow)
+- **Reservation List Page (`/reservations`)**: Filterable table by status, Prosumer NIC, and Station ID. Displays real-time status badges, schedule intervals, energy amounts, rejection remark snippet preview, and direct action links.
+- **Reservation Details Page (`/reservations/:id`)**: Comprehensive reservation inspection with full metadata breakdown, rejection notice alert when rejected, direct modification link, cancellation dialog, **Approve Reservation** action modal, and **Reject Reservation** modal with mandatory remark input.
 - **Assisted Reservation Form (`/reservations/new`, `/reservations/:id/edit`)**: Interactive slot selection dropdown populated from `/reservations/slots` with fallback manual slot GUID input toggle; Prosumer NIC lookup; energy amount input; live two-step confirmation review.
 
 ### Android Client (Prosumer Self-Service Flow)
 - **Dashboard Tile**: "My Reservations" tile navigates directly to the Prosumer reservation management screen.
-- **My Reservations Screen (`ReservationDetailsActivity`)**: Loads all Prosumer reservations via `GET /reservations/my`; renders expandable cards with custom status badges; displays Station ID, Energy kWh, and UTC Schedule; provides expand/collapse chevron; houses "+ New reservation" header button, "Modify reservation", "Cancel reservation", "Refresh details", and "Back to workspace".
+- **My Reservations Screen (`ReservationDetailsActivity`)**: Loads all Prosumer reservations via `GET /reservations/my`; renders expandable cards with custom status badges (`Pending`, `Approved`, `Rejected`, `Cancelled`); **displays clear red Rejection Notice card with the Grid Operator's remark when `status == "Rejected"`**; provides expand/collapse chevron; houses "+ New reservation" header button, "Modify reservation", "Cancel reservation", "Refresh details", and "Back to workspace".
 - **New Energy Reservation Screen (`CreateReservationActivity`)**: Custom multi-line styled spinner (`SlotSpinnerAdapter`) displaying Station Name, Available Count Badge, and formatted Start UTC Schedule; energy amount input; review confirmation dialog; error alert parsing for RFC 7807 ProblemDetails.
 - **Update Reservation Screen (`UpdateReservationActivity`)**: Prefilled form with active slot spinner and energy input; displays reapproval notice and confirmation prompt.
 
@@ -134,6 +140,7 @@ Member 3 implements the end-to-end **Energy Reservation Management & Lifecycle**
   - `Status` (string enum: `Pending`, `Approved`, `Rejected`, `Cancelled`, `Completed`)
   - `ScheduledStartAtUtc` (UTC DateTime snapshot)
   - `ScheduledEndAtUtc` (UTC DateTime snapshot)
+  - `RejectionRemark` (string, nullable — persisted on rejection)
   - `QrToken` (string, nullable)
   - `CreatedAtUtc`, `UpdatedAtUtc` (UTC DateTime)
 - **Indexes**:
@@ -146,10 +153,10 @@ Member 3 implements the end-to-end **Energy Reservation Management & Lifecycle**
 
 ## 8. Shared-Contract Changes
 
-1. Added nullable `ScheduledStartAtUtc` and `ScheduledEndAtUtc` to `EnergyReservation` domain entity to support accepted schedule snapshots.
+1. Added nullable `ScheduledStartAtUtc`, `ScheduledEndAtUtc`, and `RejectionRemark` to `EnergyReservation` domain entity.
 2. Added `ReservationWriteLock` string field to `User` entity for standalone concurrency control.
-3. Added `AvailableSlotResponse` record in Application DTOs.
-4. Added `GET /api/v1/reservations/my` and `GET /api/v1/reservations/slots` endpoints to the shared API contract.
+3. Added `AvailableSlotResponse` and `RejectReservationRequest` records in Application DTOs.
+4. Added `GET /api/v1/reservations/my`, `GET /api/v1/reservations/slots`, `PATCH /api/v1/reservations/{id}/approve`, and `PATCH /api/v1/reservations/{id}/reject` endpoints to the shared API contract.
 
 ---
 
@@ -159,11 +166,11 @@ All test suites were executed cleanly in Release mode:
 
 | Test Suite | Total Tests | Passed | Failed | Skipped |
 |---|---|---|---|---|
-| **Backend Unit Tests** (`SmartSolar.UnitTests`) | 95 | **95** | 0 | 0 |
-| **Backend Integration Tests** (`SmartSolar.IntegrationTests` with live Mongo) | 37 | **37** | 0 | 0 |
-| **Web Frontend Tests** (`npm test` in `smart-solar-web`) | 45 | **45** | 0 | 0 |
-| **Android JVM Unit Tests** (`:app:testDebugUnitTest`) | 27 | **27** | 0 | 0 |
-| **Total Automated Tests** | **204** | **204** | **0** | **0** |
+| **Backend Unit Tests** (`SmartSolar.UnitTests`) | 117 | **117** | 0 | 0 |
+| **Backend Integration Tests** (`SmartSolar.IntegrationTests` with live Mongo) | 38 | **38** | 0 | 0 |
+| **Web Frontend Tests** (`npm test` in `smart-solar-web`) | 52 | **52** | 0 | 0 |
+| **Android JVM Unit Tests** (`:app:testDebugUnitTest`) | 28 | **28** | 0 | 0 |
+| **Total Automated Tests** | **235** | **235** | **0** | **0** |
 
 ### Build & Lint Summary
 - **.NET Solution Build**: Succeeded (`0 Warning(s)`, `0 Error(s)`).

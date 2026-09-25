@@ -12,7 +12,7 @@ const { code: clientCode } = await transformWithEsbuild(clientSource, 'apiClient
 const clientUrl = 'data:text/javascript;base64,' + Buffer.from(clientCode).toString('base64');
 const apiSource = (await readFile(new URL('../src/api/reservations.js', import.meta.url), 'utf8'))
   .replace("'./apiClient.js'", JSON.stringify(clientUrl));
-const { listReservations, listAvailableSlots, getReservation, createReservation, updateReservation, cancelReservation } =
+const { listReservations, listAvailableSlots, getReservation, createReservation, updateReservation, cancelReservation, approveReservation, rejectReservation } =
   await import('data:text/javascript;base64,' + Buffer.from(apiSource).toString('base64'));
 
 const originalFetch = globalThis.fetch;
@@ -88,6 +88,35 @@ test('cancel sends a bodyless PATCH and returns the cancellation summary', async
   assert.equal(calls[0].options.method, 'PATCH');
   assert.equal(calls[0].options.body, undefined);
   assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/reservation-id/cancel');
+});
+
+test('approve sends a bodyless PATCH and returns the approved summary', async () => {
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...summary, status: 'Approved' });
+  };
+  assert.equal((await approveReservation('reservation-id')).status, 'Approved');
+  assert.equal(calls[0].options.method, 'PATCH');
+  assert.equal(calls[0].options.body, undefined);
+  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/reservation-id/approve');
+});
+
+test('reject sends a PATCH with remark and returns the rejected summary', async () => {
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...summary, status: 'Rejected', rejectionRemark: 'Grid maintenance' });
+  };
+  const result = await rejectReservation('reservation-id', { remark: 'Grid maintenance' });
+  assert.equal(result.status, 'Rejected');
+  assert.equal(result.rejectionRemark, 'Grid maintenance');
+  assert.equal(calls[0].options.method, 'PATCH');
+  assert.deepEqual(JSON.parse(calls[0].options.body), { remark: 'Grid maintenance' });
+  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/reservation-id/reject');
+});
+
+test('reject requires a non-empty remark', () => {
+  assert.throws(() => rejectReservation('reservation-id', { remark: '' }), /Rejection remark is required/);
+  assert.throws(() => rejectReservation('reservation-id', { remark: '   ' }), /Rejection remark is required/);
 });
 
 test('identifiers are encoded as single path segments', async () => {

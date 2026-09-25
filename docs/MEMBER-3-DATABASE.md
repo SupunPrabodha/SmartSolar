@@ -34,6 +34,7 @@
 | `ScheduledStartAtUtc` | UTC DateTime | Yes (Legacy) | Snapshot of accepted slot start time. Required for authoritative rule checks. |
 | `ScheduledEndAtUtc` | UTC DateTime | Yes (Legacy) | Snapshot of accepted slot end time. Required for half-open interval overlap checks. |
 | `QrToken` | String | Yes | Transaction security token generated upon staff approval. Cleared on modify/cancel. |
+| `RejectionRemark` | String | Yes | Rejection reason supplied by operator upon rejecting a reservation. |
 | `CreatedAtUtc` | UTC DateTime | No | Server timestamp when reservation was initially created. |
 | `UpdatedAtUtc` | UTC DateTime | No | Server timestamp of last modification. Used for optimistic concurrency CAS. |
 

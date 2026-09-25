@@ -41,13 +41,20 @@ public sealed class ReservationSwaggerFilter : IOperationFilter, ISchemaFilter
             nameof(ReservationsController.Cancel) => (
                 "Cancel a reservation (owner or GridOperator)",
                 "Only Pending or Approved reservations can be cancelled, at least 12 hours before the accepted start (inclusive). No request body is needed. Returns the Cancelled summary; a repeated cancellation returns 409."),
+            nameof(ReservationsController.Approve) => (
+                "Approve a reservation (GridOperator)",
+                "Requires an active GridOperator. Only Pending reservations can be approved. Returns the Approved summary; retains slot capacity."),
+            nameof(ReservationsController.Reject) => (
+                "Reject a reservation (GridOperator)",
+                "Requires an active GridOperator. Only Pending reservations can be rejected with a mandatory remark. Returns the Rejected summary and releases slot capacity."),
             nameof(ReservationsController.IssueQr) => (
                 "Issue/rotate transaction QR reference (owner)",
                 "Requires the owning active Prosumer (or GridOperator). Reservation must be exactly in Approved state. Issues a cryptographically strong opaque reference and rotates any previous reference."),
             nameof(ReservationsController.VerifyQr) => (
                 "Verify transaction QR reference (GridOperator)",
                 "Requires an active GridOperator. Scans and verifies the opaque QR reference against server-side authoritative state. Returns trusted reservation details."),
-            nameof(ReservationsController.CompleteTransfer) or nameof(ReservationsController.CompleteTransferById) => (
+            nameof(ReservationsController.CompleteTransfer)
+                or nameof(ReservationsController.CompleteTransferById) => (
                 "Complete energy transfer transaction (GridOperator)",
                 "Requires an active GridOperator. Revalidates server state, transitions Approved reservation to Completed, records server completion timestamp and operator identity, and enforces single completion."),
             _ => ("Reservation operation", "Authorized reservation operation.")

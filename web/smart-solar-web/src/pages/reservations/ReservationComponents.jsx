@@ -1,34 +1,113 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import Brand from '../../components/Brand';
 import { errorMessage, formatUtc } from './reservationUi.js';
 
+const operatorModules = [
+  ['Operations', 'Your station operations workspace.'],
+  ['Microgrid Stations', 'Access your assigned station information.'],
+  ['Transactions', 'Review and complete energy transactions.']
+];
+
+export function ReservationLayout() {
+  const { user, logout } = useAuth();
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const main = useRef(null);
+  useEffect(() => { main.current?.focus(); }, [pathname]);
+  return <div className="workspace">
+    <a className="skip-link" href="#reservation-main">Skip to content</a>
+    <aside className="workspace-sidebar">
+      <div className="sidebar-heading">
+        <Brand />
+        <button
+          className="nav-toggle"
+          aria-expanded={menuOpen}
+          aria-controls="workspace-navigation"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? 'Close menu' : 'Menu'}
+        </button>
+      </div>
+      <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
+        <span className="nav-caption">WORKSPACE</span>
+        <NavLink to="/" end className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <span aria-hidden="true">01</span>Home
+        </NavLink>
+        <NavLink to="/operator/reservations" className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <span aria-hidden="true">02</span>Manage Reservations
+        </NavLink>
+        <span className="nav-caption mt-4">UPCOMING MODULES</span>
+        {operatorModules.map(([name], index) => (
+          <button className="workspace-nav-item" key={name} disabled>
+            <span aria-hidden="true">0{index + 3}</span>{name}<small>Planned</small>
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-footer">
+        <span className="status-dot" />Phase 0 foundation
+        <small>Shared starting point for the team</small>
+      </div>
 export function ReservationLayout() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const main = useRef(null);
-  useEffect(() => { main.current?.focus(); }, [pathname]);
-  return <div className="reservation-workspace container py-4">
-    <a className="skip-link" href="#reservation-main">Skip to content</a>
-    <header className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-      <Brand />
-      <div className="d-flex flex-wrap align-items-center gap-3">
-        <span>{user.fullName}</span><span className="role-pill">Grid Operator</span>
-        <button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button>
-      </div>
-    </header>
-    <nav className="d-flex flex-wrap gap-3 mb-4" aria-label="Reservation navigation">
-      <Link to="/">Home</Link>
-      <NavLink to="/operator/reservations/dashboard">Dashboard</NavLink>
-      <NavLink to="/operator/reservations/current">Current Bookings</NavLink>
-      <NavLink to="/operator/reservations/pending">Pending Bookings</NavLink>
-      <NavLink to="/operator/reservations/history">Booking History</NavLink>
-      <NavLink to="/operator/reservations/search">Search</NavLink>
-      <NavLink end to="/operator/reservations">Manage</NavLink>
-      <NavLink to="/operator/reservations/new">New reservation</NavLink>
-    </nav>
-    <main ref={main} id="reservation-main" tabIndex="-1"><Outlet /></main>
+
+  useEffect(() => {
+    main.current?.focus();
+  }, [pathname]);
+
+  return (
+    <div className="reservation-workspace container py-4">
+      <a className="skip-link" href="#reservation-main">
+        Skip to content
+      </a>
+
+      <header className="workspace-topbar d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <Brand />
+
+        <span className="environment-label">
+          {import.meta.env.DEV ? 'Development' : 'Production build'}
+        </span>
+
+        <div className="topbar-account d-flex flex-wrap align-items-center gap-3">
+          <span className="account-name">{user?.fullName}</span>
+          <span className="role-pill">{user?.role ?? 'Grid Operator'}</span>
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={logout}
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <nav
+        className="d-flex flex-wrap gap-3 mb-4"
+        aria-label="Reservation navigation"
+      >
+        <Link to="/">Home</Link>
+        <NavLink to="/operator/reservations/dashboard">Dashboard</NavLink>
+        <NavLink to="/operator/reservations/current">Current Bookings</NavLink>
+        <NavLink to="/operator/reservations/pending">Pending Bookings</NavLink>
+        <NavLink to="/operator/reservations/history">Booking History</NavLink>
+        <NavLink to="/operator/reservations/search">Search</NavLink>
+        <NavLink end to="/operator/reservations">Manage</NavLink>
+        <NavLink to="/operator/reservations/new">New reservation</NavLink>
+      </nav>
+
+      <main
+        ref={main}
+        id="reservation-main"
+        className="workspace-main pb-5"
+        tabIndex="-1"
+      >
+        <Outlet />
+      </main>
+    </div>
+  );
+}
   </div>;
 }
 
@@ -58,14 +137,18 @@ export function StatusBadge({ status }) {
 }
 
 export function ReservationSummary({ reservation }) {
+  const fields = [
+    ['Reservation ID', reservation.reservationId], ['Prosumer NIC', reservation.prosumerNic],
+    ['Station ID', reservation.stationId], ['Slot ID', reservation.slotId],
+    ['Accepted start', formatUtc(reservation.scheduledStartAtUtc)], ['Accepted end', formatUtc(reservation.scheduledEndAtUtc)],
+    ['Energy amount', `${reservation.energyAmountKwh} kWh`], ['Status', <StatusBadge key="status" status={reservation.status} />],
+    ['Change cutoff', formatUtc(new Date(Date.parse(reservation.scheduledStartAtUtc) - 12 * 3600000))]
+  ];
+  if (reservation.status === 'Rejected' && reservation.rejectionRemark) {
+    fields.push(['Rejection Reason', <span key="remark" className="text-danger fw-bold">{reservation.rejectionRemark}</span>]);
+  }
   return <dl className="row reservation-summary mb-0">
-    {[
-      ['Reservation ID', reservation.reservationId], ['Prosumer NIC', reservation.prosumerNic],
-      ['Station ID', reservation.stationId], ['Slot ID', reservation.slotId],
-      ['Accepted start', formatUtc(reservation.scheduledStartAtUtc)], ['Accepted end', formatUtc(reservation.scheduledEndAtUtc)],
-      ['Energy amount', `${reservation.energyAmountKwh} kWh`], ['Status', <StatusBadge key="status" status={reservation.status} />],
-      ['Change cutoff', formatUtc(new Date(Date.parse(reservation.scheduledStartAtUtc) - 12 * 3600000))]
-    ].map(([label, value]) => <div className="col-md-6 mb-3" key={label}>
+    {fields.map(([label, value]) => <div className="col-md-6 mb-3" key={label}>
       <dt className="small text-secondary">{label}</dt><dd className="text-break mb-0">{value}</dd>
     </div>)}
   </dl>;

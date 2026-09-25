@@ -11,6 +11,7 @@ public class ReservationResponse {
     private String status;
     private String createdAtUtc;
     private String updatedAtUtc;
+    private String rejectionRemark;
 
     public ReservationResponse() { }
 
@@ -18,6 +19,14 @@ public class ReservationResponse {
                                String slotId, double energyAmountKwh, String scheduledStartAtUtc,
                                String scheduledEndAtUtc, String status, String createdAtUtc,
                                String updatedAtUtc) {
+        this(reservationId, prosumerNic, stationId, slotId, energyAmountKwh, scheduledStartAtUtc,
+             scheduledEndAtUtc, status, createdAtUtc, updatedAtUtc, null);
+    }
+
+    public ReservationResponse(String reservationId, String prosumerNic, String stationId,
+                               String slotId, double energyAmountKwh, String scheduledStartAtUtc,
+                               String scheduledEndAtUtc, String status, String createdAtUtc,
+                               String updatedAtUtc, String rejectionRemark) {
         this.reservationId = reservationId;
         this.prosumerNic = prosumerNic;
         this.stationId = stationId;
@@ -28,6 +37,7 @@ public class ReservationResponse {
         this.status = status;
         this.createdAtUtc = createdAtUtc;
         this.updatedAtUtc = updatedAtUtc;
+        this.rejectionRemark = rejectionRemark;
     }
 
     public String getReservationId() { return reservationId; }
@@ -40,4 +50,6 @@ public class ReservationResponse {
     public String getStatus() { return status; }
     public String getCreatedAtUtc() { return createdAtUtc; }
     public String getUpdatedAtUtc() { return updatedAtUtc; }
+    public String getRejectionRemark() { return rejectionRemark; }
+    public void setRejectionRemark(String rejectionRemark) { this.rejectionRemark = rejectionRemark; }
 }

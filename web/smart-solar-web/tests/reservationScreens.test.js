@@ -13,6 +13,9 @@ const server = await createServer({
 const { default: List } = await server.ssrLoadModule('/src/pages/reservations/ReservationListPage.jsx');
 const { default: Form } = await server.ssrLoadModule('/src/pages/reservations/ReservationFormPage.jsx');
 const { default: Details } = await server.ssrLoadModule('/src/pages/reservations/ReservationDetailsPage.jsx');
+const { ReservationLayout } = await server.ssrLoadModule('/src/pages/reservations/ReservationComponents.jsx');
+const { default: HomePage } = await server.ssrLoadModule('/src/pages/HomePage.jsx');
+const { AuthProvider } = await server.ssrLoadModule('/src/auth/AuthContext.jsx');
 after(() => server.close());
 
 const originalFetch = globalThis.fetch;
@@ -65,7 +68,16 @@ async function review() {
 
 beforeEach(() => {
   calls = [];
-  globalThis.sessionStorage = { getItem: () => 'test-session', removeItem() {} };
+  const store = new Map([
+    ['accessToken', 'test-session'],
+    ['currentUser', JSON.stringify({ fullName: 'Operator One', role: 'GridOperator', status: 'Active' })],
+    ['expiresAtUtc', new Date(Date.now() + 3600000).toISOString()]
+  ]);
+  globalThis.sessionStorage = {
+    getItem: key => store.get(key) ?? null,
+    setItem: (key, val) => store.set(key, String(val)),
+    removeItem: key => store.delete(key)
+  };
   globalThis.window = new EventTarget();
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
@@ -94,6 +106,11 @@ test('list loads real rows and applies only the operational filters', async () =
   await mount(base);
   assert.match(text(view.root), /reservation-1/);
   assert.match(text(view.root), /1.5 kWh/);
+  // Pending row shows 'Review' action button
+  const actionLink = view.root.findAllByType('a').find(a => a.props.href === '/operator/reservations/reservation-1');
+  assert.ok(actionLink, 'Expected action link for reservation-1');
+  assert.equal(text(actionLink), 'Review');
+
   await fill('filter-status', 'Pending');
   await fill('filter-nic', '200012345678');
   await review();
@@ -342,4 +359,80 @@ test('error notice displays multiple validation error messages from ProblemDetai
   assert.match(text(view.root), /Slot does not exist/);
   assert.match(text(view.root), /Exceeds station storage capacity/);
 });
+
+test('details approval requires confirmation and shows approved summary', async () => {
+  await mount(base + '/reservation-1');
+  await click('Approve reservation');
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...row, status: 'Approved' });
+  };
+  await click('Confirm approval');
+  assert.equal(calls.at(-1).options.method, 'PATCH');
+  assert.ok(calls.at(-1).url.endsWith('/approve'));
+  assert.match(text(view.root), /Reservation approved successfully/);
+});
+
+test('details rejection requires remark and shows rejected summary with released capacity note', async () => {
+  await mount(base + '/reservation-1');
+  await click('Reject reservation');
+  // Attempt submit without remark
+  await click('Confirm rejection');
+  assert.match(text(view.root), /Please provide a reason/);
+
+  // Fill remark and submit
+  await fill('reject-remark', 'Grid maintenance');
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response({ ...row, status: 'Rejected', rejectionRemark: 'Grid maintenance' });
+  };
+  await click('Confirm rejection');
+  assert.equal(calls.at(-1).options.method, 'PATCH');
+  assert.ok(calls.at(-1).url.endsWith('/reject'));
+  assert.match(text(view.root), /Reservation rejected/);
+});
+
+test('home page sidebar renders Manage Reservations link and removes standalone button', async () => {
+  sessionStorage.setItem('accessToken', 'mock-token');
+  sessionStorage.setItem('expiresAtUtc', new Date(Date.now() + 3600000).toISOString());
+  globalThis.fetch = async () => response({ fullName: 'Operator One', role: 'GridOperator', status: 'Active' });
+  await act(async () => {
+    view = create(React.createElement(MemoryRouter, { initialEntries: ['/'] },
+      React.createElement(AuthProvider, null,
+        React.createElement(HomePage)
+      )
+    ));
+  });
+  await settle();
+  const navLinks = view.root.findAllByProps({ className: 'workspace-nav-item' });
+  const reservationsLink = navLinks.find(node => text(node).includes('Manage Reservations'));
+  assert.ok(reservationsLink, 'Expected Manage Reservations link in sidebar');
+  assert.equal(reservationsLink.props.to, '/operator/reservations');
+
+  // Verify the old standalone manage reservations button is removed from home page body
+  const links = view.root.findAllByType('a').filter(a => a.props.href === '/operator/reservations');
+  assert.equal(links.length, 1, 'Only the sidebar link should point to /operator/reservations');
+});
+
+test('reservation layout keeps aligned sidebar with Manage Reservations', async () => {
+  sessionStorage.setItem('accessToken', 'mock-token');
+  sessionStorage.setItem('expiresAtUtc', new Date(Date.now() + 3600000).toISOString());
+  globalThis.fetch = async () => response({ fullName: 'Operator One', role: 'GridOperator', status: 'Active' });
+  await act(async () => {
+    view = create(React.createElement(MemoryRouter, { initialEntries: ['/operator/reservations'] },
+      React.createElement(AuthProvider, null,
+        React.createElement(Routes, null,
+          React.createElement(Route, { path: '/operator/reservations', element: React.createElement(ReservationLayout) },
+            React.createElement(Route, { index: true, element: React.createElement('div', null, 'Reservation content') })
+          )
+        )
+      )
+    ));
+  });
+  await settle();
+  const navLinks = view.root.findAllByProps({ className: 'workspace-nav-item active' });
+  const activeLink = navLinks.find(node => text(node).includes('Manage Reservations'));
+  assert.ok(activeLink, 'Expected Manage Reservations active in sidebar on reservation screens');
+});
+
 

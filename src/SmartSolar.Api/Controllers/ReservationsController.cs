@@ -91,39 +91,85 @@ public sealed class ReservationsController : ControllerBase
         return Ok(await _reservations.CancelAsync(User.GetNic(), reservationId, cancellationToken));
     }
 
+    [HttpPatch("{reservationId}/approve")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationResponse>> Approve(
+        string reservationId,
+        CancellationToken cancellationToken)
+    {
+        // Only active GridOperators can approve a pending reservation.
+        return Ok(await _reservations.ApproveAsync(
+            User.GetNic(),
+            reservationId,
+            cancellationToken));
+    }
+
+    [HttpPatch("{reservationId}/reject")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationResponse>> Reject(
+        string reservationId,
+        [FromBody] RejectReservationRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Only active GridOperators can reject a pending reservation with a mandatory remark.
+        return Ok(await _reservations.RejectAsync(
+            User.GetNic(),
+            reservationId,
+            request,
+            cancellationToken));
+    }
+
     [HttpPost("{reservationId}/qr")]
-    public async Task<ActionResult<ReservationQrResponse>> IssueQr(string reservationId, CancellationToken cancellationToken)
+    public async Task<ActionResult<ReservationQrResponse>> IssueQr(
+        string reservationId,
+        CancellationToken cancellationToken)
     {
         // Issues a cryptographically strong opaque reference for an approved reservation.
-        return Ok(await _reservations.IssueQrAsync(User.GetNic(), reservationId, cancellationToken));
+        return Ok(await _reservations.IssueQrAsync(
+            User.GetNic(),
+            reservationId,
+            cancellationToken));
     }
 
     [HttpPost("qr/verify")]
     [Authorize(Roles = "GridOperator")]
     public async Task<ActionResult<ReservationVerificationResponse>> VerifyQr(
-        [FromBody] VerifyReservationQrRequest request, CancellationToken cancellationToken)
+        [FromBody] VerifyReservationQrRequest request,
+        CancellationToken cancellationToken)
     {
         // Verifies the scanned opaque reference against current authoritative server state.
-        return Ok(await _reservations.VerifyQrAsync(User.GetNic(), request, cancellationToken));
+        return Ok(await _reservations.VerifyQrAsync(
+            User.GetNic(),
+            request,
+            cancellationToken));
     }
 
     [HttpPost("qr/complete")]
     [Authorize(Roles = "GridOperator")]
     public async Task<ActionResult<ReservationCompletionResponse>> CompleteTransfer(
-        [FromBody] CompleteReservationTransferRequest request, CancellationToken cancellationToken)
+        [FromBody] CompleteReservationTransferRequest request,
+        CancellationToken cancellationToken)
     {
         // Authoritatively completes the energy transfer for a verified Approved reservation.
-        return Ok(await _reservations.CompleteTransferAsync(User.GetNic(), request, cancellationToken));
+        return Ok(await _reservations.CompleteTransferAsync(
+            User.GetNic(),
+            request,
+            cancellationToken));
     }
 
     [HttpPost("{reservationId}/complete")]
     [Authorize(Roles = "GridOperator")]
     public async Task<ActionResult<ReservationCompletionResponse>> CompleteTransferById(
-        string reservationId, [FromBody] CompleteReservationTransferRequest? request, CancellationToken cancellationToken)
+        string reservationId,
+        [FromBody] CompleteReservationTransferRequest? request,
+        CancellationToken cancellationToken)
     {
-        // Authoritatively completes the energy transfer identified by reservationId and scanned QR payload.
+        // Completes the transfer identified by reservationId and the scanned QR payload.
         var payload = request?.QrPayload ?? string.Empty;
         return Ok(await _reservations.CompleteTransferAsync(
-            User.GetNic(), new CompleteReservationTransferRequest(payload, reservationId), cancellationToken));
+            User.GetNic(),
+            new CompleteReservationTransferRequest(payload, reservationId),
+            cancellationToken));
+    }
     }
 }
