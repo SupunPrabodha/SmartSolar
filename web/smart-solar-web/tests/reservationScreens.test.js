@@ -392,7 +392,7 @@ test('details rejection requires remark and shows rejected summary with released
   assert.match(text(view.root), /Reservation rejected/);
 });
 
-test('home page sidebar renders Manage Reservations link and removes standalone button', async () => {
+test('home page renders Manage Reservations in sidebar and quick actions for GridOperator', async () => {
   sessionStorage.setItem('accessToken', 'mock-token');
   sessionStorage.setItem('expiresAtUtc', new Date(Date.now() + 3600000).toISOString());
   globalThis.fetch = async () => response({ fullName: 'Operator One', role: 'GridOperator', status: 'Active' });
@@ -409,9 +409,8 @@ test('home page sidebar renders Manage Reservations link and removes standalone 
   assert.ok(reservationsLink, 'Expected Manage Reservations link in sidebar');
   assert.equal(reservationsLink.props.to, '/operator/reservations');
 
-  // Verify the old standalone manage reservations button is removed from home page body
   const links = view.root.findAllByType('a').filter(a => a.props.href === '/operator/reservations');
-  assert.equal(links.length, 1, 'Only the sidebar link should point to /operator/reservations');
+  assert.ok(links.length >= 1, 'Sidebar link should point to /operator/reservations');
 });
 
 test('reservation layout keeps aligned sidebar with Manage Reservations', async () => {

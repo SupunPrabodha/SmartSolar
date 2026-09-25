@@ -25,7 +25,6 @@ public sealed class EnergyReservation
     public DateTime? ScheduledEndAtUtc { get; set; }
 
     public string? QrToken { get; set; }
-    public string? QrToken { get; set; }
     public string? QrTokenHash { get; set; }
     public DateTime? QrIssuedAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; }

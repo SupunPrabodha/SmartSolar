@@ -175,32 +175,6 @@ function buildSearchQuery(filters = {}) {
 }
 
 /**
- * Returns active current bookings (Pending or Approved with end > now).
- * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
- * @param {ReservationCallOptions} [options]
- * @returns {Promise<import('../models/reservation.js').ReservationPage>}
- */
-export function getCurrentBookings(filters = {}, { signal } = {}) {
-  return apiFetch(
-    `/reservations/current${buildSearchQuery(filters)}`,
-    { signal }
-  );
-}
-
-/**
- * Returns pending bookings awaiting approval.
- * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
- * @param {ReservationCallOptions} [options]
- * @returns {Promise<import('../models/reservation.js').ReservationPage>}
- */
-export function getPendingBookings(filters = {}, { signal } = {}) {
-  return apiFetch(
-    `/reservations/pending${buildSearchQuery(filters)}`,
-    { signal }
-  );
-}
-
-/**
  * Returns historical bookings (terminal or past schedules).
  * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
  * @param {ReservationCallOptions} [options]

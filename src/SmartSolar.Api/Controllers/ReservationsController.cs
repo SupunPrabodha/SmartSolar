@@ -171,5 +171,4 @@ public sealed class ReservationsController : ControllerBase
             new CompleteReservationTransferRequest(payload, reservationId),
             cancellationToken));
     }
-    }
 }

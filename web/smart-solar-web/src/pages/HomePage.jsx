@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import Brand from '../components/Brand';
 
@@ -60,8 +60,6 @@ export default function HomePage() {
           <span className="role-pill">{user.role}</span></div>
         {user.role === 'GridOperator' && <div className="d-flex flex-wrap gap-2 mb-4">
           <Link className="btn btn-primary" to="/operator/reservations/dashboard">Operations Dashboard</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/current">Current Bookings</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/pending">Pending Queue</Link>
           <Link className="btn btn-outline-primary" to="/operator/reservations/history">History</Link>
           <Link className="btn btn-outline-primary" to="/operator/reservations/search">Search</Link>
           <Link className="btn btn-outline-secondary" to="/operator/reservations">Manage reservations</Link>

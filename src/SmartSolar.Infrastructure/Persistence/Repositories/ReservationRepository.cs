@@ -128,14 +128,6 @@ public sealed class ReservationRepository : IReservationRepository
         await _reservations.InsertOneAsync(reservation, cancellationToken: ct);
     }
 
-    public async Task<bool> TryReplaceAsync(EnergyReservation expected, EnergyReservation replacement, CancellationToken ct = default)
-    {
-        // CAS detects changes from other workflows; field updates preserve unrelated future fields.
-        var filter = Builders<EnergyReservation>.Filter.Where(x =>
-            x.ReservationId == expected.ReservationId && x.ProsumerNic == expected.ProsumerNic &&
-            x.StationId == expected.StationId && x.SlotId == expected.SlotId && x.Status == expected.Status &&
-            x.EnergyAmountKwh == expected.EnergyAmountKwh && x.UpdatedAtUtc == expected.UpdatedAtUtc &&
-            x.ScheduledStartAtUtc == expected.ScheduledStartAtUtc && x.ScheduledEndAtUtc == expected.ScheduledEndAtUtc &&
     public async Task<bool> TryReplaceAsync(
         EnergyReservation expected,
         EnergyReservation replacement,
@@ -181,12 +173,6 @@ public sealed class ReservationRepository : IReservationRepository
 
         return result.MatchedCount == 1;
     }
-            .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
-            .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc).Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
-        var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
-        return result.MatchedCount == 1;
-    }
-
     public async Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default)
     {
         // Lookup an authoritative reservation by its deterministic SHA-256 token hash.

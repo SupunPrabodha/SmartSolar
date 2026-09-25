@@ -55,24 +55,6 @@ export default function OperationsDashboardPage() {
             <div className="module-grid">
               <article className="surface-card module-card">
                 <span className="module-number" aria-hidden="true">01</span>
-                <h3>Current Bookings</h3>
-                <p>View active reservations (Pending or Approved) scheduled now or in the future.</p>
-                <Link className="btn btn-outline-primary w-100 mt-auto" to="/operator/reservations/current">
-                  Open Current Bookings
-                </Link>
-              </article>
-
-              <article className="surface-card module-card">
-                <span className="module-number" aria-hidden="true">02</span>
-                <h3>Pending Queue</h3>
-                <p>Inspect all pending reservations awaiting operator action.</p>
-                <Link className="btn btn-outline-primary w-100 mt-auto" to="/operator/reservations/pending">
-                  Open Pending Queue
-                </Link>
-              </article>
-
-              <article className="surface-card module-card">
-                <span className="module-number" aria-hidden="true">03</span>
                 <h3>Booking History</h3>
                 <p>Review past and terminal reservations across the microgrid.</p>
                 <Link className="btn btn-outline-primary w-100 mt-auto" to="/operator/reservations/history">
@@ -81,11 +63,20 @@ export default function OperationsDashboardPage() {
               </article>
 
               <article className="surface-card module-card">
-                <span className="module-number" aria-hidden="true">04</span>
+                <span className="module-number" aria-hidden="true">02</span>
                 <h3>Search &amp; Filter</h3>
                 <p>Query reservations by ID, Prosumer NIC, Station ID, status, or date range.</p>
                 <Link className="btn btn-outline-primary w-100 mt-auto" to="/operator/reservations/search">
                   Search Bookings
+                </Link>
+              </article>
+
+              <article className="surface-card module-card">
+                <span className="module-number" aria-hidden="true">03</span>
+                <h3>Manage Reservations</h3>
+                <p>Create, update, cancel, approve, or reject reservations.</p>
+                <Link className="btn btn-outline-primary w-100 mt-auto" to="/operator/reservations">
+                  Manage Reservations
                 </Link>
               </article>
             </div>
