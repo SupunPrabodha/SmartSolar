@@ -27,6 +27,12 @@ The table below preserves the starter contract. Station deactivation, reservatio
 
 ## Member 3 Checkpoint 1: executable policy foundation
 
+**Historical checkpoint note:** the descriptions of future orchestration below
+record Checkpoint 1. The current repository includes Member 3 ReservationService,
+repositories, endpoints and accepted snapshots; Member 4 does not modify those
+write rules. The inspected current contract is documented in
+[MEMBER-4-RESERVATION-CONTRACT.md](MEMBER-4-RESERVATION-CONTRACT.md).
+
 ReservationRules in Application defines the policies below without a complete
 ReservationService, repository, controller or persistence mutation. The API
 composition root registers TimeProvider.System and ReservationRules. Each create,
@@ -99,3 +105,71 @@ and moving slots must not lose or duplicate capacity. Serializing competing
 reservations for the same Prosumer needs its own persistence strategy; a capacity
 decrement alone does not prevent overlapping bookings across different slots.
 No concurrency guarantee or service-level validation is claimed by Checkpoint 1.
+
+## Member 4 steps 2–5: implemented read semantics
+
+- Current: Pending or Approved with accepted ScheduledEndAtUtc > server UTC now.
+  Ongoing bookings remain current until the accepted end; terminal statuses never
+  appear here, even with a future schedule.
+- Pending: exact Pending status, including past Pending reservations.
+- History: Rejected, Cancelled or Completed regardless of date, plus Pending or
+  Approved with accepted ScheduledEndAtUtc <= now. This classification does not
+  write Completed, release capacity or alter Member 3 conflict rules.
+- Search: exact controlled identifier/NIC/station/status filters and inclusive
+  accepted-start date bounds, applied in MongoDB within authorized scope.
+- Dashboard pending count: exact Pending status, without a date restriction.
+- Dashboard approved-future count: exact Approved status AND accepted
+  ScheduledStartAtUtc > the captured server UTC instant. Approved at/past now and
+  future Pending/Rejected/Cancelled/Completed never contribute to this count.
+
+Every operation uses the injected TimeProvider and authoritative stored account
+role/state. Prosumer identity comes from authenticated context; a supplied other
+NIC is forbidden. GridOperators retain operational reads; Backoffice is excluded.
+Lists are bounded and ordered in MongoDB; clients do not decide membership or
+counts. Pending and history can overlap because elapsed time alone never resolves
+the Pending lifecycle state.
+
+Read DTOs reuse accepted snapshots. Missing/invalid snapshots trigger 409 within
+the scoped candidate set before time filtering/pagination. The dashboard checks
+Approved snapshots before calculating approved-future; its Pending count remains
+status-only, including legacy Pending. No guessed slot schedule, default date,
+automatic status change or backfill is permitted. See the handshake for full
+legacy handling and the chosen current/history interpretation.
+
+## Member 4 steps 7–9: implemented QR issuance and verification rules
+
+### QR Generation & Display Rules (Step 7)
+- **Status Gate**: A transaction QR can ONLY be issued for a reservation whose authoritative status is strictly `Approved`.
+- **Rejection of Non-Approved States**: Attempting to generate a QR for `Pending`, `Rejected`, `Cancelled`, or `Completed` reservations is rejected with HTTP 409 Conflict.
+- **Ownership Scope**: A Prosumer can only request a QR for their own reservation; requests for reservations belonging to another Prosumer are rejected with HTTP 403 Forbidden.
+- **Opaque Reference**: The QR payload contains only an opaque reference (`SMG1.<256-bit-random-token>`) and zero authoritative business fields (no NIC, no status, no energy amount, no station info).
+- **Secure Randomness**: Tokens are generated using `System.Security.Cryptography.RandomNumberGenerator`.
+- **Database Hashing**: The database stores only a SHA-256 hash (`QrTokenHash`) and issuance timestamp (`QrIssuedAtUtc`) inside the `EnergyReservation` document. Raw tokens are never persisted or logged.
+- **Single Active Reference / Rotation**: Reissuing a QR for an existing Approved reservation replaces `QrTokenHash`, invalidating previous QR references.
+
+### Grid Operator QR Scanning Rules (Step 8)
+- **Native Android Flow**: Native camera QR scanning using `DecoratedBarcodeView` (ZXing Android Embedded).
+- **Runtime Camera Permission**: The app requests only `android.permission.CAMERA` with graceful fallback for permission denial and settings navigation.
+- **Zero Local Authority**: The mobile app performs format validation (`SMG1.` prefix) for UX only, but NEVER decides validity or status locally.
+
+### Server Verification Rules (Step 9)
+- **Role Requirement**: Server-side verification is strictly restricted to authenticated active `GridOperator` users (HTTP 403 Forbidden for Prosumer or Backoffice).
+- **Authoritative Database State**: Verification queries MongoDB by `SHA-256(scanned_token)` and validates that the reservation is currently `Approved`.
+- **Rejection Matrix**:
+  - Unknown/invalid/rotated token: HTTP 404 Not Found
+  - Malformed/empty payload: HTTP 400 Bad Request
+  - `Pending`, `Rejected`, `Cancelled`, or `Completed` reservation: HTTP 409 Conflict
+- **Trusted Server Payload**: On successful verification, the server returns authoritative database details and sets `eligibleForCompletion = true`.
+
+### Transaction Completion Rules (Step 10)
+- **Role Authorization**: Completion is restricted exclusively to authenticated active `GridOperator` accounts. The operator NIC is derived directly from the server-side JWT context (never trusted from client payloads).
+- **Full Server Revalidation**: Completion does NOT trust earlier client verification screens. The server re-reads MongoDB state to re-verify existence, QR token hash match, and `Approved` status.
+- **Authoritative Status Transition**: Successful completion transitions status from `Approved` to `Completed`.
+- **Completion Metadata**: The server records `CompletedAtUtc` (server clock UTC instant) and `CompletedByOperatorNic` on the `EnergyReservation` document.
+- **Single-Execution / Replay Protection**:
+  - An atomic conditional MongoDB update is executed requiring `Status == Approved`.
+  - Attempting to complete an already completed reservation returns `409 Conflict`.
+  - Attempting to complete a `Cancelled`, `Rejected`, or `Pending` reservation returns `409 Conflict`.
+- **Query Effect**: Completed reservations automatically move from active views (`Current`, `Dashboard approvedFuture`) into `History`.
+
+

@@ -19,13 +19,19 @@ export function ReservationLayout() {
       </div>
     </header>
     <nav className="d-flex flex-wrap gap-3 mb-4" aria-label="Reservation navigation">
-      <Link to="/">Back to workspace</Link>
-      <NavLink end to="/operator/reservations">Reservations</NavLink>
+      <Link to="/">Home</Link>
+      <NavLink to="/operator/reservations/dashboard">Dashboard</NavLink>
+      <NavLink to="/operator/reservations/current">Current Bookings</NavLink>
+      <NavLink to="/operator/reservations/pending">Pending Bookings</NavLink>
+      <NavLink to="/operator/reservations/history">Booking History</NavLink>
+      <NavLink to="/operator/reservations/search">Search</NavLink>
+      <NavLink end to="/operator/reservations">Manage</NavLink>
       <NavLink to="/operator/reservations/new">New reservation</NavLink>
     </nav>
     <main ref={main} id="reservation-main" tabIndex="-1"><Outlet /></main>
   </div>;
 }
+
 
 export function Loading() {
   return <div className="py-5 text-center" role="status"><span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />Loading reservations…</div>;
@@ -78,3 +84,33 @@ export function OperationSuccess({ title, reservation }) {
     </div>
   </section>;
 }
+
+export function PaginationControls({ page, hasMore, onPageChange, loading }) {
+  if (page <= 1 && !hasMore) return null;
+  return <div className="d-flex justify-content-between align-items-center mt-3 pt-2">
+    <button className="btn btn-outline-secondary btn-sm" disabled={page <= 1 || loading}
+      onClick={() => onPageChange(page - 1)}>Previous page</button>
+    <span className="small text-secondary">Page {page}</span>
+    <button className="btn btn-outline-secondary btn-sm" disabled={!hasMore || loading}
+      onClick={() => onPageChange(page + 1)}>Next page</button>
+  </div>;
+}
+
+export function ReservationTable({ items, caption }) {
+  return <div className="surface-card p-0 overflow-hidden">
+    <div className="table-responsive" tabIndex="0" role="region" aria-label="Reservation table">
+      <table className="table table-hover align-middle mb-0 reservation-table">
+        {caption && <caption className="px-3">{caption}</caption>}
+        <thead><tr>{['Reservation ID', 'Prosumer', 'Station / slot', 'Accepted schedule (UTC)', 'Energy', 'Status', 'Action'].map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+        <tbody>{items.map(row => <tr key={row.reservationId}>
+          <td className="text-break">{row.reservationId}</td><td>{row.prosumerNic}</td>
+          <td className="text-break"><div>{row.stationId}</div><small className="text-secondary">Slot: {row.slotId}</small></td>
+          <td><div>{formatUtc(row.scheduledStartAtUtc)}</div><small>to {formatUtc(row.scheduledEndAtUtc)}</small></td>
+          <td>{row.energyAmountKwh} kWh</td><td><StatusBadge status={row.status} /></td>
+          <td><Link className="btn btn-outline-primary btn-sm" aria-label={`View reservation ${row.reservationId}`} to={`/operator/reservations/${encodeURIComponent(row.reservationId)}`}>View</Link></td>
+        </tr>)}</tbody>
+      </table>
+    </div>
+  </div>;
+}
+

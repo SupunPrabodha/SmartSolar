@@ -75,3 +75,63 @@ export function listReservations({ status, prosumerNic, stationId } = {}, { sign
   }
   return apiFetch('/reservations' + (query.size ? `?${query}` : ''), { signal });
 }
+
+function buildSearchQuery(filters = {}) {
+  const query = new URLSearchParams();
+  const allowed = ['reservationId', 'prosumerNic', 'stationId', 'status', 'fromUtc', 'toUtc', 'page', 'pageSize'];
+  for (const key of allowed) {
+    const value = filters[key];
+    if (value != null && String(value).trim()) query.set(key, String(value).trim());
+  }
+  return query.size ? `?${query}` : '';
+}
+
+/**
+ * Returns active current bookings (Pending or Approved with end > now).
+ * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<import('../models/reservation.js').ReservationPage>}
+ */
+export function getCurrentBookings(filters = {}, { signal } = {}) {
+  return apiFetch(`/reservations/current${buildSearchQuery(filters)}`, { signal });
+}
+
+/**
+ * Returns pending bookings awaiting approval.
+ * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<import('../models/reservation.js').ReservationPage>}
+ */
+export function getPendingBookings(filters = {}, { signal } = {}) {
+  return apiFetch(`/reservations/pending${buildSearchQuery(filters)}`, { signal });
+}
+
+/**
+ * Returns historical bookings (terminal or past schedules).
+ * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<import('../models/reservation.js').ReservationPage>}
+ */
+export function getBookingHistory(filters = {}, { signal } = {}) {
+  return apiFetch(`/reservations/history${buildSearchQuery(filters)}`, { signal });
+}
+
+/**
+ * Searches bookings across all statuses using exact backend filters.
+ * @param {import('../models/reservation.js').ReservationSearchFilters} [filters]
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<import('../models/reservation.js').ReservationPage>}
+ */
+export function searchBookings(filters = {}, { signal } = {}) {
+  return apiFetch(`/reservations/search${buildSearchQuery(filters)}`, { signal });
+}
+
+/**
+ * Returns server-calculated reservation dashboard summary counts.
+ * @param {ReservationCallOptions} [options]
+ * @returns {Promise<import('../models/reservation.js').ReservationDashboardSummary>}
+ */
+export function getReservationDashboardSummary({ signal } = {}) {
+  return apiFetch('/reservations/dashboard-summary', { signal });
+}
+

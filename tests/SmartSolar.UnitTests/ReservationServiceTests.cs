@@ -417,7 +417,7 @@ public sealed class ReservationServiceTests
                 Users.Items[pair.Item1] = new User { Nic = pair.Item1, Role = pair.Item2, Status = UserStatus.Active };
             Store.Stations[Station.StationId] = Station;
             Slot = AddSlot(Now.AddDays(2));
-            Service = new ReservationService(Store, Users, new FixedClock());
+            Service = new ReservationService(Store, Users, new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock());
         }
 
         public EnergyBookingSlot AddSlot(DateTime start)
@@ -542,6 +542,35 @@ public sealed class ReservationServiceTests
             if (CasMiss) return Task.FromResult(false);
             if (!ReplaceFailure || CommitBeforeFailure) Reservations[replacement.ReservationId] = Copy(replacement)!;
             if (ReplaceFailure) throw new IOException("simulated lost acknowledgement");
+            return Task.FromResult(true);
+        }
+
+        public Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(qrTokenHash)) return Task.FromResult<EnergyReservation?>(null);
+            return Task.FromResult(Copy(Reservations.Values.FirstOrDefault(x => x.QrTokenHash == qrTokenHash)));
+        }
+
+        public Task<bool> TryUpdateQrHashAsync(
+            string reservationId, string? expectedHash, string newHash, DateTime issuedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
+        {
+            if (!Reservations.TryGetValue(reservationId, out var existing)) return Task.FromResult(false);
+            if (existing.Status != ReservationStatus.Approved || existing.QrTokenHash != expectedHash) return Task.FromResult(false);
+            existing.QrTokenHash = newHash;
+            existing.QrIssuedAtUtc = issuedAtUtc;
+            existing.UpdatedAtUtc = updatedAtUtc;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> TryCompleteReservationAsync(
+            string reservationId, string qrTokenHash, string operatorNic, DateTime completedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
+        {
+            if (!Reservations.TryGetValue(reservationId, out var existing)) return Task.FromResult(false);
+            if (existing.Status != ReservationStatus.Approved || existing.QrTokenHash != qrTokenHash) return Task.FromResult(false);
+            existing.Status = ReservationStatus.Completed;
+            existing.CompletedAtUtc = completedAtUtc;
+            existing.CompletedByOperatorNic = operatorNic;
+            existing.UpdatedAtUtc = updatedAtUtc;
             return Task.FromResult(true);
         }
     }

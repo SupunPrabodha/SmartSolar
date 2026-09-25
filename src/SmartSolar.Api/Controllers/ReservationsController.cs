@@ -75,4 +75,40 @@ public sealed class ReservationsController : ControllerBase
         // Cancellation is a guarded state transition, not document deletion.
         return Ok(await _reservations.CancelAsync(User.GetNic(), reservationId, cancellationToken));
     }
+
+    [HttpPost("{reservationId}/qr")]
+    public async Task<ActionResult<ReservationQrResponse>> IssueQr(string reservationId, CancellationToken cancellationToken)
+    {
+        // Issues a cryptographically strong opaque reference for an approved reservation.
+        return Ok(await _reservations.IssueQrAsync(User.GetNic(), reservationId, cancellationToken));
+    }
+
+    [HttpPost("qr/verify")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationVerificationResponse>> VerifyQr(
+        [FromBody] VerifyReservationQrRequest request, CancellationToken cancellationToken)
+    {
+        // Verifies the scanned opaque reference against current authoritative server state.
+        return Ok(await _reservations.VerifyQrAsync(User.GetNic(), request, cancellationToken));
+    }
+
+    [HttpPost("qr/complete")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationCompletionResponse>> CompleteTransfer(
+        [FromBody] CompleteReservationTransferRequest request, CancellationToken cancellationToken)
+    {
+        // Authoritatively completes the energy transfer for a verified Approved reservation.
+        return Ok(await _reservations.CompleteTransferAsync(User.GetNic(), request, cancellationToken));
+    }
+
+    [HttpPost("{reservationId}/complete")]
+    [Authorize(Roles = "GridOperator")]
+    public async Task<ActionResult<ReservationCompletionResponse>> CompleteTransferById(
+        string reservationId, [FromBody] CompleteReservationTransferRequest? request, CancellationToken cancellationToken)
+    {
+        // Authoritatively completes the energy transfer identified by reservationId and scanned QR payload.
+        var payload = request?.QrPayload ?? string.Empty;
+        return Ok(await _reservations.CompleteTransferAsync(
+            User.GetNic(), new CompleteReservationTransferRequest(payload, reservationId), cancellationToken));
+    }
 }
