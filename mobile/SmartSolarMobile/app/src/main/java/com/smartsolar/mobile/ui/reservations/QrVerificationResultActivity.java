@@ -87,12 +87,27 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
         buttonCompleteTransfer = findViewById(R.id.buttonCompleteTransfer);
         progressCompleteTransfer = findViewById(R.id.progressCompleteTransfer);
 
-        textReservationId.setText(getString(R.string.reservation_id_label, reservationId != null ? reservationId : ""));
-        textStatus.setText(currentStatus != null ? currentStatus : "");
-        textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic != null ? prosumerNic : ""));
-        textStationSlot.setText(getString(R.string.station_slot_label, stationId != null ? stationId : "", slotId != null ? slotId : ""));
-        textSchedule.setText(getString(R.string.schedule_label, scheduleStart != null ? scheduleStart : "", scheduleEnd != null ? scheduleEnd : ""));
-        textEnergy.setText(getString(R.string.energy_label, energyAmount));
+        String idSnippet = reservationId != null && reservationId.length() > 8
+                ? reservationId.substring(0, 8) + "…"
+                : String.valueOf(reservationId);
+        textReservationId.setText("Reservation: " + idSnippet);
+
+        com.smartsolar.mobile.util.ReservationUiUtils.formatStatusBadge(textStatus, currentStatus);
+
+        if (prosumerNic != null && !prosumerNic.trim().isEmpty()) {
+            textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic));
+            textProsumer.setVisibility(View.VISIBLE);
+        } else {
+            textProsumer.setVisibility(View.GONE);
+        }
+
+        String station = stationId != null ? stationId : "—";
+        textStationSlot.setText("Station: " + station);
+
+        String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
+        textSchedule.setText("Starts: " + startFormatted);
+
+        textEnergy.setText(String.format(java.util.Locale.US, "%.1f kWh", energyAmount));
 
         if (qrIssuedAt != null && !qrIssuedAt.isEmpty()) {
             textQrIssuedAt.setText(getString(R.string.qr_issued_at_label, qrIssuedAt));

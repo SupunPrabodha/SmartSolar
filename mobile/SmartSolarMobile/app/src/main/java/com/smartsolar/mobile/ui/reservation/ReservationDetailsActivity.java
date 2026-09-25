@@ -218,26 +218,7 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
     }
 
     private void formatStatusBadge(TextView view, String status) {
-        if (status == null) return;
-        if ("Approved".equalsIgnoreCase(status)) {
-            view.setTextColor(getColor(R.color.solar_status_approved));
-            view.setBackgroundColor(0x1F2E7D32);
-        } else if ("Pending".equalsIgnoreCase(status)) {
-            view.setTextColor(getColor(R.color.solar_status_pending));
-            view.setBackgroundColor(0x1FE65100);
-        } else if ("Rejected".equalsIgnoreCase(status)) {
-            view.setTextColor(getColor(R.color.solar_status_rejected));
-            view.setBackgroundColor(0x1FC62828);
-        } else if ("Cancelled".equalsIgnoreCase(status)) {
-            view.setTextColor(getColor(R.color.solar_status_cancelled));
-            view.setBackgroundColor(0x1F757575);
-        } else if ("Completed".equalsIgnoreCase(status)) {
-            view.setTextColor(getColor(R.color.solar_status_completed));
-            view.setBackgroundColor(0x1F1565C0);
-        } else {
-            view.setTextColor(getColor(R.color.solar_on_surface_variant));
-            view.setBackgroundColor(0x1F000000);
-        }
+        ReservationUiUtils.formatStatusBadge(view, status);
     }
 
     private void showCancelConfirmDialog(ReservationResponse reservation) {

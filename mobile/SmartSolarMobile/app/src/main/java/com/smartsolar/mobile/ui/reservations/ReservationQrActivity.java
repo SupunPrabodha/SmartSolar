@@ -92,12 +92,27 @@ public final class ReservationQrActivity extends AppCompatActivity {
         textQrIssuedAt = findViewById(R.id.textQrIssuedAt);
         buttonClose = findViewById(R.id.buttonCloseQr);
 
-        textReservationId.setText(getString(R.string.reservation_id_label, reservationId != null ? reservationId : ""));
-        textStatus.setText(status != null ? status : "");
-        textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic != null ? prosumerNic : ""));
-        textStationSlot.setText(getString(R.string.station_slot_label, stationId != null ? stationId : "", slotId != null ? slotId : ""));
-        textSchedule.setText(getString(R.string.schedule_label, scheduleStart != null ? scheduleStart : "", scheduleEnd != null ? scheduleEnd : ""));
-        textEnergy.setText(getString(R.string.energy_label, energyAmount));
+        String idSnippet = reservationId != null && reservationId.length() > 8
+                ? reservationId.substring(0, 8) + "…"
+                : String.valueOf(reservationId);
+        textReservationId.setText("Reservation: " + idSnippet);
+
+        com.smartsolar.mobile.util.ReservationUiUtils.formatStatusBadge(textStatus, status);
+
+        if (prosumerNic != null && !prosumerNic.trim().isEmpty()) {
+            textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic));
+            textProsumer.setVisibility(View.VISIBLE);
+        } else {
+            textProsumer.setVisibility(View.GONE);
+        }
+
+        String station = stationId != null ? stationId : "—";
+        textStationSlot.setText("Station: " + station);
+
+        String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
+        textSchedule.setText("Starts: " + startFormatted);
+
+        textEnergy.setText(String.format(java.util.Locale.US, "%.1f kWh", energyAmount));
 
         try {
             ApiService api = RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
@@ -109,6 +124,11 @@ public final class ReservationQrActivity extends AppCompatActivity {
 
         buttonRetry.setOnClickListener(v -> loadQr());
         buttonClose.setOnClickListener(v -> finish());
+
+        View buttonBackHomeQr = findViewById(R.id.buttonBackHomeQr);
+        if (buttonBackHomeQr != null) {
+            buttonBackHomeQr.setOnClickListener(v -> finish());
+        }
 
         loadQr();
     }

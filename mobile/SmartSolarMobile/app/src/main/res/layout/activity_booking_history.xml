@@ -6,14 +6,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp">
 
-    <TextView
-        style="@style/Solar.Title"
+    <!-- Top Header matching Member 3 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/booking_history"
-        android:textSize="22sp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Solar.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/home_eyebrow"
+                android:textSize="11sp"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/booking_history"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progress"
@@ -21,6 +45,7 @@
         android:layout_height="32dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
+        android:contentDescription="@string/working"
         android:visibility="gone" />
 
     <LinearLayout
@@ -53,9 +78,12 @@
         style="@style/Solar.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
+        android:padding="20dp"
         android:gravity="center"
+        android:background="@color/solar_background"
         android:text="@string/no_booking_history"
+        android:textSize="14sp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -63,7 +91,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
         android:clipToPadding="false" />
 
     <LinearLayout
@@ -72,13 +100,15 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="12dp"
+        android:visibility="gone">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonPrevPage"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minHeight="44dp"
             android:text="@string/previous_page" />
 
         <TextView
@@ -95,7 +125,33 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minHeight="44dp"
             android:text="@string/next_page" />
+    </LinearLayout>
+
+    <!-- Bottom Actions matching Member 3 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonRefreshDetails"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:text="@string/btn_refresh_details" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonBackHome"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/btn_back_to_workspace" />
     </LinearLayout>
 
 </LinearLayout>

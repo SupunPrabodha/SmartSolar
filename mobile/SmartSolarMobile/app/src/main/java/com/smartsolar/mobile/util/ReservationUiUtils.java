@@ -69,4 +69,43 @@ public final class ReservationUiUtils {
             return false;
         }
     }
+
+    public static void formatStatusBadge(android.widget.TextView view, String status) {
+        if (view == null) return;
+        if (status == null || status.trim().isEmpty()) {
+            view.setVisibility(android.view.View.GONE);
+            return;
+        }
+        view.setVisibility(android.view.View.VISIBLE);
+        view.setText(status);
+
+        int textColor;
+        int bgColor;
+        if ("Approved".equalsIgnoreCase(status)) {
+            textColor = 0xFF2E7D32; // Green
+            bgColor = 0x1F2E7D32;
+        } else if ("Pending".equalsIgnoreCase(status)) {
+            textColor = 0xFFE65100; // Orange
+            bgColor = 0x1FE65100;
+        } else if ("Rejected".equalsIgnoreCase(status)) {
+            textColor = 0xFFC62828; // Red
+            bgColor = 0x1FC62828;
+        } else if ("Cancelled".equalsIgnoreCase(status)) {
+            textColor = 0xFF757575; // Grey
+            bgColor = 0x1F757575;
+        } else if ("Completed".equalsIgnoreCase(status)) {
+            textColor = 0xFF1565C0; // Blue
+            bgColor = 0x1F1565C0;
+        } else {
+            textColor = 0xFF757575;
+            bgColor = 0x1F000000;
+        }
+        view.setTextColor(textColor);
+
+        android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+        shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        shape.setCornerRadius(view.getResources().getDisplayMetrics().density * 6);
+        shape.setColor(bgColor);
+        view.setBackground(shape);
+    }
 }

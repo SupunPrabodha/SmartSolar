@@ -80,6 +80,16 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
         });
         buttonNextPage.setOnClickListener(v -> loadData(currentPage + 1));
 
+        Button buttonRefreshDetails = findViewById(R.id.buttonRefreshDetails);
+        if (buttonRefreshDetails != null) {
+            buttonRefreshDetails.setOnClickListener(v -> loadData(currentPage));
+        }
+
+        Button buttonBackHome = findViewById(R.id.buttonBackHome);
+        if (buttonBackHome != null) {
+            buttonBackHome.setOnClickListener(v -> finish());
+        }
+
         loadData(1);
     }
 

@@ -12,11 +12,43 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Verification Header matching Member 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Solar.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/home_eyebrow"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.12" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/reservation_verified_title"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- Verification Success Banner -->
         <com.google.android.material.card.MaterialCardView
             style="@style/Solar.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/solar_hero"
             app:strokeWidth="0dp">
 
@@ -25,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="20dp">
 
                 <TextView
                     style="@style/Solar.Title"
@@ -33,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/reservation_verified_title"
                     android:textColor="@color/solar_accent"
-                    android:textSize="26sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -48,7 +80,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Authoritative Details Card -->
+        <!-- Authoritative Details Card matching Member 3 styling -->
         <com.google.android.material.card.MaterialCardView
             style="@style/Solar.Card"
             android:layout_width="match_parent"
@@ -59,7 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -80,56 +112,61 @@
                         android:id="@+id/textVerifiedStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/status_badge_background"
                         android:paddingStart="8dp"
-                        android:paddingTop="2dp"
                         android:paddingEnd="8dp"
+                        android:paddingTop="2dp"
                         android:paddingBottom="2dp"
-                        android:textColor="@color/solar_hero"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/textVerifiedProsumer"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/textVerifiedStationSlot"
-                    style="@style/Solar.Body"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="13sp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/textVerifiedStationSlot"
+                        style="@style/Solar.Body"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/textVerifiedEnergy"
+                        style="@style/Solar.Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/solar_primary" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/textVerifiedSchedule"
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textSize="13sp" />
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp" />
 
                 <TextView
-                    android:id="@+id/textVerifiedEnergy"
+                    android:id="@+id/textVerifiedProsumer"
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/textVerifiedQrIssuedAt"
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4dp"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -195,23 +232,29 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Action Buttons -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonScanAnother"
+        <!-- Bottom Action Buttons matching Member 3 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:minHeight="52dp"
-            android:text="@string/scan_another" />
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonDone"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:minHeight="52dp"
-            android:text="@string/done" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonScanAnother"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:text="@string/scan_another" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonDone"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="52dp"
+                android:text="@string/done" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>
