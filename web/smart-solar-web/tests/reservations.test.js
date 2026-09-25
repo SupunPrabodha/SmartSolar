@@ -12,7 +12,7 @@ const { code: clientCode } = await transformWithEsbuild(clientSource, 'apiClient
 const clientUrl = 'data:text/javascript;base64,' + Buffer.from(clientCode).toString('base64');
 const apiSource = (await readFile(new URL('../src/api/reservations.js', import.meta.url), 'utf8'))
   .replace("'./apiClient.js'", JSON.stringify(clientUrl));
-const { listReservations, getReservation, createReservation, updateReservation, cancelReservation } =
+const { listReservations, listAvailableSlots, getReservation, createReservation, updateReservation, cancelReservation } =
   await import('data:text/javascript;base64,' + Buffer.from(apiSource).toString('base64'));
 
 const originalFetch = globalThis.fetch;
@@ -135,6 +135,26 @@ test('list omits blank filters and preserves a real empty result', async () => {
   };
   assert.deepEqual(await listReservations({ status: undefined, prosumerNic: ' ', stationId: null }), []);
   assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations');
+});
+
+test('listAvailableSlots calls slots endpoint and forwards signal', async () => {
+  const slotList = [{
+    slotId: '11111111111111111111111111111111',
+    stationId: 'station-1',
+    startAtUtc: '2030-01-02T00:00:00Z',
+    endAtUtc: '2030-01-02T01:00:00Z',
+    availableSlots: 4,
+    totalSlots: 5
+  }];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return response(slotList);
+  };
+  const { signal } = new AbortController();
+  assert.deepEqual(await listAvailableSlots({ signal }), slotList);
+  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/slots');
+  assert.equal(calls[0].options.headers.get('Authorization'), 'Bearer test-session');
+  assert.equal(calls[0].options.signal, signal);
 });
 
 test('list forwards server authorization and validation problems without returning an empty list', async () => {

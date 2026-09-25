@@ -62,11 +62,12 @@ public sealed class ReservationService : IReservationService
             if (actor.Nic != nic && actor.Role != UserRole.GridOperator)
                 throw new ForbiddenException("Only GridOperators may assist another Prosumer.");
             await ProsumerAsync(nic, ct);
-            var slot = await ValidSlotAsync(request.SlotId, ct);
+            var (slot, station) = await ValidSlotAndStationAsync(request.SlotId, ct);
             var now = _clock.GetUtcNow();
             var rules = new ReservationRules(new OperationClock(now));
             rules.ValidateCreate(slot.StartAtUtc, slot.EndAtUtc);
             await EnsureNoOverlapAsync(nic, null, slot.StartAtUtc, slot.EndAtUtc, ct);
+            await EnsureStationEnergyCapacityAsync(station, slot.SlotId, request.EnergyAmountKwh, null, ct);
             ct.ThrowIfCancellationRequested();
             write.Uncertain = true;
             if (!await _reservations.TryAcquireCapacityAsync(slot, CancellationToken.None))
@@ -103,6 +104,35 @@ public sealed class ReservationService : IReservationService
         return reservations.Select(Response).ToList();
     }
 
+    public async Task<IReadOnlyList<ReservationResponse>> GetMyReservationsAsync(string actorNic, CancellationToken ct = default)
+    {
+        // Active prosumers can inspect their own reservation history.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.Prosumer)
+            throw new ForbiddenException("Only Prosumers may access their own reservations.");
+
+        var reservations = await _reservations.ListAsync(null, actor.Nic, null, ct);
+        return reservations.Select(Response).ToList();
+    }
+
+    public async Task<IReadOnlyList<AvailableSlotResponse>> GetAvailableSlotsAsync(string actorNic, CancellationToken ct = default)
+    {
+        // Active Prosumers and GridOperators can inspect available slots for booking.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.Prosumer && actor.Role != UserRole.GridOperator)
+            throw new ForbiddenException("Only Prosumers and GridOperators may view available slots.");
+
+        var slots = await _reservations.GetActiveSlotsAsync(ct);
+        var now = _clock.GetUtcNow().UtcDateTime;
+        var maxHorizon = now.AddDays(7);
+
+        return slots
+            .Where(x => x.IsActive && x.AvailableSlots > 0 && x.StartAtUtc > now && x.StartAtUtc <= maxHorizon)
+            .OrderBy(x => x.StartAtUtc)
+            .Select(x => new AvailableSlotResponse(x.SlotId, x.StationId, x.StartAtUtc, x.EndAtUtc, x.AvailableSlots, x.TotalSlots))
+            .ToList();
+    }
+
     public async Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default)
     {
         // Enforce ownership before exposing reservation data or legacy schedule errors.
@@ -128,7 +158,7 @@ public sealed class ReservationService : IReservationService
             EnsureOwner(actor, current);
             EnsureSameProsumer(initial, current);
             var accepted = Schedule(current);
-            var slot = await ValidSlotAsync(request.SlotId, ct);
+            var (slot, station) = await ValidSlotAndStationAsync(request.SlotId, ct);
             var sameSlot = slot.SlotId == current.SlotId;
             if (sameSlot && (slot.StartAtUtc != accepted.Start || slot.EndAtUtc != accepted.End || slot.StationId != current.StationId))
                 throw new ConflictException("The accepted slot schedule changed; select a different slot or cancel.");
@@ -136,6 +166,7 @@ public sealed class ReservationService : IReservationService
             var status = new ReservationRules(new OperationClock(now)).ValidateUpdate(
                 current.Status, accepted.Start, slot.StartAtUtc, slot.EndAtUtc);
             await EnsureNoOverlapAsync(current.ProsumerNic, current.ReservationId, slot.StartAtUtc, slot.EndAtUtc, ct);
+            await EnsureStationEnergyCapacityAsync(station, slot.SlotId, request.EnergyAmountKwh, current.ReservationId, ct);
             ct.ThrowIfCancellationRequested();
             write.Uncertain = true;
             if (!sameSlot && !await _reservations.TryAcquireCapacityAsync(slot, CancellationToken.None))
@@ -436,16 +467,36 @@ public sealed class ReservationService : IReservationService
         return await _reservations.GetAsync(id, ct) ?? throw new NotFoundException("Reservation not found.");
     }
 
-    private async Task<EnergyBookingSlot> ValidSlotAsync(string id, CancellationToken ct)
+    private async Task<(EnergyBookingSlot Slot, SolarStation Station)> ValidSlotAndStationAsync(string id, CancellationToken ct)
     {
         // Resolve station exclusively through the persisted slot reference.
         var slot = await _reservations.GetSlotAsync(id, ct) ?? throw new NotFoundException("Slot not found.");
         if (!slot.IsActive) throw new ConflictException("Slot is inactive.");
         var station = await _reservations.GetStationAsync(slot.StationId, ct) ?? throw new NotFoundException("Station not found.");
         if (!station.IsActive) throw new ConflictException("Station is inactive.");
+        if (station.CapacityKwh <= 0)
+            throw new ConflictException("Station energy capacity is invalid and requires repair.");
         if (slot.TotalSlots <= 0 || slot.AvailableSlots < 0 || slot.AvailableSlots > slot.TotalSlots)
             throw new ConflictException("Slot capacity is invalid and requires repair.");
-        return slot;
+        return (slot, station);
+    }
+
+    private async Task EnsureStationEnergyCapacityAsync(
+        SolarStation station, string slotId, decimal requestedKwh, string? excludedReservationId, CancellationToken ct)
+    {
+        if (requestedKwh > station.CapacityKwh)
+            throw new BadRequestException($"Requested energy amount ({requestedKwh} kWh) exceeds station capacity ({station.CapacityKwh} kWh).");
+
+        var activeOnSlot = await _reservations.GetActiveBySlotAsync(slotId, ct);
+        var allocatedKwh = activeOnSlot
+            .Where(r => r.ReservationId != excludedReservationId)
+            .Sum(r => r.EnergyAmountKwh);
+
+        if (allocatedKwh + requestedKwh > station.CapacityKwh)
+        {
+            var remaining = station.CapacityKwh - allocatedKwh;
+            throw new ConflictException($"The requested energy amount ({requestedKwh} kWh) exceeds the station's available energy capacity for this slot ({remaining} kWh remaining out of {station.CapacityKwh} kWh).");
+        }
     }
 
     private async Task EnsureNoOverlapAsync(string nic, string? excludedId, DateTime start, DateTime end, CancellationToken ct)

@@ -63,6 +63,71 @@ public sealed class ReservationServiceTests
         Assert.Equal(2, f.Slot.AvailableSlots);
     }
 
+    [Fact]
+    public async Task CreateRejectsEnergyExceedingStationCapacity()
+    {
+        // Requesting more energy than station's total CapacityKwh fails fast.
+        var f = new Fixture();
+        f.Station.CapacityKwh = 50;
+        var ex = await Assert.ThrowsAsync<BadRequestException>(() => f.Create(amount: 51));
+        Assert.Contains("exceeds station capacity", ex.Message);
+        Assert.Empty(f.Store.Reservations);
+        Assert.Equal(2, f.Slot.AvailableSlots);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCumulativeEnergyExceedingStationCapacity()
+    {
+        // Multiple prosumers on the same slot cannot exceed the station's CapacityKwh.
+        var f = new Fixture();
+        f.Station.CapacityKwh = 100;
+        await f.Create(nic: "P1", amount: 60);
+        Assert.Equal(1, f.Slot.AvailableSlots);
+
+        var ex = await Assert.ThrowsAsync<ConflictException>(() => f.Create(nic: "P2", amount: 50));
+        Assert.Contains("exceeds the station's available energy capacity", ex.Message);
+        Assert.Equal(1, f.Slot.AvailableSlots);
+    }
+
+    [Fact]
+    public async Task UpdateRejectsEnergyExceedingStationCapacity()
+    {
+        var f = new Fixture();
+        f.Station.CapacityKwh = 100;
+        var created = await f.Create(nic: "P1", amount: 50);
+
+        var ex = await Assert.ThrowsAsync<BadRequestException>(() =>
+            f.Service.UpdateAsync("P1", created.ReservationId, new UpdateReservationRequest { SlotId = f.Slot.SlotId, EnergyAmountKwh = 150 }));
+        Assert.Contains("exceeds station capacity", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateRejectsCumulativeEnergyExceedingStationCapacity()
+    {
+        var f = new Fixture();
+        f.Station.CapacityKwh = 100;
+        var r1 = await f.Create(nic: "P1", amount: 50);
+        var r2 = await f.Create(nic: "P2", amount: 40);
+
+        // P1 tries to increase from 50 to 70 (allocated = 40 (from P2), requested = 70 -> total 110 > 100)
+        var ex = await Assert.ThrowsAsync<ConflictException>(() =>
+            f.Service.UpdateAsync("P1", r1.ReservationId, new UpdateReservationRequest { SlotId = f.Slot.SlotId, EnergyAmountKwh = 70 }));
+        Assert.Contains("exceeds the station's available energy capacity", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAllowsAdjustingEnergyWithinAvailableStationCapacity()
+    {
+        var f = new Fixture();
+        f.Station.CapacityKwh = 100;
+        var r1 = await f.Create(nic: "P1", amount: 50);
+        var r2 = await f.Create(nic: "P2", amount: 40);
+
+        // P1 adjusts from 50 to 55 (allocated = 40 (from P2), requested = 55 -> total 95 <= 100)
+        var updated = await f.Service.UpdateAsync("P1", r1.ReservationId, new UpdateReservationRequest { SlotId = f.Slot.SlotId, EnergyAmountKwh = 55 });
+        Assert.Equal(55, updated.EnergyAmountKwh);
+    }
+
     [Theory]
     [InlineData("missing-slot")]
     [InlineData("missing-station")]
@@ -267,6 +332,21 @@ public sealed class ReservationServiceTests
     }
 
     [Fact]
+    public async Task GetAvailableSlotsReturnsActiveSlotsWithinHorizon()
+    {
+        var f = new Fixture();
+        var validSlot = f.AddSlot(Now.AddDays(2));
+        var outOfHorizonSlot = f.AddSlot(Now.AddDays(8));
+        var zeroCapacitySlot = f.AddSlot(Now.AddDays(1));
+        zeroCapacitySlot.AvailableSlots = 0;
+
+        var slots = await f.Service.GetAvailableSlotsAsync("P1");
+        Assert.Contains(slots, s => s.SlotId == validSlot.SlotId);
+        Assert.DoesNotContain(slots, s => s.SlotId == outOfHorizonSlot.SlotId);
+        Assert.DoesNotContain(slots, s => s.SlotId == zeroCapacitySlot.SlotId);
+    }
+
+    [Fact]
     public async Task AcceptedSnapshotSurvivesSlotChangesAndLegacyFailsClosed()
     {
         // Cancellation cutoff comes from accepted history, never a newly edited slot.
@@ -402,6 +482,25 @@ public sealed class ReservationServiceTests
         await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.ListAsync("OP", new ListReservationsRequest()));
     }
 
+    [Fact]
+    public async Task GetMyReservationsReturnsOnlyCallerReservations()
+    {
+        var f = new Fixture();
+        await f.Create("P1");
+        await f.Create("P2");
+
+        var p1Rows = await f.Service.GetMyReservationsAsync("P1");
+        Assert.Single(p1Rows);
+        Assert.Equal("P1", p1Rows[0].ProsumerNic);
+
+        var p2Rows = await f.Service.GetMyReservationsAsync("P2");
+        Assert.Single(p2Rows);
+        Assert.Equal("P2", p2Rows[0].ProsumerNic);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.GetMyReservationsAsync("OP"));
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.GetMyReservationsAsync("BO"));
+    }
+
     private sealed class Fixture
     {
         public MemoryReservations Store { get; } = new();
@@ -483,9 +582,13 @@ public sealed class ReservationServiceTests
 
         public Task<EnergyReservation?> GetAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Reservations.GetValueOrDefault(id)));
         public Task<EnergyBookingSlot?> GetSlotAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Slots.GetValueOrDefault(id)));
+        public Task<IReadOnlyList<EnergyBookingSlot>> GetActiveSlotsAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<EnergyBookingSlot>>(Slots.Values.Where(x => x.IsActive && x.AvailableSlots > 0).Select(x => Copy(x)!).ToList());
         public Task<SolarStation?> GetStationAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Stations.GetValueOrDefault(id)));
         public Task<IReadOnlyList<EnergyReservation>> GetActiveAsync(string nic, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.ProsumerNic == nic && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
+        public Task<IReadOnlyList<EnergyReservation>> GetActiveBySlotAsync(string slotId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.SlotId == slotId && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
 
         public Task<bool> TryLockAsync(string nic, string token, CancellationToken ct = default)
         {

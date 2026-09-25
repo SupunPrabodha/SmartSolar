@@ -19,30 +19,32 @@
         android:theme="@style/Theme.SmartSolarMobile"
         android:usesCleartextTraffic="false">
 
+        <activity android:name=".ui.home.HomeActivity" android:exported="false" />
+
         <activity
-            android:name=".ui.home.HomeActivity"
-            android:exported="false" />
+            android:name=".ui.reservation.CreateReservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".ui.reservations.CurrentBookingsActivity"
-            android:exported="false" />
+            android:name=".ui.reservation.ReservationDetailsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".ui.reservations.PendingBookingsActivity"
-            android:exported="false" />
+            android:name=".ui.reservation.ModifyReservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".ui.reservations.BookingHistoryActivity"
+            android:name=".ui.reservation.ReservationSummaryActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.reservations.SearchBookingsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.reservations.ReservationQrActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.reservations.QrScannerActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.reservations.QrVerificationResultActivity"
-            android:exported="false" />
+
+        <activity android:name=".ui.reservations.CurrentBookingsActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.PendingBookingsActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.BookingHistoryActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.SearchBookingsActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.ReservationQrActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.QrScannerActivity" android:exported="false" />
+        <activity android:name=".ui.reservations.QrVerificationResultActivity" android:exported="false" />
+
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true"

@@ -49,8 +49,34 @@
 </com.google.android.material.card.MaterialCardView>
 <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-        <TextView android:id="@+id/moduleTwo" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/pending_bookings" android:textSize="18sp" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/buttonPendingBookings" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/pending_bookings" android:textSize="14sp" />
+    <TextView
+        android:id="@+id/moduleTwo"
+        style="@style/Solar.Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/my_reservations"
+        android:textSize="18sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonModuleTwo"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        android:enabled="false"
+        android:text="@string/coming_next"
+        android:textSize="12sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonPendingBookings"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        android:text="@string/pending_bookings"
+        android:textSize="14sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">

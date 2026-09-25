@@ -69,6 +69,16 @@ beforeEach(() => {
   globalThis.window = new EventTarget();
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
+    if (url.includes('/reservations/slots')) {
+      return response([{
+        slotId: row.slotId,
+        stationId: row.stationId,
+        startAtUtc: row.startTimeUtc,
+        endAtUtc: row.endTimeUtc,
+        availableSlots: 4,
+        totalSlots: 5
+      }]);
+    }
     return response(url.endsWith('/reservations') ? [row] : row);
   };
 });
@@ -127,24 +137,43 @@ test('assisted create validates, reviews, prevents duplicate submission and show
   await mount(base + '/new');
   await review();
   assert.match(text(view.root), /Enter a valid Prosumer NIC/);
-  assert.equal(calls.length, 0);
+  assert.equal(calls.filter(c => c.options?.method === 'POST').length, 0);
   await fill('prosumerNic', '200012345678');
   await fill('slotId', row.slotId);
   await fill('energyAmountKwh', '1.5');
   await review();
   assert.match(text(view.root), /Review your request/);
-  assert.equal(calls.length, 0);
+  assert.equal(calls.filter(c => c.options?.method === 'POST').length, 0);
   let finish;
   globalThis.fetch = (url, options) => { calls.push({ url, options }); return new Promise(resolve => { finish = resolve; }); };
   const confirm = button('Confirm reservation');
   await act(async () => { confirm.props.onClick(); confirm.props.onClick(); });
-  assert.equal(calls.length, 1);
-  assert.ok(calls[0].url.endsWith('/reservations/prosumers/200012345678'));
-  assert.deepEqual(JSON.parse(calls[0].options.body), { slotId: row.slotId, energyAmountKwh: 1.5 });
+  const postCalls = calls.filter(c => c.options?.method === 'POST');
+  assert.equal(postCalls.length, 1);
+  assert.ok(postCalls[0].url.endsWith('/reservations/prosumers/200012345678'));
+  assert.deepEqual(JSON.parse(postCalls[0].options.body), { slotId: row.slotId, energyAmountKwh: 1.5 });
   await act(async () => { finish(response(row, 201)); });
   assert.match(text(view.root), /Reservation created/);
   assert.match(text(view.root), /reservation-1/);
   assert.match(text(view.root), /2099/);
+});
+
+test('assisted create allows selecting slot from active slots dropdown and toggling manual input', async () => {
+  await mount(base + '/new');
+  // Initially rendered as select with available slots
+  const select = view.root.findByProps({ id: 'slotId' });
+  assert.equal(select.type, 'select');
+  await fill('slotId', row.slotId);
+  assert.equal(select.props.value, row.slotId);
+  // Toggle to manual typing mode
+  await click('Type custom Slot ID');
+  const input = view.root.findByProps({ id: 'slotId' });
+  assert.equal(input.type, 'input');
+  assert.equal(input.props.value, row.slotId);
+  // Toggle back to dropdown
+  await click('Select from active slots list');
+  const selectAgain = view.root.findByProps({ id: 'slotId' });
+  assert.equal(selectAgain.type, 'select');
 });
 
 test('edit prefills existing data and displays the server reapproval result', async () => {

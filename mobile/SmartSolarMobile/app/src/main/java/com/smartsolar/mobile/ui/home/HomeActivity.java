@@ -161,6 +161,34 @@ public final class HomeActivity extends AppCompatActivity {
                 DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date(expiry))));
         textSession.setText(getString(R.string.profile_verified,
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())));
+        boolean operator = "GridOperator".equals(user.getRole());
+
+        ((TextView) findViewById(R.id.moduleOne)).setText(
+                operator ? R.string.operations : R.string.find_stations);
+        ((TextView) findViewById(R.id.moduleTwo)).setText(
+                operator ? R.string.scan_transaction : R.string.my_reservations);
+        ((TextView) findViewById(R.id.moduleThree)).setText(
+                operator ? R.string.transaction_history : R.string.booking_history);
+
+        Button buttonModuleTwo = findViewById(R.id.buttonModuleTwo);
+        if (!operator) {
+            buttonModuleTwo.setEnabled(true);
+            buttonModuleTwo.setText(R.string.manage_reservations);
+            buttonModuleTwo.setOnClickListener(v ->
+                    startActivity(new Intent(
+                            this,
+                            com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class
+                    )));
+            findViewById(R.id.moduleTwo).setOnClickListener(v ->
+                    startActivity(new Intent(
+                            this,
+                            com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class
+                    )));
+        } else {
+            buttonModuleTwo.setEnabled(false);
+            buttonModuleTwo.setText(R.string.coming_next);
+            findViewById(R.id.moduleTwo).setOnClickListener(null);
+        }
 
         loadDashboardSummary();
         scheduleExpiry();
