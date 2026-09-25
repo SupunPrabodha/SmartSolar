@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import HomePage from './pages/HomePage';
+import StationsPage from './pages/StationsPage';
 import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -20,7 +21,7 @@ export default function App() {
               </ProtectedRoute>
             )}
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/stations" element={<ProtectedRoute roles={['Backoffice', 'GridOperator']}><StationsPage /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

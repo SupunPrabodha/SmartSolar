@@ -22,7 +22,7 @@ import com.smartsolar.mobile.util.SessionManager;
 import java.text.DateFormat;
 import java.util.Date;
 
-/** Common authenticated home only. Disabled module cards contain no feature workflows. */
+/** Authenticated home with station discovery; other member modules remain disabled. */
 public final class HomeActivity extends AppCompatActivity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable expiryCheck = this::signOut;
@@ -66,6 +66,8 @@ public final class HomeActivity extends AppCompatActivity {
         }
         buttonRefresh.setOnClickListener(view -> restore());
         buttonLogout.setOnClickListener(view -> signOut());
+        findViewById(R.id.buttonFindStations).setOnClickListener(view ->
+            startActivity(new Intent(this, com.smartsolar.mobile.ui.stations.StationDiscoveryActivity.class)));
     }
 
     @Override
@@ -110,7 +112,7 @@ public final class HomeActivity extends AppCompatActivity {
         textSession.setText(getString(R.string.profile_verified,
                 DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date())));
         boolean operator = "GridOperator".equals(user.getRole());
-        ((TextView) findViewById(R.id.moduleOne)).setText(operator ? R.string.operations : R.string.find_stations);
+        ((TextView) findViewById(R.id.moduleOne)).setText(R.string.find_stations);
         ((TextView) findViewById(R.id.moduleTwo)).setText(operator ? R.string.scan_transaction : R.string.my_reservations);
         ((TextView) findViewById(R.id.moduleThree)).setText(operator ? R.string.transaction_history : R.string.booking_history);
         scheduleExpiry();

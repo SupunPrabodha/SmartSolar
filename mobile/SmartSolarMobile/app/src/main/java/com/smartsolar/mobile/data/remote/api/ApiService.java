@@ -10,6 +10,17 @@ import retrofit2.http.GET;
 import com.smartsolar.mobile.data.remote.dto.UserResponse;
 
 public interface ApiService {
+    @GET("stations")
+    Call<java.util.List<com.smartsolar.mobile.data.remote.dto.StationResponse>> listStations();
+    @GET("stations/nearby")
+    Call<java.util.List<com.smartsolar.mobile.data.remote.dto.NearbyStationResponse>> nearbyStations(
+        @retrofit2.http.Query("latitude") double latitude, @retrofit2.http.Query("longitude") double longitude,
+        @retrofit2.http.Query("radiusKm") double radiusKm);
+    @GET("stations/{id}")
+    Call<com.smartsolar.mobile.data.remote.dto.StationResponse> getStation(@retrofit2.http.Path("id") String id);
+    @GET("stations/{id}/slots")
+    Call<java.util.List<com.smartsolar.mobile.data.remote.dto.SlotResponse>> stationSlots(@retrofit2.http.Path("id") String id);
+
     @POST("auth/login")
     Call<LoginResponse> login(@Body LoginRequest request);
 

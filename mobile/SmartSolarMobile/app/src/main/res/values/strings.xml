@@ -24,7 +24,7 @@
     <string name="home_eyebrow">YOUR WORKSPACE</string>
     <string name="welcome_name">Welcome, %1$s</string>
     <string name="foundation_ready">Your foundation is ready.</string>
-    <string name="foundation_description">Your shared account workspace is available. Energy features will arrive during feature development.</string>
+    <string name="foundation_description">Find stations and view their published slot availability. Reservation and transaction features are coming later.</string>
     <string name="account_heading">Your account</string>
     <string name="role_value">Role: %1$s</string>
     <string name="status_value">Account status: %1$s</string>
@@ -32,12 +32,12 @@
     <string name="checking_session">Checking your session&#8230;</string>
     <string name="profile_verified">Profile verified at %1$s</string>
     <string name="profile_unavailable">Profile verification unavailable</string>
-    <string name="modules_heading">Coming to your workspace</string>
-    <string name="modules_description">Planned modules. These features are not implemented yet.</string>
+    <string name="modules_heading">Your workspace</string>
+    <string name="modules_description">Station discovery is available. Reservation and transaction modules remain planned.</string>
     <string name="find_stations">Find Stations</string>
     <string name="my_reservations">My Reservations</string>
     <string name="booking_history">Booking History</string>
-    <string name="operations">Operations</string>
+
     <string name="scan_transaction">Scan Transaction</string>
     <string name="transaction_history">Transaction History</string>
     <string name="coming_next">Coming in feature development</string>

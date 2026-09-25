@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartSolarMobile">
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="${MAPS_API_KEY}" />
+        <activity android:name=".ui.stations.StationDiscoveryActivity" android:exported="false" />
+        <activity android:name=".ui.stations.StationDetailActivity" android:exported="false" />
         <activity android:name=".ui.home.HomeActivity" android:exported="false" />
         <activity android:name=".ui.auth.LoginActivity" android:exported="true"
             android:windowSoftInputMode="adjustResize">

@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,12 +16,19 @@ if (releaseApiUrl.isNotEmpty()) {
     }
 }
 
+val mapsProperties = Properties()
+val mapsFile = rootProject.file("secrets.properties")
+if (mapsFile.exists()) mapsFile.inputStream().use { mapsProperties.load(it) }
+val mapsApiKey = mapsProperties.getProperty("MAPS_API_KEY", "").trim()
+
 android {
     namespace = "com.smartsolar.mobile"
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.smartsolar.mobile"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        buildConfigField("boolean", "MAPS_CONFIGURED", mapsApiKey.isNotEmpty().toString())
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -46,6 +54,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.google.maps)
+    implementation(libs.google.location)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
