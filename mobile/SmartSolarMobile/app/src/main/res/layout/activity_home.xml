@@ -47,7 +47,7 @@
         <com.google.android.material.button.MaterialButton android:id="@+id/buttonCurrentBookings" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:minHeight="48dp" android:text="@string/current_bookings" android:textSize="14sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
-<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
+<com.google.android.material.card.MaterialCardView android:id="@+id/cardModuleTwo" style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
     <TextView
         android:id="@+id/moduleTwo"

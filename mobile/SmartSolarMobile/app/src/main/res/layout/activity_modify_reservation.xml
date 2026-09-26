@@ -144,7 +144,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:minHeight="56dp"
-                android:text="@string/btn_review_reservation" />
+                android:text="@string/btn_update_reservation" />
 
         </LinearLayout>
 

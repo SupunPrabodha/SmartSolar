@@ -30,7 +30,7 @@ android {
     buildFeatures { buildConfig = true }
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5000/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://localhost:5000/api/v1/\"")
         }
         release {
             // An unconfigured release shows a configuration message and makes no network requests.

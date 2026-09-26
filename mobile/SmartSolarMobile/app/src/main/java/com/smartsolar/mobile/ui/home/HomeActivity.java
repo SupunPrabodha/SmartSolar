@@ -49,6 +49,7 @@ public final class HomeActivity extends AppCompatActivity {
     private Button buttonBookingHistory;
     private Button buttonScanTransaction;
     private View cardScanTransaction;
+    private View cardModuleTwo;
 
     private boolean busy;
     private boolean visible;
@@ -79,6 +80,7 @@ public final class HomeActivity extends AppCompatActivity {
         buttonBookingHistory = findViewById(R.id.buttonBookingHistory);
         buttonScanTransaction = findViewById(R.id.buttonScanTransaction);
         cardScanTransaction = findViewById(R.id.cardScanTransaction);
+        cardModuleTwo = findViewById(R.id.cardModuleTwo);
         cardScanTransaction.setVisibility(View.GONE);
 
         ((TextView) findViewById(R.id.textEnvironment)).setText(
@@ -162,6 +164,7 @@ public final class HomeActivity extends AppCompatActivity {
 
         Button buttonModuleTwo = findViewById(R.id.buttonModuleTwo);
         if (!operator) {
+            if (cardModuleTwo != null) cardModuleTwo.setVisibility(View.VISIBLE);
             buttonModuleTwo.setEnabled(true);
             buttonModuleTwo.setText(R.string.manage_reservations);
             buttonModuleTwo.setOnClickListener(v ->
@@ -175,6 +178,7 @@ public final class HomeActivity extends AppCompatActivity {
                             com.smartsolar.mobile.ui.reservation.ReservationDetailsActivity.class
                     )));
         } else {
+            if (cardModuleTwo != null) cardModuleTwo.setVisibility(View.GONE);
             buttonModuleTwo.setEnabled(false);
             buttonModuleTwo.setText(R.string.coming_next);
             findViewById(R.id.moduleTwo).setOnClickListener(null);

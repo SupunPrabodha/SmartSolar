@@ -55,6 +55,7 @@
     <string name="energy_amount_hint">Energy amount (kWh)</string>
     <string name="reservation_id_hint">Reservation ID</string>
     <string name="btn_review_reservation">Review reservation</string>
+    <string name="btn_update_reservation">Update Reservation</string>
     <string name="btn_confirm_reservation">Confirm reservation</string>
     <string name="btn_confirm_changes">Confirm changes</string>
     <string name="btn_back_to_form">Back to form</string>
