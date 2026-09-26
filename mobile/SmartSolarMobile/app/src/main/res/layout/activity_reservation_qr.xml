@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/solar_screen_padding">
 
         <!-- Top Header matching Member 3 -->
         <LinearLayout
@@ -25,21 +25,9 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/home_eyebrow"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.12" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/transaction_qr_title"
-                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                    android:textStyle="bold" />
+
+
             </LinearLayout>
         </LinearLayout>
 
@@ -165,7 +153,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp"
+            android:padding="@dimen/solar_screen_padding"
             android:visibility="gone">
 
             <TextView
@@ -178,7 +166,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonQrRetry"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Solar.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -199,12 +187,12 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="@dimen/solar_screen_padding">
 
                 <ImageView
                     android:id="@+id/imageQrCode"
-                    android:layout_width="260dp"
-                    android:layout_height="260dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:adjustViewBounds="true" android:maxHeight="300dp" android:background="@android:color/white" android:padding="8dp"
                     android:contentDescription="@string/transaction_qr_title" />
 
                 <TextView
@@ -227,20 +215,20 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonCloseQr"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Outlined"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minHeight="52dp"
-                android:text="@string/close" />
+                android:text="@string/close"  android:visibility="gone"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackHomeQr"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="48dp"
-                android:text="@string/btn_back_to_workspace" />
+                android:text="@string/btn_back_to_workspace"  android:visibility="gone"/>
         </LinearLayout>
 
     </LinearLayout>

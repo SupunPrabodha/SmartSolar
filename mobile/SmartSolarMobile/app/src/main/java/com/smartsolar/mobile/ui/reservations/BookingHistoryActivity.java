@@ -16,7 +16,6 @@ import com.smartsolar.mobile.BuildConfig;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.RetrofitClient;
 import com.smartsolar.mobile.data.remote.api.ApiService;
-import com.smartsolar.mobile.data.remote.dto.ReservationPageResponse;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.ui.auth.LoginActivity;
 import java.util.HashMap;
@@ -153,5 +152,9 @@ public final class BookingHistoryActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (repository != null) repository.close();
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.nav_history), com.smartsolar.mobile.util.MobileNavigation.Destination.HISTORY);
     }
 }

@@ -116,7 +116,7 @@ Start an emulator, select `app` / `debug`, and click Run. The APK is `app/build/
 
 DEBUG uses `http://10.0.2.2:5000/api/v1/`; `10.0.2.2` is the host alias inside Android Emulator. Emulator `localhost` is the emulator itself. The debug network config permits HTTP to that host and to localhost/127.0.0.1 for explicit port-forwarding setups. Release requires a real HTTPS API endpoint and has no debug cleartext exception.
 
-Active Prosumer/GridOperator accounts open the native home screen. Backoffice users are told to use web and their mobile session is cleared. Login/restoration/refresh use the API; SQLite contains only the cached current profile, never passwords. Follow [Android manual checks](../mobile/SmartSolarMobile/README.md#manual-emulator-checks), including Database Inspector.
+Active Prosumer/GridOperator accounts open the native home screen. New Prosumers can register anonymously from the mobile login screen and remain PendingActivation until Backoffice approval. Backoffice users are told to use web and their mobile session is cleared. Login/restoration/refresh use the API; SQLite contains only the cached current profile, never passwords. Reservation times are shown in device-local time while API values remain UTC. Follow [Android manual checks](../mobile/SmartSolarMobile/README.md#manual-emulator-checks), including Database Inspector.
 
 ## 8. Verify the account foundation
 

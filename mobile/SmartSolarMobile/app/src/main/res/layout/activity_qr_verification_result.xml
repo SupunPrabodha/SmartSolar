@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/solar_screen_padding">
 
         <!-- Verification Header matching Member 3 -->
         <LinearLayout
@@ -25,13 +25,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/home_eyebrow"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.12" />
+
 
                 <TextView
                     android:layout_width="match_parent"
@@ -57,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="@dimen/solar_screen_padding">
 
                 <TextView
                     style="@style/Solar.Title"
@@ -241,15 +235,15 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonScanAnother"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minHeight="52dp"
                 android:text="@string/scan_another" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonDone"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Outlined"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="52dp"

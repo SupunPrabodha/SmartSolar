@@ -163,7 +163,7 @@ test('dashboard renders live API counts', async () => {
   assert.ok(rendered.includes('7'), 'Must show pending count 7');
   assert.ok(rendered.includes('12'), 'Must show approved future count 12');
   assert.ok(rendered.includes('Booking History'));
-  assert.ok(rendered.includes('Search & Filter'));
+  assert.ok(rendered.includes('Search Bookings'));
   assert.ok(rendered.includes('Manage Reservations'));
 });
 
@@ -192,7 +192,8 @@ test('history renders returned records', async () => {
   await mountComponent(React.createElement(BookingHistory));
   const rendered = text(view.root);
   assert.ok(rendered.includes('Completed'));
-  assert.ok(rendered.includes('11111111-2222-3333-4444-555555555555'));
+  assert.ok(rendered.includes('11111111…5555'));
+  assert.ok(view.root.findAllByProps({ title: sampleReservation.reservationId }).length > 0, 'Full reference remains available');
 });
 
 test('search sends the expected query/filter values', async () => {
@@ -209,7 +210,7 @@ test('search sends the expected query/filter values', async () => {
     });
   });
 
-  // Inputs are explicitly UTC even though datetime-local emits no zone suffix.
+  // Local inputs retain the existing UTC conversion at the request boundary.
   await act(async () => {
     view.root.findByProps({ id: 'search-from-utc' }).props.onChange({ target: { value: '2030-05-10T10:00' } });
   });
@@ -227,8 +228,8 @@ test('search sends the expected query/filter values', async () => {
 
   const lastCall = calls[calls.length - 1];
   const url = new URL(lastCall.url);
-  assert.equal(url.searchParams.get('fromUtc'), '2030-05-10T10:00:00.000Z');
-  assert.equal(url.searchParams.get('toUtc'), '2030-05-11T11:30:00.000Z');
+  assert.equal(url.searchParams.get('fromUtc'), new Date('2030-05-10T10:00').toISOString());
+  assert.equal(url.searchParams.get('toUtc'), new Date('2030-05-11T11:30').toISOString());
   assert.equal(url.searchParams.get('reservationId'), '11111111-2222-3333-4444-555555555555');
 });
 

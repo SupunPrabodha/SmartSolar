@@ -1,0 +1,26 @@
+<resources>
+    <style name="Solar.Button" parent="Widget.Material3.Button">
+        <item name="cornerRadius">8dp</item><item name="android:minHeight">@dimen/solar_control_height</item>
+        <item name="android:textSize">14sp</item><item name="android:insetTop">4dp</item><item name="android:insetBottom">4dp</item>
+    </style>
+    <style name="Solar.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">8dp</item><item name="android:minHeight">@dimen/solar_control_height</item><item name="android:textSize">14sp</item>
+    </style>
+    <style name="Solar.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="cornerRadius">8dp</item><item name="android:minHeight">@dimen/solar_control_height</item><item name="android:textSize">14sp</item>
+    </style>
+    <style name="Solar.Button.Danger" parent="Solar.Button.Outlined">
+        <item name="android:textColor">@color/solar_status_rejected</item><item name="strokeColor">@color/solar_status_rejected</item>
+    </style>
+    <style name="Solar.Input" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">8dp</item><item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item><item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+    <style name="Solar.NavLabel" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+    </style>
+    <style name="Solar.Status" parent="">
+        <item name="android:textSize">12sp</item><item name="android:textStyle">bold</item>
+        <item name="android:paddingHorizontal">8dp</item><item name="android:paddingVertical">4dp</item>
+    </style>
+</resources>

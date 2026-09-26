@@ -1,5 +1,6 @@
 package com.smartsolar.mobile.ui.reservations;
 
+import com.smartsolar.mobile.util.ReservationUiUtils;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
@@ -107,10 +108,10 @@ public final class ReservationQrActivity extends AppCompatActivity {
         }
 
         String station = stationId != null ? stationId : "—";
-        textStationSlot.setText("Station: " + station);
+        textStationSlot.setText("Station " + ReservationUiUtils.shortReference(station));
 
         String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
-        textSchedule.setText("Starts: " + startFormatted);
+        textSchedule.setText(ReservationUiUtils.schedule(scheduleStart, scheduleEnd));
 
         textEnergy.setText(String.format(java.util.Locale.US, "%.1f kWh", energyAmount));
 
@@ -157,7 +158,7 @@ public final class ReservationQrActivity extends AppCompatActivity {
             cardQrDisplay.setVisibility(View.VISIBLE);
             layoutError.setVisibility(View.GONE);
             if (issuedAtUtc != null) {
-                textQrIssuedAt.setText(getString(R.string.qr_issued_at_label, issuedAtUtc));
+                textQrIssuedAt.setText(getString(R.string.qr_issued_at_label, ReservationUiUtils.formatUtc(issuedAtUtc)));
                 textQrIssuedAt.setVisibility(View.VISIBLE);
             } else {
                 textQrIssuedAt.setVisibility(View.GONE);
@@ -187,5 +188,9 @@ public final class ReservationQrActivity extends AppCompatActivity {
             repository.close();
         }
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.transaction_qr_title), null);
     }
 }

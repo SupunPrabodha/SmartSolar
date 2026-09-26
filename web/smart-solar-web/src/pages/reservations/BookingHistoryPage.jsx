@@ -1,3 +1,4 @@
+import { localTimeZone } from './reservationUi.js';
 import { useCallback, useState } from 'react';
 import { getBookingHistory } from '../../api/reservations.js';
 import { ErrorNotice, Loading, PaginationControls, ReservationTable } from './ReservationComponents.jsx';
@@ -18,7 +19,7 @@ export default function BookingHistoryPage() {
         <div>
           <p className="eyebrow">RESERVATION ARCHIVE</p>
           <h1 className="h2">Booking History</h1>
-          <p className="text-secondary mb-0">Past and concluded reservations ordered by start date descending. All times UTC.</p>
+          <p className="text-secondary mb-0">Past and concluded reservations ordered by start date descending. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>
           Refresh

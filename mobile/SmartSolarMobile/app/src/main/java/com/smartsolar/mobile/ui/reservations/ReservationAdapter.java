@@ -96,20 +96,17 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
         }
 
         public void bind(ReservationResponse item, OnItemClickListener listener, boolean allowQrIssuance) {
-            String idSnippet = item.getReservationId() != null && item.getReservationId().length() > 8
-                    ? item.getReservationId().substring(0, 8) + "…"
-                    : String.valueOf(item.getReservationId());
-            textId.setText("Reservation: " + idSnippet);
+            textId.setText("Reservation #" + ReservationUiUtils.shortReference(item.getReservationId()));
 
             ReservationUiUtils.formatStatusBadge(textStatus, item.getStatus());
 
             String station = item.getStationId() != null ? item.getStationId() : "—";
-            textStationSlot.setText("Station: " + station);
+            textStationSlot.setText("Station " + ReservationUiUtils.shortReference(station));
 
             textEnergy.setText(String.format(Locale.US, "%.1f kWh", item.getEnergyAmountKwh()));
 
             String startFormatted = ReservationUiUtils.formatUtc(item.getScheduledStartAtUtc());
-            textSchedule.setText("Starts: " + startFormatted);
+            textSchedule.setText(ReservationUiUtils.schedule(item.getScheduledStartAtUtc(), item.getScheduledEndAtUtc()));
 
             // Bind Expanded Details
             if (textExpandedReservationId != null) {
@@ -144,17 +141,19 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
                 layoutExpandedDetails.setVisibility(View.GONE);
             }
             if (textChevron != null) {
-                textChevron.setText("▼");
+                textChevron.setText("⌄");
             }
 
             // Expand/Collapse interaction matching Member 3's card
             if (cardHeader != null) {
+                androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(R.string.details_collapsed));
                 cardHeader.setOnClickListener(v -> {
                     if (layoutExpandedDetails != null) {
                         boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
+                        androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(isExpanded ? R.string.details_collapsed : R.string.details_expanded));
                         layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
                         if (textChevron != null) {
-                            textChevron.setText(isExpanded ? "▼" : "▲");
+                            textChevron.setText(isExpanded ? "⌄" : "⌃");
                         }
                     }
                     if (listener != null) {

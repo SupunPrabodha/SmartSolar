@@ -17,7 +17,8 @@ public final class AuthInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request original = chain.request();
         // Login is anonymous and must not send a previous account's token.
-        String token = original.url().encodedPath().endsWith("/auth/login") ? null : sessions.getAccessToken();
+        String path = original.url().encodedPath();
+        String token = path.endsWith("/auth/login") || path.endsWith("/auth/register-prosumer") ? null : sessions.getAccessToken();
         Request.Builder request = original.newBuilder().removeHeader("Authorization");
         if (token != null) request.header("Authorization", "Bearer " + token);
         Response response = chain.proceed(request.build());

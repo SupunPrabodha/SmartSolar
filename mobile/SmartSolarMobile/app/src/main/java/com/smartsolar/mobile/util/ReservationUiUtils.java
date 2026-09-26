@@ -1,13 +1,15 @@
 package com.smartsolar.mobile.util;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
+
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public final class ReservationUiUtils {
-    private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm 'UTC'", Locale.ENGLISH).withZone(ZoneOffset.UTC);
+    private static DateTimeFormatter formatter() {
+        return DateTimeFormatter.ofPattern("d MMM yyyy, h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault());
+    }
 
     private ReservationUiUtils() { }
 
@@ -17,7 +19,7 @@ public final class ReservationUiUtils {
         }
         try {
             Instant instant = Instant.parse(isoTimestamp);
-            return FORMATTER.format(instant);
+            return formatter().format(instant);
         } catch (Exception exception) {
             return "Schedule unavailable";
         }
@@ -29,10 +31,30 @@ public final class ReservationUiUtils {
         }
         try {
             Instant instant = Instant.parse(isoStartTimestamp).minusSeconds(12 * 3600);
-            return FORMATTER.format(instant);
+            return formatter().format(instant);
         } catch (Exception exception) {
             return "Cutoff unavailable";
         }
+    }
+
+    public static String formatTime(String value) {
+        try { return DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault()).format(Instant.parse(value)); }
+        catch (RuntimeException error) { return "Time unavailable"; }
+    }
+    public static String shortReference(String value) {
+        if (value == null || value.isEmpty()) return "Unavailable";
+        return value.length() > 14 ? value.substring(0, 8).toUpperCase(Locale.ROOT) + "…" + value.substring(value.length() - 4).toUpperCase(Locale.ROOT) : value;
+    }
+    public static String schedule(String start, String end) {
+        try {
+            java.time.ZonedDateTime a = Instant.parse(start).atZone(ZoneId.systemDefault()), b = Instant.parse(end).atZone(ZoneId.systemDefault());
+            DateTimeFormatter day = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault());
+            return a.format(day) + (a.toLocalDate().equals(b.toLocalDate()) ? "" : " – " + b.format(day)) + "\n" + formatTime(start) + " – " + formatTime(end);
+        } catch (RuntimeException error) { return "Schedule unavailable"; }
+    }
+    public static String greeting() {
+        int hour = java.time.LocalTime.now().getHour();
+        return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
     }
 
     public static boolean isCutoffPassed(String isoStartTimestamp, long nowMillis) {
@@ -79,27 +101,17 @@ public final class ReservationUiUtils {
         view.setVisibility(android.view.View.VISIBLE);
         view.setText(status);
 
-        int textColor;
-        int bgColor;
-        if ("Approved".equalsIgnoreCase(status)) {
-            textColor = 0xFF2E7D32; // Green
-            bgColor = 0x1F2E7D32;
-        } else if ("Pending".equalsIgnoreCase(status)) {
-            textColor = 0xFFE65100; // Orange
-            bgColor = 0x1FE65100;
-        } else if ("Rejected".equalsIgnoreCase(status)) {
-            textColor = 0xFFC62828; // Red
-            bgColor = 0x1FC62828;
-        } else if ("Cancelled".equalsIgnoreCase(status)) {
-            textColor = 0xFF757575; // Grey
-            bgColor = 0x1F757575;
-        } else if ("Completed".equalsIgnoreCase(status)) {
-            textColor = 0xFF1565C0; // Blue
-            bgColor = 0x1F1565C0;
-        } else {
-            textColor = 0xFF757575;
-            bgColor = 0x1F000000;
+        String key = status.toLowerCase(Locale.ROOT);
+        int textRes, backgroundRes;
+        switch (key) {
+            case "active":
+            case "approved": textRes = com.smartsolar.mobile.R.color.solar_status_approved; backgroundRes = com.smartsolar.mobile.R.color.solar_approved_surface; break;
+            case "pending": textRes = com.smartsolar.mobile.R.color.solar_status_pending; backgroundRes = com.smartsolar.mobile.R.color.solar_pending_surface; break;
+            case "rejected": textRes = com.smartsolar.mobile.R.color.solar_status_rejected; backgroundRes = com.smartsolar.mobile.R.color.solar_rejected_surface; break;
+            case "completed": textRes = com.smartsolar.mobile.R.color.solar_status_completed; backgroundRes = com.smartsolar.mobile.R.color.solar_completed_surface; break;
+            default: textRes = com.smartsolar.mobile.R.color.solar_status_cancelled; backgroundRes = com.smartsolar.mobile.R.color.solar_cancelled_surface;
         }
+        int textColor = view.getContext().getColor(textRes), bgColor = view.getContext().getColor(backgroundRes);
         view.setTextColor(textColor);
 
         android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();

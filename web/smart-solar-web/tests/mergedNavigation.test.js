@@ -40,8 +40,8 @@ test('Backoffice has one navigation entry per enabled module and working home ca
   const html = render(Home), nav = navigation(html);
   for (const path of ['/', '/users', '/stations'])
     assert.equal(nav.split('href="' + path + '"').length - 1, 1);
-  assert.match(html, /Open User Management/);
-  assert.match(html, /Open Microgrid Stations/);
+  assert.match(html, /User Management/);
+  assert.match(html, /Microgrid Stations/);
   assert.doesNotMatch(nav, /Reservations|Transactions|Planned|Coming in feature development/);
 });
 
@@ -49,12 +49,12 @@ test('GridOperator gets stations but no User Management entry or card', () => {
   session('GridOperator');
   const html = render(Home);
   assert.equal(navigation(html).split('href="/stations"').length - 1, 1);
-  assert.doesNotMatch(html, /href="\/users"|Open User Management/);
+  assert.doesNotMatch(html, /href="\/users"|User Management/);
   for (const path of ['/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/current', '/operator/reservations/history', '/operator/reservations/search'])
     assert.equal(navigation(html).split('href="' + path + '"').length - 1, 1);
   assert.match(navigation(html), /href="\/operator\/reservations\?status=Pending"[^>]*>.*Pending Queue/);
-  assert.match(html, /Open Operations/);
-  assert.match(html, /Open Booking History/);
+  assert.match(html, /Operations Dashboard/);
+  assert.match(html, /Booking History/);
   assert.doesNotMatch(html, /Not implemented|Planned/);
 });
 
@@ -109,5 +109,18 @@ test('all reservation routes inherit GridOperator-only access', () => {
     assert.equal(guard.type(guard.props), guard.props.children);
     globalThis.integrationSession = { user: null, loading: false };
     assert.equal(guard.type(guard.props).props.to, '/login');
+  }
+});
+
+
+test('only one sidebar item is selected for each queue, view and nested transaction route', () => {
+  for (const [role, paths] of [
+    ['GridOperator', ['/', '/stations', '/operator/reservations', '/operator/reservations?status=Pending', '/operator/reservations/dashboard', '/operator/reservations/current', '/operator/reservations/history', '/operator/reservations/search', '/operator/reservations/fixture-id/edit']],
+    ['Backoffice', ['/', '/users', '/users?status=PendingActivation', '/stations']]
+  ]) for (const location of paths) {
+    session(role);
+    const html = renderToStaticMarkup(React.createElement(StaticRouter, { location }, React.createElement(Home)));
+    assert.equal((navigation(html).match(/aria-current="page"/g) ?? []).length, 1, location);
+    assert.doesNotMatch(html, /Phase 0|Common foundation|Integrated team|Server Calculated|Development/);
   }
 });

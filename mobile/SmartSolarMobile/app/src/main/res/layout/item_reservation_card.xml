@@ -12,99 +12,18 @@
         android:orientation="vertical">
 
         <!-- Clickable Header with Essential Information & Chevron -->
-        <LinearLayout
-            android:id="@+id/cardHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <!-- Top line: ID preview and status badge -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:id="@+id/textCardIdSnippet"
-                        style="@style/Solar.Title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/textCardStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingTop="2dp"
-                        android:paddingBottom="2dp"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <!-- Second line: Station & Energy amount -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/textCardStation"
-                        style="@style/Solar.Body"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/textCardEnergy"
-                        style="@style/Solar.Body"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/solar_primary" />
-                </LinearLayout>
-
-                <!-- Third line: Start Time preview -->
-                <TextView
-                    android:id="@+id/textCardStartPreview"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <!-- Chevron Indicator -->
-            <TextView
-                android:id="@+id/textChevron"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="12dp"
-                android:paddingEnd="4dp"
-                android:text="▼"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-        </LinearLayout>
+        <LinearLayout android:id="@+id/cardHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_card_padding" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:minHeight="48dp">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+  <TextView android:id="@+id/textCardEnergy" style="@style/Solar.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="22sp"/>
+  <TextView android:id="@+id/textCardStatus" style="@style/Solar.Status" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+ </LinearLayout>
+ <TextView android:id="@+id/textCardStartPreview" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/solar_text" android:textSize="14sp"/>
+ <TextView android:id="@+id/textCardStation" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textSize="13sp"/>
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+  <TextView android:id="@+id/textCardIdSnippet" style="@style/Solar.Body" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="12sp"/>
+  <TextView android:id="@+id/textChevron" style="@style/Solar.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/details_chevron" android:importantForAccessibility="no"/>
+ </LinearLayout>
+</LinearLayout>
 
         <!-- Expanded Details & Actions Container -->
         <LinearLayout
@@ -210,7 +129,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Rejection Reason"
+                    android:text="@string/rejection_reason"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="#C62828" />
@@ -244,15 +163,15 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonCardModify"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:text="@string/btn_modify_reservation" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonCardCancel"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
+                    style="@style/Solar.Button.Danger"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:minHeight="48dp"
@@ -260,8 +179,8 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonCardViewQr"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
+                    style="@style/Solar.Button.Outlined"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:minHeight="48dp"

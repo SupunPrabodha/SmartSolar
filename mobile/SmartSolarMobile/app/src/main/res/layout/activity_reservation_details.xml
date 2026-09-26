@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/solar_screen_padding">
 
         <!-- Top Header & New Reservation button -->
         <LinearLayout
@@ -25,28 +25,16 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/home_eyebrow"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.12" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/title_my_reservations"
-                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                    android:textStyle="bold" />
+
+
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonHeaderNewReservation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="44dp"
+                android:minHeight="48dp"
                 android:text="@string/btn_new_reservation_header"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -89,7 +77,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:padding="20dp"
+            android:padding="@dimen/solar_screen_padding"
             android:gravity="center"
             android:background="@color/solar_background"
             android:text="@string/no_reservations_found"
@@ -97,7 +85,10 @@
             android:visibility="gone" />
 
         <!-- Dynamic List Container for Reservation Cards -->
-        <LinearLayout
+        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:fillViewport="true" android:scrollbars="none"><LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"><com.google.android.material.button.MaterialButton android:id="@+id/buttonCurrentView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_current"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonPendingView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_pending"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonSearchView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_search"/></LinearLayout></HorizontalScrollView>
+<LinearLayout
             android:id="@+id/layoutReservationsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -113,20 +104,20 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonRefreshDetails"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Outlined"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minHeight="52dp"
                 android:text="@string/btn_refresh_details" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackHome"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="48dp"
-                android:text="@string/btn_back_to_workspace" />
+                android:text="@string/btn_back_to_workspace"  android:visibility="gone"/>
         </LinearLayout>
 
     </LinearLayout>

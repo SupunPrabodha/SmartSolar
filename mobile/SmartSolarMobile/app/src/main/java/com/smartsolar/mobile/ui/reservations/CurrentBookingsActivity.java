@@ -43,6 +43,9 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_current_bookings);
+        boolean pendingView = getIntent().getBooleanExtra("pendingView", false);
+        ((TextView) findViewById(R.id.currentBookingsTitle)).setText(pendingView ? R.string.pending_bookings : R.string.current_bookings);
+        ((TextView) findViewById(R.id.textEmpty)).setText(pendingView ? R.string.no_pending_bookings : R.string.no_current_bookings);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.currentBookingsRoot), (view, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
@@ -89,7 +92,15 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
         if (buttonBackHome != null) {
             buttonBackHome.setOnClickListener(v -> finish());
         }
+        Button buttonPendingBookings = findViewById(R.id.buttonPendingBookings);
+        if (buttonPendingBookings != null) buttonPendingBookings.setOnClickListener(v -> { if (!getIntent().getBooleanExtra("pendingView", false)) { startActivity(new Intent(this, CurrentBookingsActivity.class).putExtra("pendingView", true)); finish(); } });
+        Button buttonSearchBookings = findViewById(R.id.buttonSearchBookings);
+        if (buttonSearchBookings != null) buttonSearchBookings.setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.SEARCH));
 
+        findViewById(R.id.buttonCurrentView).setOnClickListener(v -> {
+            if (getIntent().getBooleanExtra("pendingView", false)) { startActivity(new Intent(this, CurrentBookingsActivity.class)); finish(); }
+        });
+        findViewById(R.id.buttonHistoryView).setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.HISTORY));
         loadData(1);
     }
 
@@ -100,7 +111,12 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
         query.put("page", String.valueOf(page));
         query.put("pageSize", String.valueOf(pageSize));
 
-        repository.getCurrentBookings(query, (result, errorResource, httpStatusCode) -> {
+        boolean pendingView = getIntent().getBooleanExtra("pendingView", false);
+        if (pendingView) repository.getPendingBookings(query, this::handleResult);
+        else repository.getCurrentBookings(query, this::handleResult);
+    }
+
+    private void handleResult(ReservationPageResponse result, int errorResource, int httpStatusCode) {
             if (isFinishing() || isDestroyed()) return;
             setBusy(false);
 
@@ -132,8 +148,7 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
                 adapter.setItems(null);
                 textEmpty.setVisibility(View.VISIBLE);
             }
-        });
-    }
+        }
 
     private void setBusy(boolean busy) {
         progress.setVisibility(busy ? View.VISIBLE : View.GONE);
@@ -153,5 +168,9 @@ public final class CurrentBookingsActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (repository != null) repository.close();
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.nav_bookings), com.smartsolar.mobile.util.MobileNavigation.Destination.BOOKINGS);
     }
 }

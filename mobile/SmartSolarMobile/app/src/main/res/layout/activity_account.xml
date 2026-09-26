@@ -1,13 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/manage_account" android:textAppearance="?attr/textAppearanceHeadlineMedium" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/account_edit_description" />
-        <EditText android:id="@+id/inputName" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:hint="@string/full_name_hint" android:inputType="textPersonName" />
-        <EditText android:id="@+id/inputEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/email_hint" android:inputType="textEmailAddress" />
-        <EditText android:id="@+id/inputPhone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/phone_hint" android:inputType="phone" />
-        <TextView android:id="@+id/textResult" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="12dp" android:accessibilityLiveRegion="polite" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/buttonSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/save_profile" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/buttonDeactivate" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/deactivate_account" />
-    </LinearLayout>
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_screen_padding">
+  <TextView android:id="@+id/profileName" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content"  />
+  <TextView  style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/profile_role" android:layout_marginTop="4dp"/>
+  <TextView  style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/personal_information" android:layout_marginTop="24dp" android:textSize="16sp"/>
+  <TextView  style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/nic_hint" android:layout_marginTop="16dp" android:textSize="12sp"/>
+  <TextView android:id="@+id/profileNic" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  />
+  <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/full_name_hint"><com.google.android.material.textfield.TextInputEditText android:id="@+id/inputName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPersonName"/></com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/email_hint"><com.google.android.material.textfield.TextInputEditText android:id="@+id/inputEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textEmailAddress"/></com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/phone_hint"><com.google.android.material.textfield.TextInputEditText android:id="@+id/inputPhone" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="phone"/></com.google.android.material.textfield.TextInputLayout>
+  <TextView android:id="@+id/textResult" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  android:accessibilityLiveRegion="polite" android:paddingTop="12dp"/>
+  <com.google.android.material.button.MaterialButton android:id="@+id/buttonSave" style="@style/Solar.Button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save_profile"/>
+  <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/solar_border" android:layout_marginVertical="20dp"/>
+  <TextView  style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/account_access" android:textSize="16sp"/>
+  <TextView  style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/deactivation_confirmation" android:layout_marginVertical="8dp"/>
+  <com.google.android.material.button.MaterialButton android:id="@+id/buttonDeactivate" style="@style/Solar.Button.Danger" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/deactivate_account"/>
+ </LinearLayout>
 </ScrollView>

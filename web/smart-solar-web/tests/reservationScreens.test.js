@@ -183,7 +183,7 @@ test('assisted create allows selecting slot from active slots dropdown and toggl
   await fill('slotId', row.slotId);
   assert.equal(select.props.value, row.slotId);
   // Toggle to manual typing mode
-  await click('Type custom Slot ID');
+  await click('Enter slot reference');
   const input = view.root.findByProps({ id: 'slotId' });
   assert.equal(input.type, 'input');
   assert.equal(input.props.value, row.slotId);
@@ -433,5 +433,3 @@ test('reservation layout keeps aligned sidebar with Manage Reservations', async 
   const activeLink = navLinks.find(node => text(node).includes('Manage Reservations'));
   assert.ok(activeLink, 'Expected Manage Reservations active in sidebar on reservation screens');
 });
-
-

@@ -2,4 +2,18 @@
     <color name="solar_primary">#A4D5B8</color>
     <color name="solar_on_primary">#12392C</color>
     <color name="solar_background">#111C17</color>
+    <color name="solar_surface">#192921</color>
+    <color name="solar_text">#E0EEE5</color>
+    <color name="solar_secondary">#B5C9BD</color>
+    <color name="solar_border">#3C5144</color>
+    <color name="solar_status_pending">#F1CD7B</color>
+    <color name="solar_status_approved">#A3D8B5</color>
+    <color name="solar_status_rejected">#FFB4B8</color>
+    <color name="solar_status_cancelled">#C3CEC7</color>
+    <color name="solar_status_completed">#A2D8E4</color>
+    <color name="solar_pending_surface">#463919</color>
+    <color name="solar_approved_surface">#203E2E</color>
+    <color name="solar_rejected_surface">#472A2D</color>
+    <color name="solar_cancelled_surface">#303D35</color>
+    <color name="solar_completed_surface">#203C43</color>
 </resources>

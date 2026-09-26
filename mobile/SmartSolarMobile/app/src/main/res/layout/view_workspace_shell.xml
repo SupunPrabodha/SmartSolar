@@ -1,0 +1,12 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/solar_background">
+    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/workspaceToolbar" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="?attr/actionBarSize" app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" app:titleTextColor="@color/solar_text"/>
+    <FrameLayout android:id="@+id/workspaceContent" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+    <com.google.android.material.card.MaterialCardView android:id="@+id/workspaceNavSurface" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/solar_nav_margin" android:layout_marginBottom="10dp" android:layout_marginTop="6dp"
+        app:cardCornerRadius="26dp" app:cardElevation="5dp" app:cardBackgroundColor="@color/solar_surface" app:strokeColor="@color/solar_border" app:strokeWidth="1dp" android:visibility="gone">
+        <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/workspaceBottomNav" android:layout_width="match_parent" android:layout_height="@dimen/solar_nav_height"
+            android:background="@android:color/transparent" app:elevation="0dp" app:itemIconTint="@color/solar_nav_item" app:itemTextColor="@color/solar_nav_item"
+            app:itemIconSize="22dp" app:itemTextAppearanceActive="@style/Solar.NavLabel" app:itemTextAppearanceInactive="@style/Solar.NavLabel" app:labelVisibilityMode="labeled" app:itemHorizontalTranslationEnabled="false"/>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

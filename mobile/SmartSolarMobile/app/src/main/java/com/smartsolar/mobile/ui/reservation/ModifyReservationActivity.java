@@ -189,4 +189,8 @@ public final class ModifyReservationActivity extends AppCompatActivity {
         if (repository != null) repository.close();
         super.onDestroy();
     }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.btn_modify_reservation), null);
+    }
 }

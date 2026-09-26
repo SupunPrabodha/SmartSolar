@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '../api/apiClient';
 import { useAuth } from '../auth/AuthContext';
 import HomePage from './HomePage';
+import { StatusBadge } from './reservations/ReservationComponents';
+import { localTimeZone } from './reservations/reservationUi';
 import { fromUtcInput, toUtcInput, stationPayload } from '../util/catalog';
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const emptyStation = () => ({ name: '', address: '', latitude: '', longitude: '', capacityKwh: '',
@@ -66,9 +68,9 @@ function SlotForm({ slot, station, onSaved, onCancel }) {
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   return <form className="surface-card my-3" onSubmit={save}><h3>{slot ? 'Edit slot' : 'Add slot'}</h3>
-    <ErrorMessage value={error} /><fieldset disabled={busy}><p>Enter UTC times. Active windows at a station cannot overlap.</p>
-      <div className="row"><div className="col-md-6"><Field label="Start (UTC)" type="datetime-local" step="0.001" required {...field('start')} /></div>
-        <div className="col-md-6"><Field label="End (UTC)" type="datetime-local" step="0.001" required {...field('end')} /></div>
+    <ErrorMessage value={error} /><fieldset disabled={busy}><p>Enter local times ({localTimeZone()}). Active windows at a station cannot overlap.</p>
+      <div className="row"><div className="col-md-6"><Field label="Start (local time)" type="datetime-local" step="0.001" required {...field('start')} /></div>
+        <div className="col-md-6"><Field label="End (local time)" type="datetime-local" step="0.001" required {...field('end')} /></div>
         <div className="col-md-6"><Field label="Total slots" type="number" min="1" max={station.totalBatterySlots} step="1" required {...field('total')} /></div>
         <div className="col-md-6"><Field label="Available slots" type="number" min="0" max={form.total || station.totalBatterySlots} step="1" required {...field('available')} /></div></div>
       <div className="d-flex gap-2"><button className="btn btn-primary">{busy ? 'Saving...' : 'Save slot'}</button>
@@ -78,7 +80,7 @@ function SlotRow({ slot, canManage, busy, onEdit, onAvailability, onDeactivate }
   const [available, setAvailable] = useState(slot.availableSlots);
   useEffect(() => { setAvailable(slot.availableSlots); }, [slot.availableSlots, slot.updatedAtUtc]);
   return <tr><td>{showTime(slot.startAtUtc)}<br />to {showTime(slot.endAtUtc)}</td><td>{slot.availableSlots} / {slot.totalSlots}</td>
-    <td>{slot.isActive ? 'Active' : 'Inactive'}</td>{canManage && <td>
+    <td><StatusBadge status={slot.isActive ? 'Active' : 'Inactive'}/></td>{canManage && <td>
       <button type="button" disabled={busy} className="btn btn-sm btn-outline-primary me-2" onClick={onEdit}>Edit</button>
       {slot.isActive && <><button type="button" disabled={busy} className="btn btn-sm btn-outline-danger" onClick={onDeactivate}>Deactivate</button>
         <form className="d-flex flex-wrap align-items-end gap-2 mt-2" onSubmit={e => { e.preventDefault(); onAvailability(Number(available)); }}>
@@ -129,7 +131,7 @@ function StationDetails({ id, onClose, onChanged }) {
       {editing && <StationForm key={station.updatedAtUtc} station={station} onSaved={() => saved('Station saved.')} onCancel={() => setEditing(false)} />}
       <div className="d-flex flex-wrap justify-content-between gap-2 mt-4 mb-2"><h2 className="h4">Booking slots</h2>
         {canManage && station.isActive && <button className="btn btn-primary" disabled={busy} onClick={() => setSlotForm({})}>Add slot</button>}</div>
-      <p className="text-secondary">Times below use your browser timezone. Slot forms use UTC. Availability is current inventory, not a reservation guarantee.</p>
+      <p className="text-secondary">Times shown in your local timezone ({localTimeZone()}). Availability is confirmed when a reservation is saved.</p>
       {slotForm && <SlotForm key={slotForm.slotId || 'new'} slot={slotForm.slotId ? slotForm : null} station={station}
         onSaved={() => saved('Slot saved.')} onCancel={() => setSlotForm(null)} />}
       {!slots.length ? <p className="surface-card">No booking slots have been created for this station.</p> :
@@ -168,10 +170,9 @@ export default function StationsPage() {
         <button className="btn btn-outline-primary">Search / reload</button></form>
       <ErrorMessage value={error} />{loading ? <p role="status">Loading stations...</p> : !error && (
         !stations.length ? <p className="surface-card">No stations match this search.</p> :
-          <div className="module-grid">{stations.map(station => <article className="surface-card" key={station.stationId}>
-            <h2 className="h4">{station.name}</h2><p>{station.address}</p><p>{station.capacityKwh} kWh / {station.totalBatterySlots} battery slots</p>
-            <p>{station.isActive ? 'Active' : 'Inactive'}</p><button className="btn btn-outline-primary" onClick={() => { setSelected(station.stationId); setAdding(false); }}>
-              View station{user.role === 'GridOperator' ? ' and manage slots' : ''}</button></article>)}</div>)}
+          <div className="module-grid">{stations.map(station => <article className="surface-card station-card" key={station.stationId}>
+            <StatusBadge status={station.isActive ? 'Active' : 'Inactive'}/><h2>{station.name}</h2><p>{station.address}</p><div className="station-specs"><p><strong>{station.capacityKwh}</strong>kWh capacity</p><p><strong>{station.totalBatterySlots}</strong>battery slots</p></div><button className="btn btn-outline-primary" onClick={() => { setSelected(station.stationId); setAdding(false); }}>
+              Manage station</button></article>)}</div>)}
     </>}
   </HomePage>;
 }

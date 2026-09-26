@@ -44,6 +44,7 @@ public final class LoginActivity extends AppCompatActivity {
         buttonLogin = findViewById(R.id.buttonLogin);
         textError = findViewById(R.id.textError);
         progress = findViewById(R.id.progress);
+        findViewById(R.id.buttonCreateAccount).setOnClickListener(view -> startActivity(new Intent(this, RegisterActivity.class)));
         try {
             repository = new AuthRepository(
                     RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG),

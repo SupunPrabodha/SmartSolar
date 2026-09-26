@@ -141,7 +141,7 @@ public final class QrScannerActivity extends AppCompatActivity {
                 if (statusCode == 404) {
                     message = "QR code reference is invalid, expired, or was revoked.";
                 } else if (statusCode == 409) {
-                    message = "Reservation is not in an Approved state or has changed.";
+                    message = getString(errorRes != 0 ? errorRes : R.string.qr_changed);
                 } else if (statusCode == 403) {
                     message = getString(R.string.access_denied);
                 } else if (statusCode == 400) {
@@ -196,5 +196,9 @@ public final class QrScannerActivity extends AppCompatActivity {
             repository.close();
         }
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.scan_transaction_qr), null);
     }
 }

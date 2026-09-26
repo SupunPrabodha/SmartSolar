@@ -162,4 +162,8 @@ public final class StationDiscoveryActivity extends CatalogActivity {
         super.onSaveInstanceState(out);
     }
     @Override protected void onStop() { cancelLocation(); super.onStop(); }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.find_stations), com.smartsolar.mobile.util.MobileNavigation.Destination.STATIONS);
+    }
 }

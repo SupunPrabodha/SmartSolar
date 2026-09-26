@@ -1,9 +1,19 @@
-// UTC input must never depend on the browser timezone.
-export function toUtcInput(value) { return new Date(value).toISOString().slice(0, -1); }
+// Datetime-local controls represent browser local time; the API remains UTC.
+export function toUtcInput(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new Error('Enter a valid date and time.');
+  const pad = part => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+}
 export function fromUtcInput(value) {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(value)) throw new Error('Enter a valid UTC date and time.');
-  const date = new Date(value + 'Z');
-  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 16) !== value.slice(0, 16)) throw new Error('Enter a valid UTC date and time.');
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(value)) throw new Error('Enter a valid local date and time.');
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new Error('Enter a valid date and time.');
+  const [datePart, timePart] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+  if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day || date.getHours() !== hour || date.getMinutes() !== minute)
+    throw new Error('Enter a valid date and time.');
   return date.toISOString();
 }
 export function stationPayload(form) {

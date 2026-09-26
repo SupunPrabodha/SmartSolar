@@ -1,3 +1,4 @@
+import { localTimeZone } from './reservationUi.js';
 import { useCallback, useState } from 'react';
 import { getCurrentBookings } from '../../api/reservations.js';
 import { ErrorNotice, Loading, PaginationControls, ReservationTable } from './ReservationComponents.jsx';
@@ -16,7 +17,7 @@ export default function CurrentBookingsPage() {
         <div>
           <p className="eyebrow">LIVE BOOKINGS</p>
           <h1 className="h2">Current Bookings</h1>
-          <p className="text-secondary mb-0">Pending and Approved reservations whose accepted end is still ahead. All times UTC.</p>
+          <p className="text-secondary mb-0">Pending and Approved reservations whose accepted end is still ahead. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>Refresh</button>
       </div>

@@ -67,7 +67,7 @@ public final class ReservationSummaryActivity extends AppCompatActivity {
         TextView textCutoff = findViewById(R.id.textSummaryCutoff);
 
         textReservationId.setText(reservation.getReservationId());
-        textStatus.setText(reservation.getStatus());
+        ReservationUiUtils.formatStatusBadge(textStatus, reservation.getStatus());
         textNic.setText(reservation.getProsumerNic());
         textStationId.setText(reservation.getStationId());
         textSlotId.setText(reservation.getSlotId());
@@ -92,5 +92,9 @@ public final class ReservationSummaryActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_reservation_summary), null);
     }
 }

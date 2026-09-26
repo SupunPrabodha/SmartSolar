@@ -3,7 +3,6 @@ package com.smartsolar.mobile.ui.reservation;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -243,5 +242,9 @@ public final class CreateReservationActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (repository != null) repository.close();
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.new_reservation), null);
     }
 }

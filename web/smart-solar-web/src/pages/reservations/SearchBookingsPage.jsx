@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { fromUtcInput } from '../../util/catalog.js';
 import { searchBookings } from '../../api/reservations.js';
 import { ErrorNotice, Loading, PaginationControls, ReservationTable } from './ReservationComponents.jsx';
-import { reservationStatuses } from './reservationUi.js';
+import { localTimeZone, reservationStatuses } from './reservationUi.js';
 import { useReservationData } from './useReservationData.js';
 
 const initialFilters = {
@@ -54,7 +54,7 @@ export default function SearchBookingsPage() {
         <div>
           <p className="eyebrow">QUERY RESERVATIONS</p>
           <h1 className="h2">Search Bookings</h1>
-          <p className="text-secondary mb-0">Search and filter reservations using server-validated exact parameters. All dates UTC.</p>
+          <p className="text-secondary mb-0">Find a reservation by reference, account or schedule. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>
           Refresh
@@ -68,7 +68,7 @@ export default function SearchBookingsPage() {
             <input
               id="search-reservation-id"
               className="form-control"
-              placeholder="e.g. 32-char GUID"
+              placeholder="Full reservation reference"
               value={draft.reservationId}
               onChange={e => setDraft({ ...draft, reservationId: e.target.value })}
             />
@@ -90,7 +90,7 @@ export default function SearchBookingsPage() {
             <input
               id="search-station"
               className="form-control"
-              placeholder="Station GUID"
+              placeholder="Full station reference"
               value={draft.stationId}
               onChange={e => setDraft({ ...draft, stationId: e.target.value })}
             />
@@ -112,7 +112,7 @@ export default function SearchBookingsPage() {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label" htmlFor="search-from-utc">From (UTC)</label>
+            <label className="form-label" htmlFor="search-from-utc">From (local time)</label>
             <input
               id="search-from-utc"
               className="form-control"
@@ -123,7 +123,7 @@ export default function SearchBookingsPage() {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label" htmlFor="search-to-utc">To (UTC)</label>
+            <label className="form-label" htmlFor="search-to-utc">To (local time)</label>
             <input
               id="search-to-utc"
               className="form-control"

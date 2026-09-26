@@ -10,23 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/solar_screen_padding">
 
-        <TextView
-            style="@style/Solar.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/home_eyebrow"
-            android:textSize="11sp"
-            android:letterSpacing="0.12" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/title_modify_reservation"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textStyle="bold" />
+
+
 
         <TextView
             style="@style/Solar.Body"
@@ -70,7 +58,7 @@
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Current Reservation"
+                    android:text="@string/current_reservation_heading"
                     android:textStyle="bold"
                     android:textSize="13sp" />
                 <TextView
@@ -165,7 +153,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/solar_screen_padding">
 
                     <TextView
                         style="@style/Solar.Title"
@@ -178,7 +166,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="The server verifies capacity and notice requirements before confirming changes." />
+                        android:text="@string/reservation_modify_guidance" />
 
                     <View
                         android:layout_width="match_parent"
@@ -191,7 +179,7 @@
                         style="@style/Solar.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="New Slot ID"
+                        android:text="@string/new_slot_reference"
                         android:textSize="12sp" />
                     <TextView
                         android:id="@+id/textReviewSlotId"
@@ -205,7 +193,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="New Energy Amount"
+                        android:text="@string/new_energy_amount"
                         android:textSize="12sp" />
                     <TextView
                         android:id="@+id/textReviewEnergy"
@@ -237,8 +225,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackToForm"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Outlined"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"
@@ -248,12 +236,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonCancelEdit"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="match_parent"
+            style="@style/Solar.Button.Text"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:minHeight="48dp"
-            android:text="Cancel changes" />
+            android:text="@string/cancel_changes" />
 
     </LinearLayout>
 </ScrollView>

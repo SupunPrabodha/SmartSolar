@@ -28,6 +28,7 @@ public final class AccountActivity extends AppCompatActivity {
     private TextView result;
     private SessionManager sessions;
     private ApiService api;
+    private String requestToken;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -46,17 +47,26 @@ public final class AccountActivity extends AppCompatActivity {
         findViewById(R.id.buttonDeactivate).setOnClickListener(view -> confirmDeactivation());
     }
 
+    @Override protected void onStart() {
+        super.onStart();
+        if (sessions != null && sessions.getAccessToken() == null) openLogin();
+    }
+
     private void save() {
         // Read controls on the UI thread, then make the network and SQLite work off the UI thread.
         String fullName = name.getText().toString().trim();
         String emailAddress = email.getText().toString().trim();
         String phoneNumber = phone.getText().toString().trim();
+        requestToken = sessions.getAccessToken();
         setBusy(true);
         worker.execute(() -> {
             try {
                 Response<UserResponse> response = api.updateMyProfile(
                         new UpdateProfileRequest(fullName, emailAddress, phoneNumber)).execute();
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.code() == 401) {
+                    sessions.clearIfMatches(requestToken);
+                    runOnUiThread(this::openLogin);
+                } else if (response.isSuccessful() && response.body() != null && requestToken != null && requestToken.equals(sessions.getAccessToken())) {
                     sessions.cacheProfile(response.body());
                     runOnUiThread(() -> finishSave(R.string.profile_saved));
                 } else runOnUiThread(() -> finishSave(R.string.profile_update_failed));
@@ -69,10 +79,14 @@ public final class AccountActivity extends AppCompatActivity {
     private void deactivate() {
         // Clear the token and cached profile only after the server accepts Prosumer self-deactivation.
         setBusy(true);
+        requestToken = sessions.getAccessToken();
         worker.execute(() -> {
             try {
                 Response<Void> response = api.requestDeactivation().execute();
-                if (response.isSuccessful()) {
+                if (response.code() == 401) {
+                    sessions.clearIfMatches(requestToken);
+                    runOnUiThread(this::openLogin);
+                } else if (response.isSuccessful() && requestToken != null && requestToken.equals(sessions.getAccessToken())) {
                     sessions.clear();
                     runOnUiThread(this::openLogin);
                 } else runOnUiThread(() -> finishSave(R.string.profile_update_failed));
@@ -113,5 +127,13 @@ public final class AccountActivity extends AppCompatActivity {
     protected void onDestroy() {
         worker.shutdownNow();
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.manage_account), com.smartsolar.mobile.util.MobileNavigation.Destination.ACCOUNT, user -> {
+            name.setText(user.getFullName()); email.setText(user.getEmail()); phone.setText(user.getPhoneNumber());
+            ((TextView) findViewById(R.id.profileName)).setText(user.getFullName());
+            ((TextView) findViewById(R.id.profileNic)).setText(user.getNic());
+        });
     }
 }

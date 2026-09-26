@@ -11,6 +11,7 @@ import com.smartsolar.mobile.data.remote.dto.ReservationPageResponse;
 import com.smartsolar.mobile.data.remote.dto.ReservationQrResponse;
 import com.smartsolar.mobile.data.remote.dto.ReservationResponse;
 import com.smartsolar.mobile.data.remote.dto.ReservationVerificationResponse;
+import com.smartsolar.mobile.data.remote.dto.RegisterProsumerRequest;
 import com.smartsolar.mobile.data.remote.dto.UpdateProfileRequest;
 import com.smartsolar.mobile.data.remote.dto.UpdateReservationRequest;
 import com.smartsolar.mobile.data.remote.dto.UserResponse;
@@ -59,6 +60,9 @@ public interface ApiService {
     Call<LoginResponse> login(
             @Body LoginRequest request
     );
+
+    @POST("auth/register-prosumer")
+    Call<UserResponse> registerProsumer(@Body RegisterProsumerRequest request);
 
     @GET("users/me")
     Call<UserResponse> getCurrentUser();
@@ -111,6 +115,12 @@ public interface ApiService {
     Call<ReservationPageResponse> getCurrentBookings(
             @QueryMap Map<String, String> query
     );
+
+    @GET("reservations/pending")
+    Call<ReservationPageResponse> getPendingBookings(@QueryMap Map<String, String> query);
+
+        @GET("reservations/search")
+        Call<ReservationPageResponse> searchBookings(@QueryMap Map<String, String> query);
 
     @GET("reservations/history")
     Call<ReservationPageResponse> getBookingHistory(

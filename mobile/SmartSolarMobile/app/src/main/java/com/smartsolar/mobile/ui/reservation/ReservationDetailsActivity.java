@@ -76,6 +76,9 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
 
         buttonRefreshDetails.setOnClickListener(v -> loadReservations());
         buttonBackHome.setOnClickListener(v -> finish());
+        findViewById(R.id.buttonCurrentView).setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.BOOKINGS));
+        findViewById(R.id.buttonPendingView).setOnClickListener(v -> { startActivity(new Intent(this, com.smartsolar.mobile.ui.reservations.CurrentBookingsActivity.class).putExtra("pendingView", true).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)); finish(); });
+        findViewById(R.id.buttonSearchView).setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.SEARCH));
     }
 
     @Override
@@ -153,14 +156,14 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             String idSnippet = res.getReservationId() != null && res.getReservationId().length() > 8
                     ? res.getReservationId().substring(0, 8) + "…"
                     : String.valueOf(res.getReservationId());
-            textCardIdSnippet.setText("Reservation: " + idSnippet);
+            textCardIdSnippet.setText("Reservation #" + ReservationUiUtils.shortReference(res.getReservationId()));
 
             textCardStatus.setText(res.getStatus());
             formatStatusBadge(textCardStatus, res.getStatus());
 
-            textCardStation.setText("Station: " + (res.getStationId() != null ? res.getStationId() : "—"));
+            textCardStation.setText("Station " + ReservationUiUtils.shortReference(res.getStationId()));
             textCardEnergy.setText(String.format(Locale.US, "%.1f kWh", res.getEnergyAmountKwh()));
-            textCardStartPreview.setText("Starts: " + ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
+            textCardStartPreview.setText(ReservationUiUtils.schedule(res.getScheduledStartAtUtc(), res.getScheduledEndAtUtc()));
 
             // Bind Expanded Details
             textExpandedReservationId.setText(res.getReservationId());
@@ -216,9 +219,10 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             View.OnClickListener toggleListener = v -> {
                 boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
                 layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
-                textChevron.setText(isExpanded ? "▼" : "▲");
+                textChevron.setText(isExpanded ? "⌄" : "⌃");
             };
-            cardHeader.setOnClickListener(toggleListener);
+            androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(R.string.details_collapsed));
+            cardHeader.setOnClickListener(v -> { toggleListener.onClick(v); androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(layoutExpandedDetails.getVisibility() == View.VISIBLE ? R.string.details_expanded : R.string.details_collapsed)); });
 
             // Action Buttons
             buttonCardModify.setOnClickListener(v -> {
@@ -290,5 +294,9 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (repository != null) repository.close();
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_my_reservations), com.smartsolar.mobile.util.MobileNavigation.Destination.RESERVATIONS);
     }
 }

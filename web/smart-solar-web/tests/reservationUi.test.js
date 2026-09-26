@@ -12,7 +12,7 @@ test('terminal statuses and missing schedules disable changes without inventing 
     assert.match(changeRestriction({ status, scheduledStartAtUtc: '2030-01-03T00:00:00Z' }, now), /Only Pending/);
   assert.match(changeRestriction({ status: 'Pending', scheduledStartAtUtc: 'invalid' }, now), /unavailable/);
   assert.equal(formatUtc('invalid'), 'Schedule unavailable');
-  assert.match(formatUtc('2030-01-01T12:00:00Z'), /12:00 UTC$/);
+  assert.doesNotMatch(formatUtc('2030-01-01T12:00:00Z'), /UTC$/);
 });
 test('form validates NIC, slot GUID and finite positive energy before review', () => {
   const good = { prosumerNic: '200012345678', slotId: '11111111111111111111111111111111', energyAmountKwh: '1.5' };
