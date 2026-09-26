@@ -38,7 +38,7 @@ android {
     buildFeatures { buildConfig = true }
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5000/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://localhost:5000/api/v1/\"")
         }
         release {
             // An unconfigured release shows a configuration message and makes no network requests.
@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.android.embedded)
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.ext.junit)

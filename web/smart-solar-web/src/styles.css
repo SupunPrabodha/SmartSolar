@@ -80,3 +80,20 @@ button, a { touch-action: manipulation; }
 @media (max-width: 850px) { .workspace { display: block; } .workspace-sidebar { width: 100%; padding: 17px 24px; } .sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; } .nav-toggle { display: block; border: 1px solid #8aa899; color: white; background: transparent; padding: 7px 12px; border-radius: 6px; font-size: .75rem; } .workspace-nav { display: none; margin-top: 25px; } .workspace-nav.open { display: flex; } .sidebar-footer { display: none; } .workspace-topbar { min-height: 67px; } .login-page { grid-template-columns: 1fr; } .login-story { padding: 28px; gap: 30px; } .login-story h1 { font-size: 2rem; } .login-story small { display: none; } .login-panel { padding: 40px 24px; } }
 @media (max-width: 560px) { .workspace-main { padding: 24px 18px 0; } .workspace-topbar { padding: 14px 18px; } .account-name { display: none; } .page-heading { align-items: start; flex-wrap: wrap; } .role-pill { font-size: .62rem; padding: 6px 9px; } .foundation-banner { padding: 27px 23px; } .foundation-banner h2 { font-size: 1.5rem; } .session-grid, .module-grid { grid-template-columns: 1fr; } .section-heading { display: block; } .section-heading > span { display: block; margin-top: 8px; } .workspace-footer { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+
+/* Member 3 operational reservation screens. */
+.reservation-workspace { max-width: 1250px; }
+.reservation-workspace nav a[aria-current="page"] { color: #156451; font-weight: 700; }
+.reservation-workspace .surface-card p { font-size: .95rem; }
+.reservation-workspace .reservation-form { max-width: 800px; margin-inline: auto; }
+.reservation-table { min-width: 1000px; font-size: .87rem; }
+.reservation-table th, .reservation-table td { padding: 1rem; }
+.reservation-table td:first-child { max-width: 170px; }
+.reservation-table td:nth-child(3) { max-width: 210px; }
+.reservation-summary dd { margin-top: .3rem; }
+.reservation-dialog { width: min(560px, 92vw); max-height: 90vh; overflow: auto; border: 1px solid #d4dfd8; border-radius: 12px; padding: 28px; box-shadow: 0 16px 60px #0003; }
+.reservation-dialog::backdrop { background: #102e26aa; }
+@media (max-width: 560px) {
+  .reservation-workspace { padding-inline: 16px; }
+  .reservation-dialog { padding: 20px; }
+}
