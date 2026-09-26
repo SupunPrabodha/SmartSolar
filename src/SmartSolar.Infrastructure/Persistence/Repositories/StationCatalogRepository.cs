@@ -106,6 +106,14 @@ public sealed class StationCatalogRepository : IStationCatalogRepository, IReser
         return await _reservations.Find(filter).AnyAsync(ct);
     }
 
+    public async Task<decimal> ActiveAllocatedEnergyAsync(string stationId, CancellationToken ct)
+    {
+        // Station capacity covers every active Pending/Approved allocation at the station.
+        var filter = Builders<EnergyReservation>.Filter.Eq(x => x.StationId, stationId) & ActiveReservationFilter();
+        var active = await _reservations.Find(filter).ToListAsync(ct);
+        return active.Sum(x => x.EnergyAmountKwh);
+    }
+
     private static FilterDefinition<EnergyReservation> ActiveReservationFilter()
     {
         // Consume the team's frozen rule in both queries using the existing string-enum BSON mapping.

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { fromUtcInput } from '../../util/catalog.js';
 import { searchBookings } from '../../api/reservations.js';
 import { ErrorNotice, Loading, PaginationControls, ReservationTable } from './ReservationComponents.jsx';
 import { reservationStatuses } from './reservationUi.js';
@@ -23,7 +24,7 @@ export default function SearchBookingsPage() {
     const params = { page, pageSize };
     for (const [key, value] of Object.entries(activeFilters)) {
       if (value && value.trim()) {
-        params[key] = value.trim();
+        params[key] = key === 'fromUtc' || key === 'toUtc' ? fromUtcInput(value.trim()) : value.trim();
       }
     }
     return searchBookings(params, { signal });

@@ -13,7 +13,7 @@ const modulesByRole = {
   GridOperator: [
     ['Operations', 'Your reservation and station operations workspace.'],
     ['Microgrid Stations', 'View stations and manage booking-slot inventory.'],
-    ['Transactions', 'Review completed energy transactions.']
+    ['Booking History', 'Review historical bookings and completed transfers.']
   ]
 };
 
@@ -24,6 +24,7 @@ const moduleRoutesByRole = {
   },
   GridOperator: {
     Operations: '/operator/reservations/dashboard',
+    'Booking History': '/operator/reservations/history',
     'Microgrid Stations': '/stations'
   }
 };
@@ -114,20 +115,20 @@ export default function HomePage({ children }) {
             Microgrid Stations
           </NavLink>
 
-          {user.role === 'GridOperator' && (
-            <NavLink
-              to="/operator/reservations"
-              className={({ isActive }) =>
-                `workspace-nav-item${isActive ? ' active' : ''}`
-              }
-              onClick={closeMenu}
-            >
-              <span aria-hidden="true">03</span>
-              Manage Reservations
+          {user.role === 'GridOperator' && [
+            ['/operator/reservations', 'Manage Reservations', true],
+            ['/operator/reservations/dashboard', 'Operations Dashboard', false],
+            ['/operator/reservations/history', 'Booking History', false],
+            ['/operator/reservations/search', 'Search Bookings', false]
+          ].map(([path, label, end], index) => (
+            <NavLink key={path} to={path} end={end}
+              className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`}
+              onClick={closeMenu}>
+              <span aria-hidden="true">0{index + 3}</span>{label}
             </NavLink>
-          )}
+          ))}
 
-          <span className="nav-caption mt-4">UPCOMING MODULES</span>
+          {modules.some(([name]) => !moduleRoutes[name]) && <span className="nav-caption mt-4">UPCOMING MODULES</span>}
 
           {modules
             .filter(([name]) => !moduleRoutes[name])

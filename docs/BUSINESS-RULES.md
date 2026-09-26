@@ -1,6 +1,14 @@
 # Business Rules
 
-Authoritative validation must be implemented in the C# service layer.
+Authoritative validation belongs in the C# service layer. The integrated implementation now includes Member 3 lifecycle and Member 4 QR/completion; historical checkpoint text below is not the current implementation boundary. See [final audit](FINAL-INTEGRATION-AUDIT.md) for unresolved acceptance blockers.
+
+## Current integrated reservation behavior
+
+Create writes Pending and consumes one available slot; accepted start/end are copied from the server's slot. Seven-day and twelve-hour boundaries, ownership and overlap validation run in ReservationRules/ReservationService. Update returns Pending and clears QR fields; moving acquires replacement capacity and releases the old place. Approval retains capacity. Cancellation/rejection persist a terminal state then release one place through a separate conditional write, not a multi-document transaction. Rejection remarks are retained in lifecycle and booking-query summaries.
+
+Completion conditionally changes Approved to Completed and records operator/time once. It does not release slot capacity because Completed consumed its published booking place. Verification and completion use the accepted reservation window and require active, correctly linked Prosumer, station and slot records.
+
+Reservation count capacity uses atomic slot decrements. Catalog and reservation allocation/capacity writes acquire the singleton `CatalogWriteGate` first, then the durable per-Prosumer lock when required. Aggregate energy checks and catalog protection therefore serialize within the supported single-IIS-instance deployment; Mongo compare-and-update checks remain the per-document boundary.
 
 ## Implemented common foundation
 
@@ -156,6 +164,7 @@ legacy handling and the chosen current/history interpretation.
 ### Server Verification Rules (Step 9)
 - **Role Requirement**: Server-side verification is strictly restricted to authenticated active `GridOperator` users (HTTP 403 Forbidden for Prosumer or Backoffice).
 - **Authoritative Database State**: Verification queries MongoDB by `SHA-256(scanned_token)` and validates that the reservation is currently `Approved`.
+- **Accepted Window and Eligibility**: Verification requires `ScheduledStartAtUtc <= server now < ScheduledEndAtUtc`, an active referenced Prosumer, active station and active slot, and a slot-to-station linkage matching the reservation. Accepted snapshots are authoritative; mutable slot times are not consulted.
 - **Rejection Matrix**:
   - Unknown/invalid/rotated token: HTTP 404 Not Found
   - Malformed/empty payload: HTTP 400 Bad Request
@@ -179,7 +188,7 @@ legacy handling and the chosen current/history interpretation.
 - Backoffice manages station metadata, the seven-day UTC operating schedule and soft deactivation.
 - GridOperator manages slot inventory. All three roles can discover active stations and published active slots through the API; web staff can inspect inactive history.
 - Positive energy capacity and battery-slot count, valid finite GPS coordinates, nonempty name/address and complete nonambiguous weekly hours are enforced in C#.
-- Slot windows require start < end, positive total and bounded availability. Each inventory window's total is at most station TotalBatterySlots. Station capacity cannot be reduced below an active slot total.
+- Slot windows require start < end, positive total and bounded availability. Each inventory window's total is at most station TotalBatterySlots. Station capacity cannot be reduced below the sum of energy allocated by active Pending/Approved reservations; the exact allocated-energy boundary is allowed.
 - Active inventory windows cannot overlap within one station. Their half-open boundary convention permits one ending exactly when the next starts. This is the Member 1 conflict policy, not a Member 3 booking-window rule.
 - No claim is made that a published active slot is a currently bookable reservation. There is no past/future booking policy, 7-day horizon, 12-hour update/cancel rule, availability allocation, schedule-to-slot enforcement or automatic reservation transition here.
 - All edits require the latest updatedAtUtc; stale updates fail with 409. Single-instance related writes are serialized, with atomic per-record timestamp checks in MongoDB.
@@ -201,4 +210,4 @@ The read-only reservation query matches the target StationId or SlotId and Statu
 
 The existing EnergyReservation and ReservationStatus contracts, IDs, references and string-enum BSON mappings are unchanged. Protection queries do not update reservation status or implement lifecycle transitions, approval, booking CRUD, 7-day/12-hour rules, QR or completion.
 
-The active-status definition is resolved. Cross-record coordination with future Member 3 writers remains a separate integration dependency: before integrating booking allocation/lifecycle writes or deploying multiple API instances, establish reviewed atomicity across related records. The existing in-process gate and per-document timestamp comparison remain unchanged; they do not lock another process or a future reservation writer.
+The active-status definition is resolved. Cross-record coordination with the now-integrated Member 3 writers remains unresolved: establish reviewed atomicity across related records before final acceptance or multi-instance deployment. The existing in-process gate and per-document timestamp comparison remain unchanged; they do not lock another process or a future reservation writer.

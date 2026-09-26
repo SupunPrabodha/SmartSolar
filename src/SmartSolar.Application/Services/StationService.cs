@@ -68,6 +68,8 @@ public sealed class StationService
             var station = await RequiredAsync(id, ct);
             var expected = CatalogRules.RequireExpected(request.ExpectedUpdatedAtUtc, station.UpdatedAtUtc);
             Apply(station, request);
+            if (station.CapacityKwh < await _references.ActiveAllocatedEnergyAsync(id, ct))
+                throw new ConflictException("Station capacity cannot be lower than energy allocated by active reservations.");
             var slots = await _catalog.ListSlotsAsync(id, false, ct);
             if (slots.Any(x => x.TotalSlots > station.TotalBatterySlots))
                 throw new ConflictException("Station storage slots cannot be lower than an active booking slot's total.");

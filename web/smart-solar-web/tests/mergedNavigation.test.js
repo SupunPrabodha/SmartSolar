@@ -11,6 +11,7 @@ import { createRoutesFromElements, matchRoutes } from 'react-router-dom';
 const bundle = await build({
   stdin: { contents: `export { default as Home } from './src/pages/HomePage';
     export { default as Users } from './src/pages/UserManagementPage';
+    export { ReservationLayout } from './src/pages/reservations/ReservationComponents';
     export { default as App } from './src/App';`,
     resolveDir: process.cwd(), loader: 'jsx' },
   bundle: true, write: false, platform: 'node', format: 'cjs', packages: 'external', jsx: 'automatic',
@@ -24,7 +25,7 @@ const bundle = await build({
 });
 const compiled = { exports: {} };
 new Function('module', 'exports', 'require', bundle.outputFiles[0].text)(compiled, compiled.exports, createRequire(import.meta.url));
-const { Home, Users, App } = compiled.exports;
+const { Home, Users, App, ReservationLayout } = compiled.exports;
 function session(role) {
   globalThis.integrationSession = { user: { fullName: 'Integration User', role, status: 'Active' },
     loading: false, refreshing: false, lastVerifiedAt: null, logout() {}, refreshProfile() {} };
@@ -50,7 +51,11 @@ test('GridOperator gets stations but no User Management entry or card', () => {
   const html = render(Home);
   assert.equal(navigation(html).split('href="/stations"').length - 1, 1);
   assert.doesNotMatch(html, /href="\/users"|Open User Management/);
-  assert.match(navigation(html), /<button[^>]*disabled=""[^>]*>Operations/);
+  for (const path of ['/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/history', '/operator/reservations/search'])
+    assert.equal(navigation(html).split('href="' + path + '"').length - 1, 1);
+  assert.match(html, /Open Operations/);
+  assert.match(html, /Open Booking History/);
+  assert.doesNotMatch(html, /Not implemented|Planned/);
 });
 
 test('User Management retains its forms inside the common navigation and session shell', () => {
@@ -75,6 +80,33 @@ test('merged routes are unique and enforce both members role boundaries', () => 
       if (allowed.includes(role)) assert.equal(result, guard.props.children);
       else assert.equal(result.props.to, '/unauthorized');
     }
+    globalThis.integrationSession = { user: null, loading: false };
+    assert.equal(guard.type(guard.props).props.to, '/login');
+  }
+});
+
+test('reservation workspace preserves station access and all operational links', () => {
+  session('GridOperator');
+  const html = render(ReservationLayout);
+  for (const path of ['/', '/stations', '/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/history', '/operator/reservations/search'])
+    assert.equal(navigation(html).split('href="' + path + '"').length - 1, 1);
+  assert.match(html, /Sign out/);
+  assert.doesNotMatch(html, /href="\/users"|Phase 0|Planned/);
+});
+
+test('all reservation routes inherit GridOperator-only access', () => {
+  const routes = createRoutesFromElements(App().props.children.props.children.props.children);
+  for (const suffix of ['', '/dashboard', '/history', '/search', '/new', '/fixture-id', '/fixture-id/edit']) {
+    const matches = matchRoutes(routes, '/operator/reservations' + suffix);
+    assert.ok(matches);
+    const guard = matches[0].route.element;
+    assert.deepEqual(guard.props.roles, ['GridOperator']);
+    for (const role of ['Backoffice', 'Prosumer']) {
+      session(role);
+      assert.equal(guard.type(guard.props).props.to, '/unauthorized');
+    }
+    session('GridOperator');
+    assert.equal(guard.type(guard.props), guard.props.children);
     globalThis.integrationSession = { user: null, loading: false };
     assert.equal(guard.type(guard.props).props.to, '/login');
   }

@@ -21,5 +21,6 @@ public interface IStationCatalogRepository
 public interface IReservationReferenceReader
 {
     Task<bool> HasActiveStationReservationsAsync(string stationId, CancellationToken ct);
+    Task<decimal> ActiveAllocatedEnergyAsync(string stationId, CancellationToken ct);
     Task<bool> HasActiveSlotReservationsAsync(string slotId, CancellationToken ct);
 }

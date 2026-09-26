@@ -203,6 +203,14 @@ test('search sends the expected query/filter values', async () => {
     });
   });
 
+  // Inputs are explicitly UTC even though datetime-local emits no zone suffix.
+  await act(async () => {
+    view.root.findByProps({ id: 'search-from-utc' }).props.onChange({ target: { value: '2030-05-10T10:00' } });
+  });
+  await act(async () => {
+    view.root.findByProps({ id: 'search-to-utc' }).props.onChange({ target: { value: '2030-05-11T11:30' } });
+  });
+
   // Submit form
   await act(async () => {
     view.root.findByProps({ 'aria-label': 'Search reservation filters' }).props.onSubmit({
@@ -213,6 +221,8 @@ test('search sends the expected query/filter values', async () => {
 
   const lastCall = calls[calls.length - 1];
   const url = new URL(lastCall.url);
+  assert.equal(url.searchParams.get('fromUtc'), '2030-05-10T10:00:00.000Z');
+  assert.equal(url.searchParams.get('toUtc'), '2030-05-11T11:30:00.000Z');
   assert.equal(url.searchParams.get('reservationId'), '11111111-2222-3333-4444-555555555555');
 });
 

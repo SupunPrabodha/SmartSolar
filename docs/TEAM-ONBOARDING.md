@@ -82,7 +82,7 @@ Keep it running. The profile serves both HTTPS 7001 and HTTP 5000:
 
 For Android-only work use `--launch-profile http` instead. It serves port 5000 only. ASP.NET Development does not redirect HTTP; other environments retain HTTPS redirection.
 
-The clients call the API; only the API accesses MongoDB. The API must be running and MongoDB healthy before login can succeed.
+The clients call the API; only the API accesses MongoDB. The API must be running and MongoDB healthy before login can succeed. The supported coursework deployment uses one ASP.NET Core API instance under IIS; multiple worker processes or API instances require a reviewed distributed replacement for the in-process `CatalogWriteGate`.
 
 ## 6. Run the web app (terminal 2, repository root)
 
@@ -95,7 +95,7 @@ npm.cmd run dev
 
 The public local setting is `VITE_API_BASE_URL=https://localhost:7001/api/v1`. Vite variables are bundled into client code, so they must never contain secrets. Open the local address printed by Vite (normally `http://localhost:5173`). Trust the API development certificate first; do not bypass TLS validation in code.
 
-Sign in with an active Backoffice or GridOperator account. The shell shows full name, role, account state and the last successful session/profile verification. It has profile refresh, sign out, station/slot navigation for both staff roles and User Management for Backoffice. Reservations, Transactions and Operations remain disabled. Prosumers use Android and are denied the web workspace.
+Sign in with an active Backoffice or GridOperator account. The shell shows full name, role, account state and the last successful session/profile verification. It has profile refresh, sign out, station/slot navigation for both staff roles and User Management for Backoffice. GridOperator reservation management, dashboard, booking history and search are enabled under `/operator/reservations`; Backoffice has no operational reservation access. Prosumers use Android and are denied the web workspace.
 
 Run `npm.cmd test` for the session, catalog and merged-navigation regressions, then `npm.cmd run build` for the production-build check. This compiles the client but does not validate live login or deploy anything.
 
@@ -114,7 +114,7 @@ Set-Location .\mobile\SmartSolarMobile
 
 Start an emulator, select `app` / `debug`, and click Run. The APK is `app/build/outputs/apk/debug/app-debug.apk`.
 
-DEBUG uses `http://10.0.2.2:5000/api/v1/`; `10.0.2.2` is the host alias inside Android Emulator. Emulator `localhost` is the emulator itself. The debug network config permits HTTP only to that host. Release requires a real HTTPS API endpoint and has no debug cleartext exception.
+DEBUG uses `http://10.0.2.2:5000/api/v1/`; `10.0.2.2` is the host alias inside Android Emulator. Emulator `localhost` is the emulator itself. The debug network config permits HTTP to that host and to localhost/127.0.0.1 for explicit port-forwarding setups. Release requires a real HTTPS API endpoint and has no debug cleartext exception.
 
 Active Prosumer/GridOperator accounts open the native home screen. Backoffice users are told to use web and their mobile session is cleared. Login/restoration/refresh use the API; SQLite contains only the cached current profile, never passwords. Follow [Android manual checks](../mobile/SmartSolarMobile/README.md#manual-emulator-checks), including Database Inspector.
 
@@ -144,10 +144,14 @@ Routes and DTOs are in [API-CONTRACT](API-CONTRACT.md). No new feature UI is req
 | Emulator request gets 307 | Restart the updated API in Development, using its committed launch profile. Do not disable TLS checking. |
 | Android SDK/JDK error | Select JDK 17, install SDK 35 / Build-Tools 35.0.0, and let Studio create ignored `local.properties`. |
 | Login says inactive | A Backoffice user must activate the account through the API. |
-| Module card does nothing | Only Reservations, Transactions and Operations remain planned. User Management (Backoffice) and Microgrid Stations must open their implemented screens. |
+| Module card does nothing | User Management (Backoffice), Stations (staff), and reservation operations/history (GridOperator) must open implemented screens. Backoffice reservation/transaction placeholders do not grant operational access. |
 
 ## 9. Start feature work
 
 The leader assigns ownership for four developers. Keep shared DTOs, auth/session code and configuration coordinated. Normal flow is current `develop` -> member branch -> focused commits -> push -> PR to `develop` -> CI -> review -> merge. All Git actions are manual.
 
 Before the first commit, review ignored local files and the final report. After the first push, check all three CI jobs; local green builds are not evidence of an executed hosted workflow.
+
+## Integrated acceptance
+
+Use [FINAL-INTEGRATION-AUDIT.md](FINAL-INTEGRATION-AUDIT.md) for the audited HEAD, exact all-member results, known blockers and manual end-to-end checklist. Android includes Prosumer account/reservation management, both roles' booking views and GridOperator QR scanning. Passing builds do not replace browser/device, SQLite, camera/Maps or hosted CI checks. Resolve the documented shared concurrency/completion decisions and historical key exposure before final acceptance or deployment.

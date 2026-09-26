@@ -7,6 +7,8 @@ Required collections:
 - `EnergyBookingSlots`
 - `EnergyReservation`
 
+The integrated schema includes Member 3 accepted schedule snapshots and User.ReservationWriteLock, plus Member 4 QR hash/completion fields. The checkpoint sections below are historical. [FINAL-INTEGRATION-AUDIT.md](FINAL-INTEGRATION-AUDIT.md) records current behavior and unresolved cross-record consistency; no migration or automatic backfill was performed by the audit.
+
 ## Identifier strategy
 
 - User/Prosumer: NIC is stored as MongoDB `_id`.
@@ -94,7 +96,7 @@ repeatable MongoDbInitializer:
 | --- | --- | --- |
 | ix_reservations_status_start | Status, ScheduledStartAtUtc | Global Pending count and Approved future range |
 | ix_reservations_prosumer_status_start | ProsumerNic, Status, ScheduledStartAtUtc | Owner-scoped status counts and Approved future range |
-| ux_reservations_qr_token_hash | QrTokenHash (Unique, PartialFilter: QrTokenHash is String) | High-speed O(1) server lookup for QR verification while allowing multiple null documents |
+| ux_reservations_qr_token_hash | QrTokenHash (Unique, PartialFilter: QrTokenHash is String) | Indexed server lookup for QR verification while allowing multiple null documents |
 
 ## Steps 7–10: QR and Completion persistence extensions
 
@@ -143,4 +145,4 @@ The API checks for **Pending or Approved** reservations through IReservationRefe
 
 Nearby distance is transient Haversine distance in kilometres, calculated from stored coordinates after reading active stations. It is never persisted in MongoDB or SQLite. Existing indexes are retained; nearby is a linear scan suitable for the current development catalogue, not an indexed geospatial search or a claim of large-scale performance. No GeoJSON field, new collection, reservation scheduling field, lock document or operator assignment field was added.
 
-A shared in-process gate serializes station/slot consistency checks on the current single API instance. Individual document updates also have Mongo compare-and-update protection. This is **not** a distributed transaction across stations, slots and reservations. Multi-instance writes and concurrent Member 3 booking allocation require a reviewed coordination contract before integration.
+A shared singleton `CatalogWriteGate` serializes station/slot consistency checks, reservation allocation/capacity changes and station energy checks on the supported single ASP.NET Core API instance hosted by IIS. The acquisition order is always `CatalogWriteGate`, then the durable per-Prosumer reservation/recovery lock when required. Atomic slot updates advance `UpdatedAtUtc`, so reservation allocation cannot be overwritten by a stale catalog write. Individual Mongo document updates retain compare-and-update protection; this remains coordination for one API process, not a distributed transaction. Completion keeps the allocated slot count because a completed reservation consumed its published booking place; Completed remains non-active for catalog protection and energy calculations.

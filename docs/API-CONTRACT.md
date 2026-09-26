@@ -2,6 +2,8 @@
 
 Base path: `/api/v1`
 
+QR issuance is restricted to the owning active Prosumer. GridOperators may verify and complete, but cannot issue or rotate QR references; Backoffice cannot issue, verify or complete. Verification and completion require the accepted snapshot window (`start <= server now < end`) and active, correctly linked Prosumer, station and slot records.
+
 ## Foundation endpoints
 
 | Method | Route | Access | Purpose |
@@ -35,62 +37,28 @@ Profile and staff DTOs require name (2-120 characters), email, phone (7-20 chara
 
 No station, booking, reservation, Maps or QR feature endpoints are implemented in Phase 0.
 
-## Member 3 Checkpoint 1: planned reservation contract
+## Implemented Member 3 reservation lifecycle
 
-**Historical checkpoint note:** the following section records the earlier design.
-The current repository now implements these Member 3 routes and accepted schedule
-snapshots. See the Member 4 section below and
-[the inspected contract](MEMBER-4-RESERVATION-CONTRACT.md) for current behavior.
+All paths below follow /api/v1. Backoffice is excluded. Creation/update accepts only slotId and energyAmountKwh; identity, station, status and accepted schedule come from the server.
 
-Checkpoint 1 adds request/response types and isolated application policy tests only.
-**The following reservation routes are planned, not implemented or available.**
+| Method | Route | Access |
+| --- | --- | --- |
+| GET | /reservations | GridOperator, exact status/prosumerNic/stationId filters |
+| GET | /reservations/my | Prosumer, own records |
+| GET | /reservations/slots | Prosumer or GridOperator |
+| POST | /reservations | Prosumer |
+| POST | /reservations/prosumers/{prosumerNic} | GridOperator assistance |
+| GET | /reservations/{reservationId} | Owning Prosumer or GridOperator |
+| PUT | /reservations/{reservationId} | Owning Prosumer or GridOperator |
+| PATCH | /reservations/{reservationId}/cancel | Owning Prosumer or GridOperator |
+| PATCH | /reservations/{reservationId}/approve | GridOperator |
+| PATCH | /reservations/{reservationId}/reject | GridOperator; remark required (1–500 characters) |
 
-| Method | Planned route under /api/v1 | Planned access | Purpose |
-| --- | --- | --- | --- |
-| POST | /reservations | Active Prosumer | Create own Pending reservation |
-| GET | /reservations/{reservationId} | Owning Prosumer or GridOperator | Inspect summary |
-| PUT | /reservations/{reservationId} | Owning Prosumer or GridOperator | Modify, returning to Pending |
-| PATCH | /reservations/{reservationId}/cancel | Owning Prosumer or GridOperator | Cancel with the same cutoff |
-| POST | /reservations/prosumers/{prosumerNic} | GridOperator | Assisted creation for an active Prosumer |
-| GET | /reservations | GridOperator | Limited operational management list |
+Create returns 201; reads and mutations return 200 summaries. Summary fields include reservationId, prosumerNic, stationId, slotId, energyAmountKwh, scheduledStartAtUtc, scheduledEndAtUtc, status, createdAtUtc, updatedAtUtc and optional rejectionRemark. Booking query summaries preserve the same rejection remark. QR credentials/internal locks are excluded.
 
-Backoffice access is not extended by this proposal. A future Prosumer list/entry-point
-contract needs to be finalized with the Android flow; no Member 4 history/search
-endpoint is introduced.
+Start must be in the future and at most seven elapsed days away. Updates/cancellations require at least twelve hours before the accepted start; replacement starts also require twelve hours and the seven-day horizon. Updates return Pending for reapproval and clear QR data. Pending can become Approved or Rejected; rejection requires a remark. Pending/Approved can become Cancelled. Terminal records cannot be updated/cancelled.
 
-CreateReservationRequest and UpdateReservationRequest both accept only:
-```json
-{
-  "slotId": "11111111111111111111111111111111",
-  "energyAmountKwh": 1.5
-}
-```
-
-SlotId must parse as a nonempty GUID; both existing N and D string formats work.
-EnergyAmountKwh is a decimal strictly greater than zero. No minimum trade size or
-maximum energy limit is invented; station/slot energy validation remains a service concern.
-The future service must invoke the existing application RequestValidation mechanism,
-then verify referenced records and apply authoritative policy.
-
-ReservationResponse contains reservationId, prosumerNic, stationId, slotId,
-energyAmountKwh, scheduledStartAtUtc, scheduledEndAtUtc, status, createdAtUtc and
-updatedAtUtc. Dates are UTC; status uses the existing string enum. No QR credential
-is returned. Scheduled response fields do not add fields to MongoDB entities.
-
-Identity, station, schedule, status and timestamps must be resolved server-side.
-The DTOs cannot bind client-supplied prosumerNic, stationId, status, qrToken or
-schedule fields. Existing JSON behavior ignores extra properties; this is not
-evidence of endpoint authorization, which is deferred.
-
-Planned successful responses: 201 for creation, 200 with the summary for retrieval,
-update and cancellation. Existing ProblemDetails conventions remain: 400 for input,
-schedule or horizon errors; 401 for missing/invalid authentication; 403 for access
-restrictions; 404 for missing resources; 409 for cutoff, state, overlap or capacity
-conflicts. No new global JSON/error behavior is introduced.
-
-See BUSINESS-RULES.md for exact policy and DATABASE.md for the unresolved accepted
-schedule persistence decision. There are no DTO-to-entity mappings or reservation
-controllers in Checkpoint 1.
+See [Member 3 API detail](MEMBER-3-API-CONTRACT.md) and [final audit](FINAL-INTEGRATION-AUDIT.md) for observed implementation limits. Snapshot, concurrency and completion findings remain blockers; these routes' existence is not an end-to-end safety guarantee.
 
 ## Member 4 steps 2–5: implemented reservation reads
 
@@ -210,6 +178,7 @@ These endpoints implement the secure QR lifecycle for approved reservations and 
   2. Computes SHA-256 hash of the extracted raw token.
   3. Queries `EnergyReservation` collection by `QrTokenHash`.
   4. Verifies authoritative database status is strictly `Approved`.
+  5. Requires the accepted snapshot window and active, correctly linked related records.
 - **Response** (200 OK):
   ```json
   {
