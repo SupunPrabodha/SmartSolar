@@ -1,14 +1,16 @@
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { listReservations } from '../../api/reservations.js';
 import { ErrorNotice, Loading, StatusBadge } from './ReservationComponents';
 import { formatUtc, reservationStatuses } from './reservationUi.js';
 import { useReservationData } from './useReservationData.js';
 
 export default function ReservationListPage() {
+  const [searchParams] = useSearchParams();
   const blank = { status: '', prosumerNic: '', stationId: '' };
-  const [draft, setDraft] = useState(blank);
-  const [filters, setFilters] = useState(blank);
+  const initial = { ...blank, status: searchParams.get('status') ?? '' };
+  const [draft, setDraft] = useState(initial);
+  const [filters, setFilters] = useState(initial);
   const load = useCallback(signal => listReservations(filters, { signal }), [filters]);
   const { data, error, loading, reload } = useReservationData(load);
   const filtered = Object.values(filters).some(Boolean);

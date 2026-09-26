@@ -18,6 +18,7 @@ const apiSource = (await readFile(new URL('../src/api/reservations.js', import.m
   .replace("'./apiClient.js'", JSON.stringify(clientUrl));
 const {
   getBookingHistory,
+  getCurrentBookings,
   searchBookings,
   getReservationDashboardSummary
 } = await import('data:text/javascript;base64,' + Buffer.from(apiSource).toString('base64'));
@@ -132,6 +133,11 @@ test('getReservationDashboardSummary fetches /reservations/dashboard-summary', a
 test('getBookingHistory calls /reservations/history', async () => {
   await getBookingHistory({ status: 'Cancelled' });
   assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/history?status=Cancelled');
+});
+
+test('getCurrentBookings calls the live current endpoint', async () => {
+  await getCurrentBookings({ page: 2, pageSize: 10 });
+  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/current?page=2&pageSize=10');
 });
 
 test('searchBookings supports all backend filters and omits undefined/blank', async () => {

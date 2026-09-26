@@ -142,6 +142,12 @@ export function listReservations(
   );
 }
 
+/** Returns Pending/Approved reservations whose accepted end is still in the future. */
+export function getCurrentBookings({ page = 1, pageSize = 20 } = {}, { signal } = {}) {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return apiFetch(`/reservations/current?${query}`, { signal });
+}
+
 /**
  * Lists active booking slots with capacity starting within 7 days.
  * @param {ReservationCallOptions} [options]

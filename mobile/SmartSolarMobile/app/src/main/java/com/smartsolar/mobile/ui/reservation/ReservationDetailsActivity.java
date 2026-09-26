@@ -147,6 +147,7 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             TextView textRejectionRemark = card.findViewById(R.id.textRejectionRemark);
             Button buttonCardModify = card.findViewById(R.id.buttonCardModify);
             Button buttonCardCancel = card.findViewById(R.id.buttonCardCancel);
+            Button buttonCardViewQr = card.findViewById(R.id.buttonCardViewQr);
 
             // Bind Essential Preview Info
             String idSnippet = res.getReservationId() != null && res.getReservationId().length() > 8
@@ -195,6 +196,21 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
                 buttonCardModify.setEnabled(true);
                 buttonCardCancel.setEnabled(true);
             }
+
+            boolean approved = "Approved".equalsIgnoreCase(res.getStatus());
+            buttonCardViewQr.setVisibility(approved ? View.VISIBLE : View.GONE);
+            buttonCardViewQr.setOnClickListener(v -> {
+                Intent intent = new Intent(this, com.smartsolar.mobile.ui.reservations.ReservationQrActivity.class);
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_RESERVATION_ID, res.getReservationId());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_PROSUMER_NIC, res.getProsumerNic());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_STATION_ID, res.getStationId());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_SLOT_ID, res.getSlotId());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_ENERGY_AMOUNT, res.getEnergyAmountKwh());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_SCHEDULE_START, res.getScheduledStartAtUtc());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_SCHEDULE_END, res.getScheduledEndAtUtc());
+                intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_STATUS, res.getStatus());
+                startActivity(intent);
+            });
 
             // Expand/Collapse Chevron interaction
             View.OnClickListener toggleListener = v -> {

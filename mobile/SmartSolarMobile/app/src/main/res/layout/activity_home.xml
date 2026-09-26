@@ -365,7 +365,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:minHeight="48dp"
-                        android:text="@string/coming_next"
+                        android:text="@string/manage_reservations"
                         android:textSize="14sp" />
 
                 </LinearLayout>

@@ -9,6 +9,7 @@ import UserManagementPage from './pages/UserManagementPage';
 
 import { ReservationLayout } from './pages/reservations/ReservationComponents';
 import OperationsDashboardPage from './pages/reservations/OperationsDashboardPage';
+import CurrentBookingsPage from './pages/reservations/CurrentBookingsPage';
 import BookingHistoryPage from './pages/reservations/BookingHistoryPage';
 import SearchBookingsPage from './pages/reservations/SearchBookingsPage';
 import ReservationListPage from './pages/reservations/ReservationListPage';
@@ -67,6 +68,7 @@ export default function App() {
           >
             <Route index element={<ReservationListPage />} />
             <Route path="dashboard" element={<OperationsDashboardPage />} />
+            <Route path="current" element={<CurrentBookingsPage />} />
             <Route path="history" element={<BookingHistoryPage />} />
             <Route path="search" element={<SearchBookingsPage />} />
             <Route path="new" element={<ReservationFormPage creating />} />

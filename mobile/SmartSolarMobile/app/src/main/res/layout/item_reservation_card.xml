@@ -258,6 +258,16 @@
                     android:minHeight="48dp"
                     android:text="@string/btn_cancel_reservation" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonCardViewQr"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="48dp"
+                    android:text="@string/view_qr_code"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
         </LinearLayout>

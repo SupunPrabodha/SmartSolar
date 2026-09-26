@@ -42,8 +42,7 @@ test('Backoffice has one navigation entry per enabled module and working home ca
     assert.equal(nav.split('href="' + path + '"').length - 1, 1);
   assert.match(html, /Open User Management/);
   assert.match(html, /Open Microgrid Stations/);
-  assert.match(nav, /<button[^>]*disabled=""[^>]*>Reservations/);
-  assert.match(nav, /<button[^>]*disabled=""[^>]*>Transactions/);
+  assert.doesNotMatch(nav, /Reservations|Transactions|Planned|Coming in feature development/);
 });
 
 test('GridOperator gets stations but no User Management entry or card', () => {
@@ -51,8 +50,9 @@ test('GridOperator gets stations but no User Management entry or card', () => {
   const html = render(Home);
   assert.equal(navigation(html).split('href="/stations"').length - 1, 1);
   assert.doesNotMatch(html, /href="\/users"|Open User Management/);
-  for (const path of ['/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/history', '/operator/reservations/search'])
+  for (const path of ['/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/current', '/operator/reservations/history', '/operator/reservations/search'])
     assert.equal(navigation(html).split('href="' + path + '"').length - 1, 1);
+  assert.match(navigation(html), /href="\/operator\/reservations\?status=Pending"[^>]*>.*Pending Queue/);
   assert.match(html, /Open Operations/);
   assert.match(html, /Open Booking History/);
   assert.doesNotMatch(html, /Not implemented|Planned/);
@@ -88,7 +88,7 @@ test('merged routes are unique and enforce both members role boundaries', () => 
 test('reservation workspace preserves station access and all operational links', () => {
   session('GridOperator');
   const html = render(ReservationLayout);
-  for (const path of ['/', '/stations', '/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/history', '/operator/reservations/search'])
+  for (const path of ['/', '/stations', '/operator/reservations', '/operator/reservations/dashboard', '/operator/reservations/current', '/operator/reservations/history', '/operator/reservations/search'])
     assert.equal(navigation(html).split('href="' + path + '"').length - 1, 1);
   assert.match(html, /Sign out/);
   assert.doesNotMatch(html, /href="\/users"|Phase 0|Planned/);
@@ -96,7 +96,7 @@ test('reservation workspace preserves station access and all operational links',
 
 test('all reservation routes inherit GridOperator-only access', () => {
   const routes = createRoutesFromElements(App().props.children.props.children.props.children);
-  for (const suffix of ['', '/dashboard', '/history', '/search', '/new', '/fixture-id', '/fixture-id/edit']) {
+  for (const suffix of ['', '/dashboard', '/current', '/history', '/search', '/new', '/fixture-id', '/fixture-id/edit']) {
     const matches = matchRoutes(routes, '/operator/reservations' + suffix);
     assert.ok(matches);
     const guard = matches[0].route.element;

@@ -21,9 +21,15 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
 
     private final List<ReservationResponse> items = new ArrayList<>();
     private final OnItemClickListener listener;
+    private final boolean allowQrIssuance;
 
     public ReservationAdapter(OnItemClickListener listener) {
+        this(listener, false);
+    }
+
+    public ReservationAdapter(OnItemClickListener listener, boolean allowQrIssuance) {
         this.listener = listener;
+        this.allowQrIssuance = allowQrIssuance;
     }
 
     public void setItems(List<ReservationResponse> newItems) {
@@ -45,7 +51,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ReservationResponse item = items.get(position);
-        holder.bind(item, listener);
+        holder.bind(item, listener, allowQrIssuance);
     }
 
     @Override
@@ -89,7 +95,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
             buttonViewQr = itemView.findViewById(R.id.buttonItemViewQr);
         }
 
-        public void bind(ReservationResponse item, OnItemClickListener listener) {
+        public void bind(ReservationResponse item, OnItemClickListener listener, boolean allowQrIssuance) {
             String idSnippet = item.getReservationId() != null && item.getReservationId().length() > 8
                     ? item.getReservationId().substring(0, 8) + "…"
                     : String.valueOf(item.getReservationId());
@@ -127,7 +133,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
                 }
             }
 
-            boolean isApproved = item.getStatus() != null && item.getStatus().equalsIgnoreCase("Approved");
+            boolean isApproved = allowQrIssuance && item.getStatus() != null && item.getStatus().equalsIgnoreCase("Approved");
             if (buttonViewQr != null) {
                 buttonViewQr.setVisibility(isApproved ? View.VISIBLE : View.GONE);
                 buttonViewQr.setOnClickListener(v -> openQrScreen(v.getContext(), item));

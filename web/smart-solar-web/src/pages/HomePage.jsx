@@ -6,9 +6,7 @@ import Brand from '../components/Brand';
 const modulesByRole = {
   Backoffice: [
     ['User Management', 'Manage community accounts and access.'],
-    ['Microgrid Stations', 'Oversee the stations in your network.'],
-    ['Reservations', 'Review energy reservations.'],
-    ['Transactions', 'Follow completed energy transactions.']
+    ['Microgrid Stations', 'Oversee the stations in your network.']
   ],
   GridOperator: [
     ['Operations', 'Your reservation and station operations workspace.'],
@@ -24,6 +22,9 @@ const moduleRoutesByRole = {
   },
   GridOperator: {
     Operations: '/operator/reservations/dashboard',
+    'Manage Reservations': '/operator/reservations',
+    'Current Bookings': '/operator/reservations/current',
+    'Pending Queue': '/operator/reservations?status=Pending',
     'Booking History': '/operator/reservations/history',
     'Microgrid Stations': '/stations'
   }
@@ -118,6 +119,8 @@ export default function HomePage({ children }) {
           {user.role === 'GridOperator' && [
             ['/operator/reservations', 'Manage Reservations', true],
             ['/operator/reservations/dashboard', 'Operations Dashboard', false],
+            ['/operator/reservations/current', 'Current Bookings', false],
+            ['/operator/reservations?status=Pending', 'Pending Queue', false],
             ['/operator/reservations/history', 'Booking History', false],
             ['/operator/reservations/search', 'Search Bookings', false]
           ].map(([path, label, end], index) => (
