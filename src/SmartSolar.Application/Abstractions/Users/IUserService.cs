@@ -16,6 +16,7 @@ public interface IUserService
     Task<IReadOnlyList<UserResponse>> GetPendingAsync(CancellationToken cancellationToken = default);
     Task<UserResponse> CreateStaffAsync(CreateStaffRequest request, CancellationToken cancellationToken = default);
     Task<UserResponse> UpdateOwnProfileAsync(string nic, UpdateOwnProfileRequest request, CancellationToken cancellationToken = default);
+    Task<UserResponse> UpdateProsumerAsync(string nic, UpdateProsumerRequest request, CancellationToken cancellationToken = default);
     Task RequestOwnDeactivationAsync(string nic, CancellationToken cancellationToken = default);
     Task ActivateAsync(string nic, CancellationToken cancellationToken = default);
     Task DeactivateAsync(string nic, CancellationToken cancellationToken = default);

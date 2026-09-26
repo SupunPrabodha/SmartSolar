@@ -25,13 +25,13 @@ The API composition root wires the layers together. There are no circular refere
 
 MongoDB collections are exactly `UsersDetail`, `SolarStationInfo`, `EnergyBookingSlots` and `EnergyReservation`. Prosumer NIC remains the primary business identifier, stored as the user document identifier. Roles are `Backoffice`, `GridOperator` and `Prosumer`; account states are `PendingActivation`, `Active` and `Deactivated`. Serialized enums are strings.
 
-Startup creates the contracted collections and indexes idempotently. `/health` checks MongoDB connectivity. Future station, slot and reservation entities are contracts only; their business workflows remain deferred.
+Startup creates the contracted collections and indexes idempotently. `/health` checks MongoDB connectivity. Station and slot workflows are implemented by Member 1, and account/Prosumer management by Member 2. Reservation entities remain shared persistence contracts; Member 3/4 workflows are deferred.
 
 ## Authentication and client boundaries
 
 The API hashes passwords, creates expiring JWTs and reloads the stored user during authenticated requests to reject inactive accounts or outdated roles. Application validation also applies outside MVC. Controllers use `/api/v1`, asynchronous services and cancellation tokens; the common error layer returns ProblemDetails.
 
-Web provides a React/Bootstrap common shell for Backoffice and GridOperator. Android is a real Gradle project in `mobile/SmartSolarMobile`, using Java/XML Views for active Prosumer and GridOperator sessions. Both restore profiles through `/users/me`, handle expiry/401 and allow logout. UI role gates are navigation aids; they never grant API permissions.
+Web provides a React/Bootstrap shared shell for Backoffice and GridOperator, including `/stations` for both roles and `/users` for Backoffice only. Android is a real Gradle project in `mobile/SmartSolarMobile`, using Java/XML Views for active Prosumer and GridOperator sessions. Both restore profiles through `/users/me`, handle expiry/401 and allow logout. UI role gates are navigation aids; they never grant API permissions.
 
 The Android profile cache contains profile fields and a cache timestamp, with one current user. JWT/expiry are app-private preferences. Passwords are never persisted; neither SQLite nor client memory is an enterprise source of truth. No offline authorization or synchronization is implemented.
 

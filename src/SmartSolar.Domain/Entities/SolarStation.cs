@@ -18,6 +18,7 @@ public sealed class SolarStation
     public double Longitude { get; set; }
     public decimal CapacityKwh { get; set; }
     public int TotalBatterySlots { get; set; }
+    public List<OperatingDay> OperatingSchedule { get; set; } = [];
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }

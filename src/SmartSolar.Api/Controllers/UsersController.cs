@@ -75,6 +75,14 @@ public sealed class UsersController : ControllerBase
         return Ok(await _userService.GetByNicAsync(nic, cancellationToken));
     }
 
+    [HttpPut("{nic}")]
+    [Authorize(Roles = "Backoffice")]
+    public async Task<ActionResult<UserResponse>> UpdateProsumer(string nic, [FromBody] UpdateProsumerRequest request, CancellationToken cancellationToken)
+    {
+        // Keep NIC, role, status and password immutable during Backoffice contact-profile administration.
+        return Ok(await _userService.UpdateProsumerAsync(nic, request, cancellationToken));
+    }
+
     [HttpPost("staff")]
     [Authorize(Roles = "Backoffice")]
     public async Task<ActionResult<UserResponse>> CreateStaff(

@@ -95,9 +95,9 @@ npm.cmd run dev
 
 The public local setting is `VITE_API_BASE_URL=https://localhost:7001/api/v1`. Vite variables are bundled into client code, so they must never contain secrets. Open the local address printed by Vite (normally `http://localhost:5173`). Trust the API development certificate first; do not bypass TLS validation in code.
 
-Sign in with an active Backoffice or GridOperator account. The shell shows full name, role, account state and the last successful session/profile verification. It has a refresh action, sign out and clearly disabled module cards. Prosumers use Android and are denied the web workspace.
+Sign in with an active Backoffice or GridOperator account. The shell shows full name, role, account state and the last successful session/profile verification. It has profile refresh, sign out, station/slot navigation for both staff roles and User Management for Backoffice. Reservations, Transactions and Operations remain disabled. Prosumers use Android and are denied the web workspace.
 
-Run `npm.cmd test` for four focused session HTTP regressions, then `npm.cmd run build` for the production-build check. This compiles the client but does not validate live login or deploy anything.
+Run `npm.cmd test` for the session, catalog and merged-navigation regressions, then `npm.cmd run build` for the production-build check. This compiles the client but does not validate live login or deploy anything.
 
 ## 7. Open and build Android
 
@@ -144,7 +144,7 @@ Routes and DTOs are in [API-CONTRACT](API-CONTRACT.md). No new feature UI is req
 | Emulator request gets 307 | Restart the updated API in Development, using its committed launch profile. Do not disable TLS checking. |
 | Android SDK/JDK error | Select JDK 17, install SDK 35 / Build-Tools 35.0.0, and let Studio create ignored `local.properties`. |
 | Login says inactive | A Backoffice user must activate the account through the API. |
-| Module card does nothing | Expected: feature development has not implemented that module. |
+| Module card does nothing | Only Reservations, Transactions and Operations remain planned. User Management (Backoffice) and Microgrid Stations must open their implemented screens. |
 
 ## 9. Start feature work
 

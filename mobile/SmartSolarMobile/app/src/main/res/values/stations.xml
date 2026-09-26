@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="catalog_back">Back</string>
+<string name="catalog_retry">Refresh / retry</string>
+<string name="catalog_request_failed">Station information could not be loaded. Check your access and try again.</string>
+<string name="station_unavailable">This station is unavailable or inactive. Return to the station list and refresh.</string>
+<string name="location_explanation">Use approximate location to find active stations within 25 km, or browse all stations.</string>
+<string name="location_denied">Location was not granted. You can browse all stations. To use nearby search, enable location for this app in Android Settings.</string>
+<string name="location_unavailable">Location is unavailable. Enable device location and try again. All active stations are shown below.</string>
+<string name="locating">Finding approximate location…</string>
+<string name="nearby_radius">Active stations within 25 km, nearest first. Distances use approximate location.</string>
+<string name="find_nearby">Find near me</string>
+<string name="all_stations">Show all active stations</string>
+<string name="map_unavailable">Map unavailable. You can still browse station information below.</string>
+<string name="map_alternative">Select a map marker or use the station list below.</string>
+<string name="no_stations">No active stations found. Try all stations or refresh.</string>
+<string name="station_summary">%1$s\n%2$.2f kWh · Battery slots: %3$d</string>
+<string name="station_capacity">Capacity: %1$.2f kWh · Battery slots: %2$d</string>
+<string name="station_distance">Approximately %1$.2f km away</string>
+<string name="station_distance_at_search">Approximately %1$.2f km away at your last nearby search</string>
+<string name="distance_unknown">Distance unavailable. Use nearby search to calculate distance.</string>
+<string name="view_station">View station</string>
+<string name="schedule_utc">Operating schedule (UTC)</string>
+<string name="schedule_missing">Operating schedule has not been configured.</string>
+<string name="closed_day">Closed</string>
+<string name="schedule_day">%1$s: %2$s</string>
+<string name="slot_availability">Booking-slot availability</string>
+<string name="availability_note">Current API inventory, with times in UTC. Availability is not a reservation guarantee.</string>
+<string name="slot_summary">%1$s to %2$s\nAvailable: %3$d of %4$d</string>
+<string name="no_slots">No active booking slots are published.</string>
+<string name="time_unavailable">Time unavailable</string>
+<string-array name="weekdays"><item>Monday</item><item>Tuesday</item><item>Wednesday</item><item>Thursday</item><item>Friday</item><item>Saturday</item><item>Sunday</item></string-array>
+</resources>

@@ -75,3 +75,12 @@ test('a server outage reports its status without clearing the session', async ()
   assert.equal(expired, 0);
   assert.equal(sessionStorage.getItem('accessToken'), 'test-session');
 });
+
+test('validation ProblemDetails preserves useful field messages and session', async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ errors: { Name: ['Name is required.'], Latitude: ['Latitude is invalid.'] } }), {
+    status: 400, headers: { 'content-type': 'application/problem+json' }
+  });
+  await assert.rejects(apiFetch('/stations', { method: 'POST', body: '{}' }),
+    error => error.status === 400 && error.message.includes('Name is required.') && error.message.includes('Latitude is invalid.'));
+  assert.equal(expired, 0);
+});

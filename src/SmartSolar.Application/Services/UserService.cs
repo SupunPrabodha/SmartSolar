@@ -130,6 +130,22 @@ public sealed class UserService : IUserService
         await _users.ReplaceAsync(user, cancellationToken);
     }
 
+    public async Task<UserResponse> UpdateProsumerAsync(string nic, UpdateProsumerRequest request, CancellationToken cancellationToken = default)
+    {
+        // Allow Backoffice administration to change only editable Prosumer contact fields.
+        RequestValidation.EnsureValid(request);
+        var user = await FindRequiredAsync(nic, cancellationToken);
+        if (user.Role != UserRole.Prosumer) throw new BadRequestException("Only Prosumer profiles can be updated here.");
+        var email = request.Email.Trim().ToLowerInvariant();
+        var existing = await _users.GetByEmailAsync(email, cancellationToken);
+        if (existing is not null && !string.Equals(existing.Nic, user.Nic, StringComparison.OrdinalIgnoreCase))
+            throw new ConflictException("A user with this email already exists.");
+        user.FullName = request.FullName.Trim(); user.Email = email; user.PhoneNumber = request.PhoneNumber.Trim();
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        await _users.ReplaceAsync(user, cancellationToken);
+        return user.ToResponse();
+    }
+
     public async Task ActivateAsync(string nic, CancellationToken cancellationToken = default)
     {
         // Activate a pending or previously deactivated account through the Backoffice-only endpoint.
