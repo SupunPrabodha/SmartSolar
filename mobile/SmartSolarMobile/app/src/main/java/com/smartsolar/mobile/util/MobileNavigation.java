@@ -4,9 +4,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Presentation destinations only; authorization remains with the existing session and API. */
+/** Pure presentation policy. The API remains the authorization authority. */
 public final class MobileNavigation {
     public enum Destination { HOME, STATIONS, RESERVATIONS, HISTORY, ACCOUNT, SCAN, BOOKINGS, SEARCH }
+    public enum Section { MINE, CURRENT, PENDING, HISTORY, SEARCH }
     private MobileNavigation() { }
     public static List<Destination> destinations(String role) {
         if ("Prosumer".equals(role)) return Arrays.asList(Destination.HOME, Destination.STATIONS, Destination.RESERVATIONS, Destination.HISTORY, Destination.ACCOUNT);
@@ -19,4 +20,13 @@ public final class MobileNavigation {
         if ("GridOperator".equals(role) && screen == Destination.HISTORY) return Destination.BOOKINGS;
         return null;
     }
+    public static Destination parent(String role, Section section) {
+        if ("Prosumer".equals(role)) return section == Section.HISTORY ? Destination.HISTORY : Destination.RESERVATIONS;
+        if ("GridOperator".equals(role) && section != Section.MINE) return section == Section.SEARCH ? Destination.SEARCH : Destination.BOOKINGS;
+        return null;
+    }
+    public static boolean shouldSwitch(String role, Destination current, Destination next) {
+        return next != Destination.SCAN && next != current && destinations(role).contains(next);
+    }
+    public static Destination back(Destination current) { return current == Destination.HOME ? null : Destination.HOME; }
 }

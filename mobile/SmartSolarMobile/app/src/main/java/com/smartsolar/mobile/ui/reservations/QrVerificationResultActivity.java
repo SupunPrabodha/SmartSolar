@@ -183,6 +183,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
     }
 
     private void onCompletionSuccess(ReservationCompletionResponse response) {
+        com.smartsolar.mobile.ui.workspace.WorkspaceChanges.reservationsChanged();
         currentStatus = response.getStatus();
         ReservationUiUtils.formatStatusBadge(textStatus, response.getStatus());
         textCompletionStatus.setText(R.string.completion_success_message);
@@ -214,6 +215,6 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
     }
     @Override protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_transfer_details), null);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.title_transfer_details));
     }
 }

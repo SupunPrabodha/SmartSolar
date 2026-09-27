@@ -85,9 +85,7 @@
             android:visibility="gone" />
 
         <!-- Dynamic List Container for Reservation Cards -->
-        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:fillViewport="true" android:scrollbars="none"><LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"><com.google.android.material.button.MaterialButton android:id="@+id/buttonCurrentView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_current"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/buttonPendingView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_pending"/>
-<com.google.android.material.button.MaterialButton android:id="@+id/buttonSearchView" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/nav_search"/></LinearLayout></HorizontalScrollView>
+        
 <LinearLayout
             android:id="@+id/layoutReservationsList"
             android:layout_width="match_parent"

@@ -66,6 +66,6 @@ public final class StationDetailActivity extends CatalogActivity {
     @Override protected void clearContent() { if (content != null) content.removeAllViews(); }
     @Override protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_station_details), null);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.title_station_details));
     }
 }

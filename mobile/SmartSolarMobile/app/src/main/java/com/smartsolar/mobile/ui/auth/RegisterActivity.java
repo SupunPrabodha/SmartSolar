@@ -73,6 +73,6 @@ public final class RegisterActivity extends AppCompatActivity {
     @Override protected void onDestroy() { if (worker != null) worker.interrupt(); super.onDestroy(); }
     @Override protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_create_account), null);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.title_create_account));
     }
 }

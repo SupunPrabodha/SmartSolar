@@ -1,4 +1,7 @@
-package com.smartsolar.mobile.ui.reservation;
+package com.smartsolar.mobile.ui.workspace;
+import com.smartsolar.mobile.ui.reservation.CreateReservationActivity;
+import com.smartsolar.mobile.ui.reservation.ModifyReservationActivity;
+import com.smartsolar.mobile.ui.reservation.ReservationSummaryActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,33 +11,24 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.smartsolar.mobile.BuildConfig;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.RetrofitClient;
-import com.smartsolar.mobile.data.remote.api.ApiService;
 import com.smartsolar.mobile.data.remote.dto.ReservationResponse;
 import com.smartsolar.mobile.data.repository.ReservationError;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
-import com.smartsolar.mobile.ui.auth.LoginActivity;
 import com.smartsolar.mobile.util.ReservationUiUtils;
 import java.util.List;
 import java.util.Locale;
 
-public final class ReservationDetailsActivity extends AppCompatActivity {
-    public static final String EXTRA_RESERVATION_ID = "com.smartsolar.mobile.RESERVATION_ID";
+public final class MyReservationsFragment extends WorkspaceFragment {
     private static final Gson GSON = new Gson();
 
     private ReservationRepository repository;
     private Button buttonHeaderNewReservation;
     private Button buttonRefreshDetails;
-    private Button buttonBackHome;
     private LinearLayout layoutReservationsList;
     private TextView textEmptyState;
     private TextView textError;
@@ -42,51 +36,37 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
     private ProgressBar progress;
     private boolean busy;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_reservation_details);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.detailsRoot), (view, insets) -> {
-            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return insets;
-        });
-
+    private final java.util.Set<String> expanded = new java.util.HashSet<>();
+    @Override protected int layout() { return R.layout.fragment_my_reservations; }
+    @Override protected void bind(Bundle saved) {
         buttonHeaderNewReservation = findViewById(R.id.buttonHeaderNewReservation);
         buttonRefreshDetails = findViewById(R.id.buttonRefreshDetails);
-        buttonBackHome = findViewById(R.id.buttonBackHome);
         layoutReservationsList = findViewById(R.id.layoutReservationsList);
-        textEmptyState = findViewById(R.id.textEmptyState);
-        textError = findViewById(R.id.textError);
-        textSuccess = findViewById(R.id.textSuccess);
-        progress = findViewById(R.id.progress);
-
-        try {
-            ApiService api = RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
-            repository = new ReservationRepository(api);
-        } catch (IllegalArgumentException e) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
+        textEmptyState = findViewById(R.id.textEmptyState); textError = findViewById(R.id.textError);
+        textSuccess = findViewById(R.id.textSuccess); progress = findViewById(R.id.progress);
+        repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));
+        buttonHeaderNewReservation.setOnClickListener(v -> startActivity(new Intent(requireContext(), CreateReservationActivity.class)));
+        buttonRefreshDetails.setOnClickListener(v -> retry());
+        java.util.ArrayList<String> ids = memory.values.getStringArrayList("expanded");
+        if (ids != null) expanded.addAll(ids);
+        if (memory.data != null) displayReservations(java.util.Arrays.asList((ReservationResponse[]) memory.data));
+    }
+    @Override protected void onWorkspaceReady() {
+        // Re-evaluate display-only cutoff controls without fetching or rebuilding retained cards.
+        if (!(memory.data instanceof ReservationResponse[])) return;
+        ReservationResponse[] rows = (ReservationResponse[]) memory.data;
+        for (int i=0; i<Math.min(rows.length, layoutReservationsList.getChildCount()); i++) {
+            boolean terminal = ReservationUiUtils.isTerminalStatus(rows[i].getStatus());
+            boolean cutoff = ReservationUiUtils.isCutoffPassed(rows[i].getScheduledStartAtUtc(), System.currentTimeMillis());
+            View card = layoutReservationsList.getChildAt(i);
+            card.findViewById(R.id.buttonCardModify).setEnabled(!terminal && !cutoff);
+            card.findViewById(R.id.buttonCardCancel).setEnabled(!terminal && !cutoff);
+            TextView notice = card.findViewById(R.id.textExpandedRestriction);
+            notice.setVisibility(terminal || cutoff ? View.VISIBLE : View.GONE);
+            if (terminal || cutoff) notice.setText(terminal ? R.string.terminal_status_notice : R.string.cutoff_passed_notice);
         }
-
-        buttonHeaderNewReservation.setOnClickListener(v ->
-                startActivity(new Intent(this, CreateReservationActivity.class)));
-
-        buttonRefreshDetails.setOnClickListener(v -> loadReservations());
-        buttonBackHome.setOnClickListener(v -> finish());
-        findViewById(R.id.buttonCurrentView).setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.BOOKINGS));
-        findViewById(R.id.buttonPendingView).setOnClickListener(v -> { startActivity(new Intent(this, com.smartsolar.mobile.ui.reservations.CurrentBookingsActivity.class).putExtra("pendingView", true).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)); finish(); });
-        findViewById(R.id.buttonSearchView).setOnClickListener(v -> com.smartsolar.mobile.ui.common.WorkspaceChrome.navigate(this, com.smartsolar.mobile.util.MobileNavigation.Destination.SEARCH));
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadReservations();
-    }
-
+    @Override protected void load() { loadReservations(); }
     private void loadReservations() {
         if (repository == null || busy) return;
         setBusy(true);
@@ -96,18 +76,17 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
         repository.getMyReservations(new ReservationRepository.Callback<List<ReservationResponse>>() {
             @Override
             public void onSuccess(List<ReservationResponse> reservations) {
-                if (isFinishing() || isDestroyed()) return;
+                if (!alive()) return;
                 setBusy(false);
-                displayReservations(reservations);
+                memory.data = reservations.toArray(new ReservationResponse[0]); displayReservations(reservations);
             }
 
             @Override
             public void onError(ReservationError error) {
-                if (isFinishing() || isDestroyed()) return;
+                if (!alive()) return;
                 setBusy(false);
                 if (error.isSessionExpired()) {
-                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class));
-                    finish();
+                    workspace().openLogin();
                     return;
                 }
                 textError.setText(error.getMessage());
@@ -125,7 +104,7 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
         }
 
         textEmptyState.setVisibility(View.GONE);
-        LayoutInflater inflater = LayoutInflater.from(this);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
         long nowMillis = System.currentTimeMillis();
 
         for (ReservationResponse res : reservations) {
@@ -153,9 +132,6 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             Button buttonCardViewQr = card.findViewById(R.id.buttonCardViewQr);
 
             // Bind Essential Preview Info
-            String idSnippet = res.getReservationId() != null && res.getReservationId().length() > 8
-                    ? res.getReservationId().substring(0, 8) + "…"
-                    : String.valueOf(res.getReservationId());
             textCardIdSnippet.setText("Reservation #" + ReservationUiUtils.shortReference(res.getReservationId()));
 
             textCardStatus.setText(res.getStatus());
@@ -203,7 +179,7 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             boolean approved = "Approved".equalsIgnoreCase(res.getStatus());
             buttonCardViewQr.setVisibility(approved ? View.VISIBLE : View.GONE);
             buttonCardViewQr.setOnClickListener(v -> {
-                Intent intent = new Intent(this, com.smartsolar.mobile.ui.reservations.ReservationQrActivity.class);
+                Intent intent = new Intent(requireContext(), com.smartsolar.mobile.ui.reservations.ReservationQrActivity.class);
                 intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_RESERVATION_ID, res.getReservationId());
                 intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_PROSUMER_NIC, res.getProsumerNic());
                 intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_STATION_ID, res.getStationId());
@@ -218,15 +194,18 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
             // Expand/Collapse Chevron interaction
             View.OnClickListener toggleListener = v -> {
                 boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
+                if (isExpanded) expanded.remove(res.getReservationId()); else expanded.add(res.getReservationId());
                 layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
                 textChevron.setText(isExpanded ? "⌄" : "⌃");
             };
-            androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(R.string.details_collapsed));
+            layoutExpandedDetails.setVisibility(expanded.contains(res.getReservationId()) ? View.VISIBLE : View.GONE);
+            textChevron.setText(expanded.contains(res.getReservationId()) ? "⌃" : "⌄");
+            androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(expanded.contains(res.getReservationId()) ? R.string.details_expanded : R.string.details_collapsed));
             cardHeader.setOnClickListener(v -> { toggleListener.onClick(v); androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(layoutExpandedDetails.getVisibility() == View.VISIBLE ? R.string.details_expanded : R.string.details_collapsed)); });
 
             // Action Buttons
             buttonCardModify.setOnClickListener(v -> {
-                Intent intent = new Intent(this, ModifyReservationActivity.class);
+                Intent intent = new Intent(requireContext(), ModifyReservationActivity.class);
                 intent.putExtra(ModifyReservationActivity.EXTRA_RESERVATION_JSON, GSON.toJson(res));
                 startActivity(intent);
             });
@@ -242,7 +221,7 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
     }
 
     private void showCancelConfirmDialog(ReservationResponse reservation) {
-        new MaterialAlertDialogBuilder(this)
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.dialog_cancel_title)
                 .setMessage(getString(R.string.dialog_cancel_message,
                         reservation.getReservationId(),
@@ -260,9 +239,10 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
         repository.cancelReservation(reservation.getReservationId(), new ReservationRepository.Callback<ReservationResponse>() {
             @Override
             public void onSuccess(ReservationResponse result) {
-                if (isFinishing() || isDestroyed()) return;
+                if (!alive()) return;
                 setBusy(false);
-                Intent intent = new Intent(ReservationDetailsActivity.this, ReservationSummaryActivity.class);
+                workspace().reservationsChanged();
+                Intent intent = new Intent(requireContext(), ReservationSummaryActivity.class);
                 intent.putExtra(ReservationSummaryActivity.EXTRA_RESERVATION_JSON, GSON.toJson(result));
                 intent.putExtra(ReservationSummaryActivity.EXTRA_MODE, ReservationSummaryActivity.MODE_CANCELLED);
                 startActivity(intent);
@@ -270,11 +250,10 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
 
             @Override
             public void onError(ReservationError error) {
-                if (isFinishing() || isDestroyed()) return;
+                if (!alive()) return;
                 setBusy(false);
                 if (error.isSessionExpired()) {
-                    startActivity(new Intent(ReservationDetailsActivity.this, LoginActivity.class));
-                    finish();
+                    workspace().openLogin();
                     return;
                 }
                 textError.setText(error.getMessage());
@@ -284,19 +263,14 @@ public final class ReservationDetailsActivity extends AppCompatActivity {
     }
 
     private void setBusy(boolean value) {
-        busy = value;
+        busy = value; memory.loading = value;
         progress.setVisibility(value ? View.VISIBLE : View.GONE);
         buttonRefreshDetails.setEnabled(!value);
         buttonHeaderNewReservation.setEnabled(!value);
     }
 
-    @Override
-    protected void onDestroy() {
-        if (repository != null) repository.close();
-        super.onDestroy();
-    }
-    @Override protected void onPostCreate(Bundle state) {
-        super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.title_my_reservations), com.smartsolar.mobile.util.MobileNavigation.Destination.RESERVATIONS);
+    @Override public void onDestroyView() {
+        memory.values.putStringArrayList("expanded", new java.util.ArrayList<>(expanded));
+        if (repository != null) repository.close(); busy = false; super.onDestroyView();
     }
 }

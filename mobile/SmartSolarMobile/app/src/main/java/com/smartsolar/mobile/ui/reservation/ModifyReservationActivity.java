@@ -145,6 +145,7 @@ public final class ModifyReservationActivity extends AppCompatActivity {
         repository.updateReservation(existing.getReservationId(), slotId, energy, new ReservationRepository.Callback<ReservationResponse>() {
             @Override
             public void onSuccess(ReservationResponse result) {
+                com.smartsolar.mobile.ui.workspace.WorkspaceChanges.reservationsChanged();
                 if (isFinishing() || isDestroyed()) return;
                 setBusy(false);
                 Intent intent = new Intent(ModifyReservationActivity.this, ReservationSummaryActivity.class);
@@ -191,6 +192,6 @@ public final class ModifyReservationActivity extends AppCompatActivity {
     }
     @Override protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.btn_modify_reservation), null);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.btn_modify_reservation));
     }
 }

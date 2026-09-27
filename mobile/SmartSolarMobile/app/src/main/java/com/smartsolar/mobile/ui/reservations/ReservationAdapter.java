@@ -22,6 +22,9 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
     private final List<ReservationResponse> items = new ArrayList<>();
     private final OnItemClickListener listener;
     private final boolean allowQrIssuance;
+    private final java.util.Set<String> expandedIds = new java.util.HashSet<>();
+    public java.util.ArrayList<String> expanded() { return new java.util.ArrayList<>(expandedIds); }
+    public void restoreExpanded(java.util.List<String> ids) { if (ids != null) expandedIds.addAll(ids); }
 
     public ReservationAdapter(OnItemClickListener listener) {
         this(listener, false);
@@ -51,7 +54,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ReservationResponse item = items.get(position);
-        holder.bind(item, listener, allowQrIssuance);
+        holder.bind(item, listener, allowQrIssuance, expandedIds);
     }
 
     @Override
@@ -95,7 +98,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
             buttonViewQr = itemView.findViewById(R.id.buttonItemViewQr);
         }
 
-        public void bind(ReservationResponse item, OnItemClickListener listener, boolean allowQrIssuance) {
+        public void bind(ReservationResponse item, OnItemClickListener listener, boolean allowQrIssuance, java.util.Set<String> expandedIds) {
             textId.setText("Reservation #" + ReservationUiUtils.shortReference(item.getReservationId()));
 
             ReservationUiUtils.formatStatusBadge(textStatus, item.getStatus());
@@ -138,18 +141,19 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
 
             // Default collapsed state
             if (layoutExpandedDetails != null) {
-                layoutExpandedDetails.setVisibility(View.GONE);
+                layoutExpandedDetails.setVisibility(expandedIds.contains(item.getReservationId()) ? View.VISIBLE : View.GONE);
             }
             if (textChevron != null) {
-                textChevron.setText("⌄");
+                textChevron.setText(expandedIds.contains(item.getReservationId()) ? "⌃" : "⌄");
             }
 
             // Expand/Collapse interaction matching Member 3's card
             if (cardHeader != null) {
-                androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(R.string.details_collapsed));
+                androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(expandedIds.contains(item.getReservationId()) ? R.string.details_expanded : R.string.details_collapsed));
                 cardHeader.setOnClickListener(v -> {
                     if (layoutExpandedDetails != null) {
                         boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
+                        if (isExpanded) expandedIds.remove(item.getReservationId()); else expandedIds.add(item.getReservationId());
                         androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(isExpanded ? R.string.details_collapsed : R.string.details_expanded));
                         layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
                         if (textChevron != null) {

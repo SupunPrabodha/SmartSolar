@@ -16,7 +16,7 @@ import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.RetrofitClient;
 import com.smartsolar.mobile.data.remote.dto.UserResponse;
 import com.smartsolar.mobile.data.repository.AuthRepository;
-import com.smartsolar.mobile.ui.home.HomeActivity;
+import com.smartsolar.mobile.ui.workspace.WorkspaceActivity;
 import com.smartsolar.mobile.util.SessionManager;
 
 /** Restores a server-verified mobile session before opening the home screen. */
@@ -96,7 +96,7 @@ public final class LoginActivity extends AppCompatActivity {
         if (isFinishing() || isDestroyed()) return;
         setBusy(false);
         if (user != null) {
-            startActivity(new Intent(this, HomeActivity.class)
+            startActivity(new Intent(this, WorkspaceActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
             finish();
             return;

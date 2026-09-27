@@ -34,15 +34,11 @@
 
     <!-- Account/session summary -->
     <string name="checking_session">Checking your session&#8230;</string>
-    <string name="profile_verified">Profile updated %1$s</string>
-    <string name="profile_unavailable">Profile verification unavailable</string>
 
     <!-- Workspace modules -->
-    <string name="find_stations">Find Stations</string>
     <string name="foundation_footer">Shared energy. Connected community.</string>
 
     <!-- Member 2 - Account / profile management -->
-    <string name="manage_account">Profile</string>
     <string name="full_name_hint">Full name</string>
     <string name="email_hint">Email</string>
     <string name="phone_hint">Phone number</string>
@@ -103,7 +99,6 @@
     <string name="label_status">Status</string>
     <string name="label_change_cutoff">Change cutoff</string>
 
-    <string name="title_my_reservations">Reservations</string>
     <string name="no_reservations_found">No reservations found. Tap \'New reservation\' to book energy.</string>
     <string name="btn_refresh_details">Refresh</string>
     <string name="btn_new_reservation_header">+ New reservation</string>
@@ -120,7 +115,6 @@
 
     <string name="current_bookings">Current Bookings</string>
     <string name="pending_bookings">Pending Bookings</string>
-    <string name="search_bookings">Search Bookings</string>
 
     <string name="no_current_bookings">No current bookings\nUpcoming and in-progress reservations will appear here.</string>
     <string name="no_pending_bookings">No pending bookings\nReservations awaiting operator action will appear here.</string>
@@ -223,4 +217,6 @@
     <string name="cancel_changes">Cancel changes</string>
     <string name="details_chevron">⌄</string>
     <string name="rejection_reason">Rejection Reason</string>
+    <string name="my_bookings_tab">My reservations</string>
+    <string name="workspace_verified">Verified account</string>
 </resources>

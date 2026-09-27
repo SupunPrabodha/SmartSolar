@@ -191,6 +191,6 @@ public final class ReservationQrActivity extends AppCompatActivity {
     }
     @Override protected void onPostCreate(Bundle state) {
         super.onPostCreate(state);
-        com.smartsolar.mobile.ui.common.WorkspaceChrome.attach(this, getString(R.string.transaction_qr_title), null);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.transaction_qr_title));
     }
 }
