@@ -90,6 +90,27 @@ public sealed class ReservationServiceTests
     }
 
     [Fact]
+    public async Task ConcurrentDifferentProsumersCannotExceedStationEnergyCapacity()
+    {
+        var f = new Fixture();
+        f.Station.CapacityKwh = 50;
+
+        var results = await Task.WhenAll(
+            Capture(() => f.Create("P1", 40)),
+            Capture(() => f.Create("P2", 40)));
+
+        Assert.Single(results, result => result is ReservationResponse);
+        Assert.Single(results, result => result is ConflictException);
+        Assert.Equal(1, f.Slot.AvailableSlots);
+
+        static async Task<object?> Capture(Func<Task<ReservationResponse>> operation)
+        {
+            try { return await operation(); }
+            catch (Exception exception) { return exception; }
+        }
+    }
+
+    [Fact]
     public async Task UpdateRejectsEnergyExceedingStationCapacity()
     {
         var f = new Fixture();
@@ -590,7 +611,7 @@ public sealed class ReservationServiceTests
                 Users.Items[pair.Item1] = new User { Nic = pair.Item1, Role = pair.Item2, Status = UserStatus.Active };
             Store.Stations[Station.StationId] = Station;
             Slot = AddSlot(Now.AddDays(2));
-            Service = new ReservationService(Store, Users, new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock());
+            Service = new ReservationService(Store, Users, new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock(), new CatalogWriteGate());
         }
 
         public EnergyBookingSlot AddSlot(DateTime start)

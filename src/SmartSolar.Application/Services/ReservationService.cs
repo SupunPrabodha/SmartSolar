@@ -20,18 +20,21 @@ public sealed class ReservationService : IReservationService
     private readonly IUserRepository _users;
     private readonly IQrSecurityService _qrSecurity;
     private readonly TimeProvider _clock;
+    private readonly CatalogWriteGate _gate;
 
     public ReservationService(
         IReservationRepository reservations,
         IUserRepository users,
         IQrSecurityService qrSecurity,
-        TimeProvider clock)
+        TimeProvider clock,
+        CatalogWriteGate gate)
     {
         // Keep persistence and security services outside authoritative application policy.
         _reservations = reservations;
         _users = users;
         _qrSecurity = qrSecurity;
         _clock = clock;
+        _gate = gate;
     }
 
     public async Task<ReservationResponse> CreateAsync(string actorNic, CreateReservationRequest request, CancellationToken ct = default)
@@ -126,11 +129,15 @@ public sealed class ReservationService : IReservationService
         var now = _clock.GetUtcNow().UtcDateTime;
         var maxHorizon = now.AddDays(7);
 
-        return slots
-            .Where(x => x.IsActive && x.AvailableSlots > 0 && x.StartAtUtc > now && x.StartAtUtc <= maxHorizon)
-            .OrderBy(x => x.StartAtUtc)
-            .Select(x => new AvailableSlotResponse(x.SlotId, x.StationId, x.StartAtUtc, x.EndAtUtc, x.AvailableSlots, x.TotalSlots))
-            .ToList();
+        var result = new List<AvailableSlotResponse>();
+        foreach (var slot in slots.Where(x => x.IsActive && x.AvailableSlots > 0
+                     && x.StartAtUtc > now && x.StartAtUtc <= maxHorizon).OrderBy(x => x.StartAtUtc))
+        {
+            // Discovery must not offer inventory whose parent cannot accept a booking.
+            if (await _reservations.GetStationAsync(slot.StationId, ct) is { IsActive: true })
+                result.Add(new(slot.SlotId, slot.StationId, slot.StartAtUtc, slot.EndAtUtc, slot.AvailableSlots, slot.TotalSlots));
+        }
+        return result;
     }
 
     public async Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default)
@@ -254,6 +261,7 @@ public sealed class ReservationService : IReservationService
             var now = _clock.GetUtcNow();
             var status = new ReservationRules(new OperationClock(now))
                 .ValidateApproval(current.Status, accepted.Start);
+            await EnsureRelatedEligibilityAsync(current, ct);
 
             var replacement = new EnergyReservation
             {
@@ -351,9 +359,237 @@ public sealed class ReservationService : IReservationService
             return Response(replacement);
         }, ct);
     }
+
+    public Task<ReservationQrResponse> IssueQrAsync(string actorNic, string reservationId, CancellationToken ct = default)
+    {
+        // Serialize related-record validation and QR writes with catalog/lifecycle mutations.
+        return WithCatalogAsync(() => IssueQrCoreAsync(actorNic, reservationId, ct), ct);
     }
 
-    private async Task<T> WithLockAsync<T>(string nic, Func<WriteState, Task<T>> action, CancellationToken ct)
+    private async Task<ReservationQrResponse> IssueQrCoreAsync(string actorNic, string reservationId, CancellationToken ct = default)
+    {
+        // Only the owning active Prosumer may issue or rotate the reference.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.Prosumer)
+            throw new ForbiddenException("Only the owning Prosumer may issue a reservation QR.");
+        var reservation = await RequiredAsync(reservationId, ct);
+        EnsureOwner(actor, reservation);
+
+        if (reservation.Status != ReservationStatus.Approved)
+        {
+            throw new ConflictException($"Only Approved reservations can produce a transaction QR code. Current status is '{reservation.Status}'.");
+        }
+
+        // Validate accepted schedule snapshot.
+        _ = Schedule(reservation);
+
+        var now = _clock.GetUtcNow();
+        var qrPayload = _qrSecurity.GeneratePayload();
+        var qrHash = _qrSecurity.ComputeHash(qrPayload);
+
+        // Reissue/rotate QR reference by replacing previous stored hash atomically.
+        var updated = await _reservations.TryUpdateQrHashAsync(
+            reservation.ReservationId,
+            reservation.QrTokenHash,
+            qrHash,
+            now.UtcDateTime,
+            now.UtcDateTime,
+            ct);
+
+        if (!updated)
+        {
+            throw new ConflictException("Reservation was modified concurrently. Refresh and retry.");
+        }
+
+        return new ReservationQrResponse(reservation.ReservationId, qrPayload, now.UtcDateTime);
+    }
+
+    public Task<ReservationVerificationResponse> VerifyQrAsync(string actorNic, VerifyReservationQrRequest request, CancellationToken ct = default)
+    {
+        // Serialize related-record validation and QR writes with catalog/lifecycle mutations.
+        return WithCatalogAsync(() => VerifyQrCoreAsync(actorNic, request, ct), ct);
+    }
+
+    private async Task<ReservationVerificationResponse> VerifyQrCoreAsync(string actorNic, VerifyReservationQrRequest request, CancellationToken ct = default)
+    {
+        // QR verification is reserved exclusively for active GridOperators.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.GridOperator)
+        {
+            throw new ForbiddenException("Only GridOperators may verify reservation QR codes.");
+        }
+
+        ArgumentNullException.ThrowIfNull(request);
+        RequestValidation.EnsureValid(request);
+
+        if (!_qrSecurity.IsValidPayloadFormat(request.QrPayload))
+        {
+            throw new BadRequestException("The provided QR payload is malformed or uses an unsupported format.");
+        }
+
+        var qrHash = _qrSecurity.ComputeHash(request.QrPayload);
+        var reservation = await _reservations.GetByQrHashAsync(qrHash, ct);
+
+        if (reservation is null)
+        {
+            throw new NotFoundException("QR code reference is invalid, expired, or was revoked by reissuance.");
+        }
+
+        if (reservation.Status != ReservationStatus.Approved)
+        {
+            throw new ConflictException($"Reservation is not in an Approved state (current status: '{reservation.Status}').");
+        }
+
+        var schedule = await EligibleTransferAsync(reservation, _clock.GetUtcNow().UtcDateTime, ct);
+
+        return new ReservationVerificationResponse(
+            reservation.ReservationId,
+            reservation.ProsumerNic,
+            reservation.StationId,
+            reservation.SlotId,
+            reservation.EnergyAmountKwh,
+            schedule.Start,
+            schedule.End,
+            reservation.Status,
+            reservation.QrIssuedAtUtc,
+            EligibleForCompletion: true
+        );
+    }
+
+    public Task<ReservationCompletionResponse> CompleteTransferAsync(string actorNic, CompleteReservationTransferRequest request, CancellationToken ct = default)
+    {
+        // Serialize related-record validation and QR writes with catalog/lifecycle mutations.
+        return WithCatalogAsync(() => CompleteTransferCoreAsync(actorNic, request, ct), ct);
+    }
+
+    private async Task<ReservationCompletionResponse> CompleteTransferCoreAsync(string actorNic, CompleteReservationTransferRequest request, CancellationToken ct = default)
+    {
+        // Transaction completion is strictly restricted to active GridOperators.
+        var actor = await ActorAsync(actorNic, ct);
+        if (actor.Role != UserRole.GridOperator)
+        {
+            throw new ForbiddenException("Only GridOperators may complete energy transfer reservations.");
+        }
+
+        ArgumentNullException.ThrowIfNull(request);
+        RequestValidation.EnsureValid(request);
+
+        if (!_qrSecurity.IsValidPayloadFormat(request.QrPayload))
+        {
+            throw new BadRequestException("The provided QR payload is malformed or uses an unsupported format.");
+        }
+
+        var qrHash = _qrSecurity.ComputeHash(request.QrPayload);
+        var reservation = await _reservations.GetByQrHashAsync(qrHash, ct);
+
+        if (reservation is null)
+        {
+            if (!string.IsNullOrWhiteSpace(request.ReservationId))
+            {
+                var byId = await _reservations.GetAsync(request.ReservationId, ct);
+                if (byId is not null)
+                {
+                    if (byId.Status == ReservationStatus.Completed)
+                        throw new ConflictException("This reservation has already been completed.");
+                    if (byId.Status != ReservationStatus.Approved)
+                        throw new ConflictException($"Reservation is not in an Approved state (current status: '{byId.Status}').");
+                }
+            }
+            throw new NotFoundException("QR code reference is invalid, expired, or was revoked by reissuance.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ReservationId) && reservation.ReservationId != request.ReservationId)
+        {
+            throw new ConflictException("QR reference does not match the specified reservation.");
+        }
+
+        if (reservation.Status == ReservationStatus.Completed)
+        {
+            throw new ConflictException("This reservation has already been completed.");
+        }
+
+        if (reservation.Status != ReservationStatus.Approved)
+        {
+            throw new ConflictException($"Reservation is not in an Approved state (current status: '{reservation.Status}').");
+        }
+
+        var now = _clock.GetUtcNow();
+        var schedule = await EligibleTransferAsync(reservation, now.UtcDateTime, ct);
+
+        // Completed consumes its published booking place; do not release AvailableSlots.
+        // Atomically transitions from Approved to Completed in MongoDB; single execution guaranteed.
+        var completed = await _reservations.TryCompleteReservationAsync(
+            reservation.ReservationId,
+            qrHash,
+            actor.Nic,
+            now.UtcDateTime,
+            now.UtcDateTime,
+            ct);
+
+        if (!completed)
+        {
+            var current = await _reservations.GetAsync(reservation.ReservationId, ct);
+            if (current?.Status == ReservationStatus.Completed)
+            {
+                throw new ConflictException("This reservation has already been completed.");
+            }
+            throw new ConflictException("Reservation status changed concurrently or is no longer eligible for completion.");
+        }
+
+        return new ReservationCompletionResponse(
+            reservation.ReservationId,
+            reservation.ProsumerNic,
+            reservation.StationId,
+            reservation.SlotId,
+            reservation.EnergyAmountKwh,
+            schedule.Start,
+            schedule.End,
+            ReservationStatus.Completed,
+            now.UtcDateTime,
+            actor.Nic,
+            now.UtcDateTime
+        );
+    }
+
+    private async Task<(DateTime Start, DateTime End)> EligibleTransferAsync(
+        EnergyReservation reservation, DateTime now, CancellationToken ct)
+    {
+        // Accepted snapshots, never mutable slot times, determine the transfer window.
+        var schedule = Schedule(reservation);
+        if (now < schedule.Start || now >= schedule.End)
+            throw new ConflictException("Transfer verification and completion require the accepted scheduled window.");
+        await EnsureRelatedEligibilityAsync(reservation, ct);
+        return schedule;
+    }
+
+    private async Task EnsureRelatedEligibilityAsync(EnergyReservation reservation, CancellationToken ct)
+    {
+        // Revalidate related identity and activity before approval or a transfer operation.
+        var prosumer = await _users.GetByNicAsync(reservation.ProsumerNic, ct);
+        if (prosumer is null || prosumer.Role != UserRole.Prosumer || prosumer.Status != UserStatus.Active)
+            throw new ConflictException("The reservation requires an active Prosumer.");
+        var station = await _reservations.GetStationAsync(reservation.StationId, ct);
+        var slot = await _reservations.GetSlotAsync(reservation.SlotId, ct);
+        if (station is null || !station.IsActive || slot is null || !slot.IsActive
+            || slot.StationId != reservation.StationId)
+            throw new ConflictException("The reservation station/slot linkage is missing, inactive or invalid.");
+    }
+
+    private async Task<T> WithCatalogAsync<T>(Func<Task<T>> action, CancellationToken ct)
+    {
+        // Supported deployment: one API instance, one singleton gate; always acquire it first.
+        await _gate.Mutex.WaitAsync(ct);
+        try { return await action(); }
+        finally { _gate.Mutex.Release(); }
+    }
+
+    private Task<T> WithLockAsync<T>(string nic, Func<WriteState, Task<T>> action, CancellationToken ct)
+    {
+        // Lock order is catalog gate -> durable Prosumer lock; release in reverse order.
+        return WithCatalogAsync(() => WithProsumerLockAsync(nic, action, ct), ct);
+    }
+
+    private async Task<T> WithProsumerLockAsync<T>(string nic, Func<WriteState, Task<T>> action, CancellationToken ct)
     {
         // Locks never expire automatically: a crashed writer must not overlap a replacement writer.
         var token = Guid.NewGuid().ToString("N");

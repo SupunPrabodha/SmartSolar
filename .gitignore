@@ -51,3 +51,6 @@ coverage/
 *.sqlite3
 *.pfx
 *.p12
+
+# Local Maps SDK configuration
+secrets.properties

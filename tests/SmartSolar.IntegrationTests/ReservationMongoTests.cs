@@ -26,7 +26,7 @@ public sealed class ReservationMongoTests
     [MongoFact]
     public async Task IndependentServicesCompetingForFinalPlaceCannotOverbook()
     {
-        // Different Mongo clients emulate separate API instances competing for one capacity unit.
+        // Separate request services share the supported single-instance catalog gate.
         await WithDatabase(async f =>
         {
             var first = f.Service();
@@ -221,6 +221,7 @@ public sealed class ReservationMongoTests
     private sealed class Fixture
     {
         private readonly MongoClientSettings _settings;
+        private readonly CatalogWriteGate _gate = new();
         public IMongoDatabase Database { get; }
         public ReservationRepository Repository { get; }
         public IMongoCollection<User> Users => Database.GetCollection<User>(CollectionNames.Users);
@@ -240,9 +241,9 @@ public sealed class ReservationMongoTests
 
         public ReservationService Service()
         {
-            // Independent clients rule out accidental in-process-only synchronization.
+            // Separate repositories share the same API singleton gate.
             var database = new MongoClient(_settings).GetDatabase(Database.DatabaseNamespace.DatabaseName);
-            return new ReservationService(new ReservationRepository(database), new UserRepository(database), new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock());
+            return new ReservationService(new ReservationRepository(database), new UserRepository(database), new SmartSolar.Infrastructure.Security.QrSecurityService(), new FixedClock(), _gate);
         }
 
         public CreateReservationRequest Request(EnergyBookingSlot? slot = null)
@@ -276,4 +277,3 @@ public sealed class ReservationMongoTests
         }
     }
 }
-

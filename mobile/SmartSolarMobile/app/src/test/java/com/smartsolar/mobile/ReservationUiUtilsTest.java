@@ -1,14 +1,19 @@
 package com.smartsolar.mobile;
 
 import com.smartsolar.mobile.util.ReservationUiUtils;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ReservationUiUtilsTest {
     @Test
     public void formatUtcFormatsIsoTimestampsCorrectly() {
-        assertEquals("30 Sep 2026, 10:00 UTC", ReservationUiUtils.formatUtc("2026-09-30T10:00:00Z"));
-        assertEquals("01 Jan 2030, 00:00 UTC", ReservationUiUtils.formatUtc("2030-01-01T00:00:00Z"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy, h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault());
+        assertEquals(formatter.format(Instant.parse("2026-09-30T10:00:00Z")), ReservationUiUtils.formatUtc("2026-09-30T10:00:00Z"));
+        assertEquals(formatter.format(Instant.parse("2030-01-01T00:00:00Z")), ReservationUiUtils.formatUtc("2030-01-01T00:00:00Z"));
         assertEquals("Schedule unavailable", ReservationUiUtils.formatUtc("invalid"));
         assertEquals("Schedule unavailable", ReservationUiUtils.formatUtc(null));
         assertEquals("Schedule unavailable", ReservationUiUtils.formatUtc(""));
@@ -16,8 +21,9 @@ public class ReservationUiUtilsTest {
 
     @Test
     public void formatCutoffUtcSubtractsTwelveHours() {
-        assertEquals("29 Sep 2026, 22:00 UTC", ReservationUiUtils.formatCutoffUtc("2026-09-30T10:00:00Z"));
-        assertEquals("31 Dec 2029, 12:00 UTC", ReservationUiUtils.formatCutoffUtc("2030-01-01T00:00:00Z"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy, h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault());
+        assertEquals(formatter.format(Instant.parse("2026-09-30T10:00:00Z").minusSeconds(12 * 3600)), ReservationUiUtils.formatCutoffUtc("2026-09-30T10:00:00Z"));
+        assertEquals(formatter.format(Instant.parse("2030-01-01T00:00:00Z").minusSeconds(12 * 3600)), ReservationUiUtils.formatCutoffUtc("2030-01-01T00:00:00Z"));
         assertEquals("Cutoff unavailable", ReservationUiUtils.formatCutoffUtc("invalid"));
         assertEquals("Cutoff unavailable", ReservationUiUtils.formatCutoffUtc(null));
     }
@@ -76,5 +82,16 @@ public class ReservationUiUtilsTest {
         assertFalse(ReservationUiUtils.isValidEnergy("abc"));
         assertFalse(ReservationUiUtils.isValidEnergy(""));
         assertFalse(ReservationUiUtils.isValidEnergy(null));
+    }
+    @Test public void localDisplayRespondsToDeviceTimezoneChangesAndMidnightRollover() {
+        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Colombo"));
+            assertEquals("27 Sep 2026, 12:10 AM", ReservationUiUtils.formatUtc("2026-09-26T18:40:00Z"));
+            assertTrue(ReservationUiUtils.schedule("2026-09-26T18:40:00Z", "2026-09-26T19:30:00Z").contains("12:10 AM – 1:00 AM"));
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
+            assertEquals("26 Sep 2026, 6:40 PM", ReservationUiUtils.formatUtc("2026-09-26T18:40:00Z"));
+            assertEquals("Time unavailable", ReservationUiUtils.formatTime("invalid"));
+        } finally { java.util.TimeZone.setDefault(original); }
     }
 }

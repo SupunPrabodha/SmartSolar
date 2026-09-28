@@ -7,6 +7,8 @@ Required collections:
 - `EnergyBookingSlots`
 - `EnergyReservation`
 
+The integrated schema includes Member 3 accepted schedule snapshots and User.ReservationWriteLock, plus Member 4 QR hash/completion fields. The checkpoint sections below are historical. [FINAL-INTEGRATION-AUDIT.md](FINAL-INTEGRATION-AUDIT.md) records current behavior and unresolved cross-record consistency; no migration or automatic backfill was performed by the audit.
+
 ## Identifier strategy
 
 - User/Prosumer: NIC is stored as MongoDB `_id`.
@@ -94,7 +96,7 @@ repeatable MongoDbInitializer:
 | --- | --- | --- |
 | ix_reservations_status_start | Status, ScheduledStartAtUtc | Global Pending count and Approved future range |
 | ix_reservations_prosumer_status_start | ProsumerNic, Status, ScheduledStartAtUtc | Owner-scoped status counts and Approved future range |
-| ux_reservations_qr_token_hash | QrTokenHash (Unique, PartialFilter: QrTokenHash is String) | High-speed O(1) server lookup for QR verification while allowing multiple null documents |
+| ux_reservations_qr_token_hash | QrTokenHash (Unique, PartialFilter: QrTokenHash is String) | Indexed server lookup for QR verification while allowing multiple null documents |
 
 ## Steps 7–10: QR and Completion persistence extensions
 
@@ -120,3 +122,27 @@ cover every history/snapshot-validity predicate; no blanket query-performance
 claim is made. The API contract and
 [Member 4 handshake](MEMBER-4-RESERVATION-CONTRACT.md) define scoping and repair errors.
 
+## Member 1 station and slot contract
+
+No collection or identifier was renamed. Station/slot IDs remain server-generated GUID strings mapped to MongoDB `_id`. Reservation references remain `StationId` and `SlotId`.
+
+`SolarStationInfo` retains `Name`, `Address`, `Latitude`, `Longitude`, `CapacityKwh`, `TotalBatterySlots`, `IsActive`, `CreatedAtUtc`, `UpdatedAtUtc`. **The only domain-field addition is `OperatingSchedule`**, a list of embedded `OperatingDay` objects:
+
+| BSON field | Meaning |
+| --- | --- |
+| Day | ISO weekday integer: 1 Monday through 7 Sunday |
+| IsClosed | Whether that entire UTC weekday is closed |
+| OpensAt | Strict HH:mm UTC string, or null when closed |
+| ClosesAt | Strict HH:mm UTC string; 24:00 allowed for end-of-day closing; null when closed |
+
+Create/update requires exactly seven unique weekdays. Open days require opening before closing. A full day is 00:00–24:00; split overnight hours over adjacent days. All-closed is valid. UTC is the fixed schedule time basis; there is no inferred device timezone or new timezone field. Existing documents without this field deserialize to an empty list, displayed as **unconfigured**, and require a complete schedule on the next station edit. No bulk migration or fabricated default hours were applied.
+
+`EnergyBookingSlots` retains the original `SlotId`/`_id`, `StationId`, `StartAtUtc`, `EndAtUtc`, `TotalSlots`, `AvailableSlots`, `IsActive`, `CreatedAtUtc`, `UpdatedAtUtc` fields. TotalSlots is battery-slot inventory and cannot exceed its parent station's TotalBatterySlots. It is not energy in kWh; no per-slot kWh field or conversion was invented.
+
+Member 1 writes preserve creation timestamps and references. Soft deactivation changes IsActive; documents are not deleted and parent deactivation does not rewrite child slot history. API DTOs are separate from domain objects. Mongo timestamps use UTC millisecond precision. Changed records advance UpdatedAtUtc by at least one millisecond, with an atomic ID + previous UpdatedAtUtc condition on each update.
+
+The API checks for **Pending or Approved** reservations through IReservationReferenceReader against EnergyReservation, using the team's frozen rule. HasActiveStationReservationsAsync filters by StationId and those statuses; HasActiveSlotReservationsAsync filters by SlotId and those statuses. Rejected, Cancelled and Completed references do not block station deactivation or protected slot mutation. Queries use the existing ReservationStatus string-enum BSON mapping, never write reservations, and preserve every ID/reference. No schema, index or collection change is required. See [business rules](BUSINESS-RULES.md#frozen-active-reservation-protection-rule).
+
+Nearby distance is transient Haversine distance in kilometres, calculated from stored coordinates after reading active stations. It is never persisted in MongoDB or SQLite. Existing indexes are retained; nearby is a linear scan suitable for the current development catalogue, not an indexed geospatial search or a claim of large-scale performance. No GeoJSON field, new collection, reservation scheduling field, lock document or operator assignment field was added.
+
+A shared singleton `CatalogWriteGate` serializes station/slot consistency checks, reservation allocation/capacity changes and station energy checks on the supported single ASP.NET Core API instance hosted by IIS. The acquisition order is always `CatalogWriteGate`, then the durable per-Prosumer reservation/recovery lock when required. Atomic slot updates advance `UpdatedAtUtc`, so reservation allocation cannot be overwritten by a stale catalog write. Individual Mongo document updates retain compare-and-update protection; this remains coordination for one API process, not a distributed transaction. Completion keeps the allocated slot count because a completed reservation consumed its published booking place; Completed remains non-active for catalog protection and energy calculations.

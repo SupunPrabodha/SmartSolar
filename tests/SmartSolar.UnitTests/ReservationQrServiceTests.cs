@@ -247,12 +247,106 @@ public sealed class ReservationQrServiceTests
             f.Service.CompleteTransferAsync("OP", new CompleteReservationTransferRequest(randomPayload)));
     }
 
+
+    [Theory]
+    [InlineData("OP")]
+    [InlineData("BO")]
+    public async Task NonProsumerCannotIssueOrRotateQr(string actor)
+    {
+        var f = new QrFixture();
+        var reservation = f.AddReservation("P1", ReservationStatus.Approved);
+        await Assert.ThrowsAsync<ForbiddenException>(() => f.Service.IssueQrAsync(actor, reservation.ReservationId));
+        Assert.Null(reservation.QrTokenHash);
+    }
+
+    [Theory]
+    [InlineData(-1, false)]
+    [InlineData(0, true)]
+    [InlineData(3599999, true)]
+    [InlineData(3600000, false)]
+    [InlineData(3600001, false)]
+    public async Task TransferUsesInclusiveStartExclusiveEnd(int milliseconds, bool eligible)
+    {
+        var f = new QrFixture();
+        var reservation = f.AddReservation("P1", ReservationStatus.Approved);
+        f.Clock.Current = Now.AddDays(-1);
+        var qr = await f.Service.IssueQrAsync("P1", reservation.ReservationId);
+        f.Clock.Current = Now.AddMilliseconds(milliseconds);
+        if (eligible)
+        {
+            var verified = await f.Service.VerifyQrAsync("OP", new() { QrPayload = qr.QrPayload });
+            Assert.True(verified.EligibleForCompletion);
+            await f.Service.CompleteTransferAsync("OP", new(qr.QrPayload));
+            Assert.Equal(4, f.Slot.AvailableSlots);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<ConflictException>(() => f.Service.VerifyQrAsync("OP", new() { QrPayload = qr.QrPayload }));
+            await Assert.ThrowsAsync<ConflictException>(() => f.Service.CompleteTransferAsync("OP", new(qr.QrPayload)));
+            Assert.Equal(ReservationStatus.Approved, reservation.Status);
+        }
+    }
+
+    [Theory]
+    [InlineData("missing-start")]
+    [InlineData("missing-end")]
+    [InlineData("inverted")]
+    [InlineData("owner-missing")]
+    [InlineData("owner-inactive")]
+    [InlineData("owner-pending")]
+    [InlineData("owner-wrong-role")]
+    [InlineData("station-missing")]
+    [InlineData("station-inactive")]
+    [InlineData("slot-missing")]
+    [InlineData("slot-inactive")]
+    [InlineData("slot-parent")]
+    public async Task TransferRejectsInvalidAuthoritativeReferences(string condition)
+    {
+        var f = new QrFixture();
+        var reservation = f.AddReservation("P1", ReservationStatus.Approved);
+        var qr = await f.Service.IssueQrAsync("P1", reservation.ReservationId);
+        switch (condition)
+        {
+            case "missing-start": reservation.ScheduledStartAtUtc = null; break;
+            case "missing-end": reservation.ScheduledEndAtUtc = null; break;
+            case "inverted": reservation.ScheduledEndAtUtc = Now.AddSeconds(-1); break;
+            case "owner-missing": f.Users.Items.Remove("P1"); break;
+            case "owner-inactive": f.Users.Items["P1"].Status = UserStatus.Deactivated; break;
+            case "owner-pending": f.Users.Items["P1"].Status = UserStatus.PendingActivation; break;
+            case "owner-wrong-role": f.Users.Items["P1"].Role = UserRole.GridOperator; break;
+            case "station-missing": f.Store.Stations.Clear(); break;
+            case "station-inactive": f.Station.IsActive = false; break;
+            case "slot-missing": f.Store.Slots.Clear(); break;
+            case "slot-inactive": f.Slot.IsActive = false; break;
+            case "slot-parent": f.Slot.StationId = "different-station"; break;
+        }
+        await Assert.ThrowsAsync<ConflictException>(() => f.Service.VerifyQrAsync("OP", new() { QrPayload = qr.QrPayload }));
+        await Assert.ThrowsAsync<ConflictException>(() => f.Service.CompleteTransferAsync("OP", new(qr.QrPayload)));
+        Assert.Equal(ReservationStatus.Approved, reservation.Status);
+        Assert.Null(reservation.CompletedAtUtc);
+    }
+
+    [Fact]
+    public async Task TransferUsesAcceptedSnapshotInsteadOfMutableSlotTimes()
+    {
+        var f = new QrFixture();
+        var reservation = f.AddReservation("P1", ReservationStatus.Approved);
+        var qr = await f.Service.IssueQrAsync("P1", reservation.ReservationId);
+        f.Slot.StartAtUtc = Now.AddDays(1);
+        f.Slot.EndAtUtc = Now.AddDays(1).AddHours(1);
+        var verified = await f.Service.VerifyQrAsync("OP", new() { QrPayload = qr.QrPayload });
+        Assert.Equal(Now, verified.ScheduledStartAtUtc);
+        await f.Service.CompleteTransferAsync("OP", new(qr.QrPayload));
+        Assert.Equal(ReservationStatus.Completed, reservation.Status);
+    }
+
     private sealed class QrFixture
     {
         public MemoryReservations Store { get; } = new();
         public MemoryUsers Users { get; } = new();
         public QrSecurityService Security { get; } = new();
         public ReservationService Service { get; }
+        public FixedClock Clock { get; } = new();
         public SolarStation Station { get; } = new() { CapacityKwh = 100, IsActive = true };
         public EnergyBookingSlot Slot { get; }
 
@@ -266,14 +360,14 @@ public sealed class ReservationQrServiceTests
             Slot = new EnergyBookingSlot
             {
                 StationId = Station.StationId,
-                StartAtUtc = Now.AddDays(1),
-                EndAtUtc = Now.AddDays(1).AddHours(1),
+                StartAtUtc = Now,
+                EndAtUtc = Now.AddHours(1),
                 TotalSlots = 5,
                 AvailableSlots = 4,
                 IsActive = true
             };
             Store.Slots[Slot.SlotId] = Slot;
-            Service = new ReservationService(Store, Users, Security, new FixedClock());
+            Service = new ReservationService(Store, Users, Security, Clock, new CatalogWriteGate());
         }
 
         public EnergyReservation AddReservation(string nic, ReservationStatus status)
@@ -298,7 +392,8 @@ public sealed class ReservationQrServiceTests
 
     private sealed class FixedClock : TimeProvider
     {
-        public override DateTimeOffset GetUtcNow() => new(Now);
+        public DateTime Current { get; set; } = Now;
+        public override DateTimeOffset GetUtcNow() => new(Current);
     }
 
     private sealed class MemoryReservations : IReservationRepository
@@ -314,6 +409,10 @@ public sealed class ReservationQrServiceTests
         public Task<SolarStation?> GetStationAsync(string id, CancellationToken ct = default) => Task.FromResult(Stations.GetValueOrDefault(id));
         public Task<IReadOnlyList<EnergyReservation>> GetActiveAsync(string nic, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.ProsumerNic == nic && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).ToList());
+        public Task<IReadOnlyList<EnergyReservation>> GetActiveBySlotAsync(string slotId, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.SlotId == slotId && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).ToList());
+        public Task<IReadOnlyList<EnergyBookingSlot>> GetActiveSlotsAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<EnergyBookingSlot>>(Slots.Values.Where(x => x.IsActive && x.AvailableSlots > 0).ToList());
         public Task<bool> TryLockAsync(string nic, string token, CancellationToken ct = default) => Task.FromResult(true);
         public Task UnlockAsync(string nic, string token, CancellationToken ct = default) => Task.CompletedTask;
         public Task<bool> TryAcquireCapacityAsync(EnergyBookingSlot expected, CancellationToken ct = default) => Task.FromResult(true);

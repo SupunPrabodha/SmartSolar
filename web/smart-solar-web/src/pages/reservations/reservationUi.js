@@ -1,9 +1,13 @@
 export const reservationStatuses = ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed'];
 
+export function localTimeZone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
+}
+
 export function formatUtc(value) {
   const date = new Date(value);
   return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(date) + ' UTC'
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date)
     : 'Schedule unavailable';
 }
 
@@ -40,4 +44,16 @@ export function errorMessage(error, mutation = false) {
   if (mutation && (!error?.status || error.status >= 500))
     return 'The result could not be confirmed. Check the reservation list or refresh its details before retrying; the request may have reached the server.';
   return error?.message || 'Unable to load reservations. Check your connection and try again.';
+}
+
+export function shortReference(value) {
+  if (!value) return 'Unavailable';
+  return value.length > 14 ? value.slice(0,8).toUpperCase() + '…' + value.slice(-4).toUpperCase() : value;
+}
+export function scheduleParts(start, end) {
+  const a = new Date(start), b = new Date(end);
+  if (!start || !end || !Number.isFinite(a.getTime()) || !Number.isFinite(b.getTime())) return { date:'Schedule unavailable', time:'' };
+  const day = value => new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}).format(value);
+  const time = value => new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit'}).format(value);
+  return { date: day(a) === day(b) ? day(a) : day(a) + ' – ' + day(b), time: time(a) + ' – ' + time(b) };
 }

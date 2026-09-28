@@ -1,100 +1,79 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useCallback, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { apiFetch } from '../api/apiClient';
 import Brand from '../components/Brand';
+import Icon from '../components/Icon';
+import { activeWorkspaceRoute } from '../util/navigation';
+import OperationsDashboardPage from './reservations/OperationsDashboardPage';
+import { useReservationData } from './reservations/useReservationData';
 
-const modulesByRole = {
-  Backoffice: [
-    ['User Management', 'Manage community accounts and access.'],
-    ['Microgrid Stations', 'Oversee the stations in your network.'],
-    ['Reservations', 'Review energy reservations.'],
-    ['Transactions', 'Follow completed energy transactions.']
-  ],
-  GridOperator: [
-    ['Operations', 'Your station operations workspace.'],
-    ['Microgrid Stations', 'Access your assigned station information.'],
-    ['Transactions', 'Review and complete energy transactions.']
-  ]
-};
+const operatorLinks = [
+  ['/operator/reservations', 'Manage Reservations', 'bookings'],
+  ['/operator/reservations/dashboard', 'Operations Dashboard', 'dashboard'],
+  ['/operator/reservations/current', 'Current Bookings', 'current'],
+  ['/operator/reservations?status=Pending', 'Pending Queue', 'pending'],
+  ['/operator/reservations/history', 'Booking History', 'history'],
+  ['/operator/reservations/search', 'Search Bookings', 'search']
+];
 
-export default function HomePage() {
+export default function HomePage({ children }) {
   const { user, logout, refreshProfile, refreshing, sessionError, lastVerifiedAt } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
   if (!user) return null;
-  const modules = modulesByRole[user.role] ?? [];
+  const links = [['/', 'Home', 'home'],
+    ...(user.role === 'Backoffice' ? [['/users', 'User Management', 'users'], ['/users?status=PendingActivation', 'Pending Activations', 'pending']] : []),
+    ['/stations', 'Microgrid Stations', 'station'],
+    ...(user.role === 'GridOperator' ? operatorLinks : [])];
+  const active = activeWorkspaceRoute(location.pathname, location.search);
+  const context = links.find(([path]) => path === active)?.[1] || 'Workspace';
+  const hour = new Date().getHours();
+  const greeting = `Good ${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}, ${user.fullName}`;
   return <div className="workspace">
     <a className="skip-link" href="#main">Skip to content</a>
     <aside className="workspace-sidebar">
-      <div className="sidebar-heading"><Brand />
-        <button className="nav-toggle" aria-expanded={menuOpen} aria-controls="workspace-navigation"
-          onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close menu' : 'Menu'}</button></div>
+      <div className="sidebar-heading"><Brand /><button className="nav-toggle" aria-expanded={menuOpen} aria-controls="workspace-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close menu' : 'Menu'}</button></div>
       <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
         <span className="nav-caption">WORKSPACE</span>
-        <NavLink to="/" end className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span aria-hidden="true">01</span>Home</NavLink>
-        {user.role === 'GridOperator' && (
-          <NavLink
-            to="/operator/reservations"
-            className={({ isActive }) => `workspace-nav-item${isActive ? ' active' : ''}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <span aria-hidden="true">02</span>Manage Reservations
-          </NavLink>
-        )}
-        <span className="nav-caption mt-4">UPCOMING MODULES</span>
-        {modules.map(([name], index) => <button className="workspace-nav-item" key={name} disabled>
-          <span aria-hidden="true">0{index + (user.role === 'GridOperator' ? 3 : 2)}</span>{name}<small>Planned</small></button>)}
+        {links.map(([path, label, icon]) => <Link key={path} to={path} aria-current={active === path ? 'page' : undefined}
+          className={`workspace-nav-item${active === path ? ' active' : ''}`} onClick={() => setMenuOpen(false)}><Icon name={icon} />{label}</Link>)}
       </nav>
-      <div className="sidebar-footer"><span className="status-dot" />Phase 0 foundation
-        <small>Shared starting point for the team</small></div>
+      <div className="sidebar-footer"><span className="status-dot" />Connected community<small>Shared energy. Local impact.</small></div>
     </aside>
     <div className="workspace-body">
-      <header className="workspace-topbar">
-        <span className="environment-label">{import.meta.env.DEV ? 'Development' : 'Production build'}</span>
-        <div className="topbar-account"><span className="account-name">{user.fullName}</span>
-          <button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button></div>
-      </header>
+      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button></div></header>
       <main id="main" className="workspace-main" tabIndex="-1">
-        <div className="page-heading"><div><p className="eyebrow">YOUR WORKSPACE</p>
-          <h1>Welcome, {user.fullName}</h1><p className="text-secondary mb-0">Your account and shared workspace, in one place.</p></div>
-          <span className="role-pill">{user.role}</span></div>
-        {user.role === 'GridOperator' && <div className="d-flex flex-wrap gap-2 mb-4">
-          <Link className="btn btn-primary" to="/operator/reservations/dashboard">Operations Dashboard</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/current">Current Bookings</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/pending">Pending Queue</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/history">History</Link>
-          <Link className="btn btn-outline-primary" to="/operator/reservations/search">Search</Link>
-          <Link className="btn btn-outline-secondary" to="/operator/reservations">Manage reservations</Link>
-        </div>}
-        <section className="foundation-banner" aria-labelledby="foundation-title">
-          <span className="banner-orbit" aria-hidden="true" />
-          <div className="position-relative"><p className="eyebrow">CONNECTED COMMUNITY. SHARED ENERGY.</p>
-            <h2 id="foundation-title">System foundation ready.</h2>
-            <p>Your common account workspace is available. Business modules will arrive during feature development.</p>
-            <span className="banner-tag">Phase 0 / Common foundation</span></div>
-        </section>
-        <section aria-label="Account and session" className="session-grid">
-          <article className="surface-card"><p className="card-label">ACCOUNT ROLE</p>
-            <h2>{user.role}</h2><p>Workspace access follows your API account.</p></article>
-          <article className="surface-card"><p className="card-label">ACCOUNT STATUS</p>
-            <h2><span className="status-dot" />{user.status}</h2><p>Last received from your account profile.</p></article>
-          <article className="surface-card"><p className="card-label">SESSION VERIFICATION</p>
-            <h2 className="session-heading">{refreshing ? 'Checking profile...' : sessionError ? 'Check connection' : 'Session verified'}</h2>
-            <p>{lastVerifiedAt ? `Last verified at ${lastVerifiedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.` : 'Profile verification is pending.'}</p>
-            <button className="text-action" disabled={refreshing} onClick={refreshProfile}>Refresh profile &rarr;</button></article>
-        </section>
-        {sessionError && <div className="alert alert-warning mt-3" role="alert">{sessionError} Previously verified profile shown.</div>}
-        <section className="modules-section" aria-labelledby="modules-title">
-          <div className="section-heading"><div><p className="eyebrow">COMING NEXT</p><h2 id="modules-title">Your workspace modules</h2></div>
-            <span className="text-secondary small">Planned for feature development</span></div>
-          <div className="module-grid">{modules.map(([name, description], index) => <article className="surface-card module-card" key={name}>
-            <span className="module-number" aria-hidden="true">0{index + 1}</span><span className="planned-badge">Not implemented</span>
-            <h3>{name}</h3><p>{description}</p>
-            <button className="btn btn-light w-100 mt-auto" disabled>Coming in feature development</button>
-          </article>)}</div>
-        </section>
-        <footer className="workspace-footer">Smart Solar Microgrid <span>Shared Phase-0 foundation</span></footer>
+        {children || <>
+          {user.role === 'GridOperator' ? <OperationsDashboardPage greeting={greeting} /> : <BackofficeOverview greeting={greeting} />}
+          <div className="session-note">
+            <span>{refreshing ? 'Checking profile…' : lastVerifiedAt ? `Profile updated ${lastVerifiedAt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` : user.status}</span>
+            <button className="text-action" disabled={refreshing} onClick={refreshProfile}>Refresh profile</button>
+          </div>
+          {sessionError && <div className="alert alert-warning" role="alert">{sessionError} Previously verified profile shown.</div>}
+        </>}
+        <footer className="workspace-footer">Smart Solar Microgrid<span>Local energy. Connected operations.</span></footer>
       </main>
     </div>
   </div>;
+}
+function BackofficeOverview({ greeting }) {
+  const load = useCallback(async signal => {
+    const [users, stations] = await Promise.all([apiFetch('/users', {signal}), apiFetch('/stations?includeInactive=true', {signal})]);
+    return { users: users.length, pending: users.filter(u => u.role === 'Prosumer' && u.status === 'PendingActivation').length, stations: stations.length };
+  }, []);
+  const {data, error, loading, reload} = useReservationData(load);
+  return <>
+    <div className="page-heading"><div><p className="eyebrow">NETWORK ADMINISTRATION</p><h1>{greeting}</h1><p className="text-secondary mb-0">Manage community access and your microgrid station network.</p></div><button className="btn btn-outline-secondary" onClick={reload} disabled={loading}>Refresh</button></div>
+    {error && <div className="alert alert-danger" role="alert">Unable to load the overview. Try refreshing.</div>}
+    <section className="metrics-grid" aria-label="Network overview">
+      {[['Community accounts', data?.users], ['Pending activations', data?.pending], ['Microgrid stations', data?.stations]].map(([label,value]) =>
+        <article className="surface-card metric-card" key={label}><p className="card-label">{label}</p><strong className="metric-value">{loading ? '…' : error ? '—' : value ?? '—'}</strong></article>)}
+    </section>
+    <h2 className="section-title">Administration</h2>
+    <div className="quick-actions">
+      {[['/users','User Management','Manage accounts and staff access.','users'],['/users?status=PendingActivation','Pending Activations','Review Prosumer access requests.','pending'],['/stations','Microgrid Stations','Maintain your energy network.','station']].map(([path,title,description,icon]) =>
+        <Link className="quick-action" to={path} key={path}><Icon name={icon}/><span><strong>{title}</strong><small>{description}</small></span><span aria-hidden="true">→</span></Link>)}
+    </div>
+  </>;
 }

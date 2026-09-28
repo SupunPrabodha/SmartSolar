@@ -29,6 +29,37 @@ public sealed class ReservationQrApiTests
     private static readonly DateTime Now = new(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private const string Root = "/api/v1/reservations";
 
+
+    [MongoFact]
+    public async Task ConcurrentCompletionsHaveExactlyOneSuccessfulTransition()
+    {
+        // Two HTTP requests compete against the same persisted Approved/hash condition.
+        await WithApi(async f =>
+        {
+            var id = await f.CreateApprovedReservation("P1");
+            using var owner = f.Client("P1");
+            using var issued = await owner.PostAsync($"{Root}/{id}/qr", null);
+            Assert.Equal(HttpStatusCode.OK, issued.StatusCode);
+            var payload = (await Body(issued)).GetProperty("qrPayload").GetString()!;
+            using var first = f.Client("OP");
+            using var second = f.Client("OP");
+            var responses = await Task.WhenAll(
+                first.PostAsJsonAsync($"{Root}/qr/complete", new { reservationId = id, qrPayload = payload }),
+                second.PostAsJsonAsync($"{Root}/qr/complete", new { reservationId = id, qrPayload = payload }));
+            try
+            {
+                Assert.Single(responses, response => response.StatusCode == HttpStatusCode.OK);
+                var conflict = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
+                Assert.Equal("application/problem+json", conflict.Content.Headers.ContentType?.MediaType);
+                var stored = await f.Reservations.Find(x => x.ReservationId == id).SingleAsync();
+                Assert.Equal(ReservationStatus.Completed, stored.Status);
+                Assert.Equal("OP", stored.CompletedByOperatorNic);
+                Assert.NotNull(stored.CompletedAtUtc);
+            }
+            finally { foreach (var response in responses) response.Dispose(); }
+        });
+    }
+
     [MongoFact]
     public async Task ApprovedReservationOwnerCanRequestQrAndReceivesOpaquePayload()
     {
@@ -379,6 +410,7 @@ public sealed class ReservationQrApiTests
 
     private sealed class ApiFactory(string connection, string databaseName) : WebApplicationFactory<Program>
     {
+        public FixedClock Clock { get; } = new();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
@@ -392,7 +424,7 @@ public sealed class ReservationQrApiTests
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<TimeProvider>();
-                services.AddSingleton<TimeProvider>(new FixedClock());
+                services.AddSingleton<TimeProvider>(Clock);
             });
         }
     }
@@ -434,6 +466,8 @@ public sealed class ReservationQrApiTests
             await Slots.InsertOneAsync(Slot);
         }
 
+        public void EnterWindow() => factory.Clock.Current = Slot.StartAtUtc;
+
         public HttpClient Client(string? nic = null)
         {
             var client = factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -464,12 +498,14 @@ public sealed class ReservationQrApiTests
             await Reservations.UpdateOneAsync(
                 x => x.ReservationId == id,
                 Builders<EnergyReservation>.Update.Set(x => x.Status, ReservationStatus.Approved));
+            EnterWindow();
             return id;
         }
     }
 
     private sealed class FixedClock : TimeProvider
     {
-        public override DateTimeOffset GetUtcNow() => new(Now);
+        public DateTime Current { get; set; } = Now;
+        public override DateTimeOffset GetUtcNow() => new(Current);
     }
 }

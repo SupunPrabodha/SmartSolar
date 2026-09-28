@@ -10,24 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            style="@style/Solar.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/home_eyebrow"
-            android:textSize="11sp"
-            android:letterSpacing="0.12" />
-
-        <TextView
-            android:id="@+id/textSummaryHeading"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/title_reservation_summary"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textStyle="bold" />
+        android:padding="@dimen/solar_screen_padding">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/bannerCard"
@@ -58,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="@dimen/solar_screen_padding">
 
                 <TextView
                     style="@style/Solar.Body"
@@ -82,8 +65,8 @@
                     android:textSize="12sp" />
                 <TextView
                     android:id="@+id/textSummaryStatus"
-                    style="@style/Solar.Title"
-                    android:layout_width="match_parent"
+                    style="@style/Solar.Status"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp" />
 
@@ -197,7 +180,7 @@
         <!-- Actions -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonViewDetails"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:minHeight="56dp"
@@ -205,12 +188,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonBackHome"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
+            style="@style/Solar.Button.Outlined"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:minHeight="56dp"
-            android:text="@string/btn_back_to_workspace" />
+            android:text="@string/btn_back_to_workspace"  android:visibility="gone"/>
 
     </LinearLayout>
 </ScrollView>

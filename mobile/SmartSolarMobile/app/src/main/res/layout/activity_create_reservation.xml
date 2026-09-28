@@ -10,30 +10,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/solar_screen_padding">
 
-        <TextView
-            style="@style/Solar.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/home_eyebrow"
-            android:textSize="11sp"
-            android:letterSpacing="0.12" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/title_new_reservation"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textStyle="bold" />
+
+
 
         <TextView
             style="@style/Solar.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Book an energy charging or drop-off slot. All times are UTC." />
+            android:text="@string/reservation_create_description" />
 
         <TextView
             android:id="@+id/textError"
@@ -80,10 +68,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonToggleManualSlot"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Solar.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="36dp"
+                    android:minHeight="48dp"
                     android:paddingStart="4dp"
                     android:paddingEnd="4dp"
                     android:text="@string/btn_type_custom_slot"
@@ -129,7 +117,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Select an active slot or enter a known slot GUID."
+                android:text="@string/reservation_slot_guidance"
                 android:textSize="12sp" />
 
             <!-- Energy Amount Input -->
@@ -151,7 +139,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Slots must start within 7 days. Changes require at least 12 hours notice."
+                android:text="@string/reservation_notice_guidance"
                 android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
@@ -181,7 +169,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/solar_screen_padding">
 
                     <TextView
                         style="@style/Solar.Title"
@@ -253,8 +241,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackToForm"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
+                style="@style/Solar.Button.Outlined"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="56dp"

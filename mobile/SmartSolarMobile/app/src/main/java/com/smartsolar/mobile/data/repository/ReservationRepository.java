@@ -135,13 +135,14 @@ public final class ReservationRepository implements AutoCloseable {
         executeDashboardCall(() -> api.getCurrentBookings(query), callback);
     }
 
-    public void getPendingBookings(
-            Map<String, String> filters,
-            DashboardCallback<ReservationPageResponse> callback
-    ) {
-        Map<String, String> query =
-                filters != null ? filters : Collections.emptyMap();
+    public void getPendingBookings(Map<String, String> filters, DashboardCallback<ReservationPageResponse> callback) {
+        Map<String, String> query = filters != null ? filters : Collections.emptyMap();
         executeDashboardCall(() -> api.getPendingBookings(query), callback);
+    }
+
+    public void searchBookings(Map<String, String> filters, DashboardCallback<ReservationPageResponse> callback) {
+        Map<String, String> query = filters != null ? filters : Collections.emptyMap();
+        executeDashboardCall(() -> api.searchBookings(query), callback);
     }
 
     public void getBookingHistory(
@@ -151,15 +152,6 @@ public final class ReservationRepository implements AutoCloseable {
         Map<String, String> query =
                 filters != null ? filters : Collections.emptyMap();
         executeDashboardCall(() -> api.getBookingHistory(query), callback);
-    }
-
-    public void searchBookings(
-            Map<String, String> filters,
-            DashboardCallback<ReservationPageResponse> callback
-    ) {
-        Map<String, String> query =
-                filters != null ? filters : Collections.emptyMap();
-        executeDashboardCall(() -> api.searchBookings(query), callback);
     }
 
     public void issueQr(
@@ -240,16 +232,9 @@ public final class ReservationRepository implements AutoCloseable {
                 Response<T> response = call.execute();
 
                 if (!response.isSuccessful() || response.body() == null) {
-                    if (response.errorBody() != null) {
-                        response.errorBody().close();
-                    }
-
+                    ReservationError failure = parseError(response);
                     int code = response.code();
-                    int errorResource = code == 401
-                            ? R.string.session_expired
-                            : code == 403
-                                    ? R.string.access_denied
-                                    : R.string.load_failed;
+                    int errorResource = com.smartsolar.mobile.util.QrErrorPresentation.resource(code, failure.getMessage());
 
                     deliverComplete(callback, null, errorResource, code);
                     return;

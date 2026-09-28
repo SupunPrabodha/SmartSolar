@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
 import { create, act } from 'react-test-renderer';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { createServer } from 'vite';
 import { readFile } from 'node:fs/promises';
 import { transformWithEsbuild } from 'vite';
@@ -17,9 +17,8 @@ const clientUrl = 'data:text/javascript;base64,' + Buffer.from(clientCode).toStr
 const apiSource = (await readFile(new URL('../src/api/reservations.js', import.meta.url), 'utf8'))
   .replace("'./apiClient.js'", JSON.stringify(clientUrl));
 const {
-  getCurrentBookings,
-  getPendingBookings,
   getBookingHistory,
+  getCurrentBookings,
   searchBookings,
   getReservationDashboardSummary
 } = await import('data:text/javascript;base64,' + Buffer.from(apiSource).toString('base64'));
@@ -32,8 +31,6 @@ const server = await createServer({
 });
 
 const { default: OperationsDashboard } = await server.ssrLoadModule('/src/pages/reservations/OperationsDashboardPage.jsx');
-const { default: CurrentBookings } = await server.ssrLoadModule('/src/pages/reservations/CurrentBookingsPage.jsx');
-const { default: PendingBookings } = await server.ssrLoadModule('/src/pages/reservations/PendingBookingsPage.jsx');
 const { default: BookingHistory } = await server.ssrLoadModule('/src/pages/reservations/BookingHistoryPage.jsx');
 const { default: SearchBookings } = await server.ssrLoadModule('/src/pages/reservations/SearchBookingsPage.jsx');
 
@@ -133,19 +130,14 @@ test('getReservationDashboardSummary fetches /reservations/dashboard-summary', a
   assert.equal(calls[0].options.headers.get('Authorization'), 'Bearer test-session');
 });
 
-test('getCurrentBookings builds query and calls /reservations/current', async () => {
-  await getCurrentBookings({ page: 2, pageSize: 10 });
-  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/current?page=2&pageSize=10');
-});
-
-test('getPendingBookings calls /reservations/pending', async () => {
-  await getPendingBookings({ prosumerNic: '200012345678' });
-  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/pending?prosumerNic=200012345678');
-});
-
 test('getBookingHistory calls /reservations/history', async () => {
   await getBookingHistory({ status: 'Cancelled' });
   assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/history?status=Cancelled');
+});
+
+test('getCurrentBookings calls the live current endpoint', async () => {
+  await getCurrentBookings({ page: 2, pageSize: 10 });
+  assert.equal(calls[0].url, 'https://api.example.invalid/api/v1/reservations/current?page=2&pageSize=10');
 });
 
 test('searchBookings supports all backend filters and omits undefined/blank', async () => {
@@ -170,10 +162,9 @@ test('dashboard renders live API counts', async () => {
   const rendered = text(view.root);
   assert.ok(rendered.includes('7'), 'Must show pending count 7');
   assert.ok(rendered.includes('12'), 'Must show approved future count 12');
-  assert.ok(rendered.includes('Current Bookings'));
-  assert.ok(rendered.includes('Pending Queue'));
   assert.ok(rendered.includes('Booking History'));
-  assert.ok(rendered.includes('Search & Filter'));
+  assert.ok(rendered.includes('Search Bookings'));
+  assert.ok(rendered.includes('Manage Reservations'));
 });
 
 test('zero dashboard counts render as 0', async () => {
@@ -191,22 +182,6 @@ test('dashboard API failure does not show fake values and shows error message', 
   assert.ok(!rendered.includes('7'), 'Must not display fake or old values on failure');
 });
 
-test('current bookings renders returned records', async () => {
-  globalThis.fetch = async () => response(samplePage);
-  await mountComponent(React.createElement(CurrentBookings));
-  const rendered = text(view.root);
-  assert.ok(rendered.includes('11111111-2222-3333-4444-555555555555'));
-  assert.ok(rendered.includes('200012345678'));
-  assert.ok(rendered.includes('4.5 kWh'));
-});
-
-test('pending list handles empty results', async () => {
-  globalThis.fetch = async () => response({ items: [], page: 1, pageSize: 20, hasMore: false });
-  await mountComponent(React.createElement(PendingBookings));
-  const rendered = text(view.root);
-  assert.ok(rendered.includes('No pending bookings'));
-});
-
 test('history renders returned records', async () => {
   globalThis.fetch = async () => response({
     items: [{ ...sampleReservation, status: 'Completed' }],
@@ -217,7 +192,8 @@ test('history renders returned records', async () => {
   await mountComponent(React.createElement(BookingHistory));
   const rendered = text(view.root);
   assert.ok(rendered.includes('Completed'));
-  assert.ok(rendered.includes('11111111-2222-3333-4444-555555555555'));
+  assert.ok(rendered.includes('11111111…5555'));
+  assert.ok(view.root.findAllByProps({ title: sampleReservation.reservationId }).length > 0, 'Full reference remains available');
 });
 
 test('search sends the expected query/filter values', async () => {
@@ -234,6 +210,14 @@ test('search sends the expected query/filter values', async () => {
     });
   });
 
+  // Local inputs retain the existing UTC conversion at the request boundary.
+  await act(async () => {
+    view.root.findByProps({ id: 'search-from-utc' }).props.onChange({ target: { value: '2030-05-10T10:00' } });
+  });
+  await act(async () => {
+    view.root.findByProps({ id: 'search-to-utc' }).props.onChange({ target: { value: '2030-05-11T11:30' } });
+  });
+
   // Submit form
   await act(async () => {
     view.root.findByProps({ 'aria-label': 'Search reservation filters' }).props.onSubmit({
@@ -244,12 +228,14 @@ test('search sends the expected query/filter values', async () => {
 
   const lastCall = calls[calls.length - 1];
   const url = new URL(lastCall.url);
+  assert.equal(url.searchParams.get('fromUtc'), new Date('2030-05-10T10:00').toISOString());
+  assert.equal(url.searchParams.get('toUtc'), new Date('2030-05-11T11:30').toISOString());
   assert.equal(url.searchParams.get('reservationId'), '11111111-2222-3333-4444-555555555555');
 });
 
 test('401 follows existing session-expiry behavior on query failure', async () => {
   globalThis.fetch = async () => response({ status: 401, detail: 'Unauthorized' }, 401);
-  await mountComponent(React.createElement(CurrentBookings));
+  await mountComponent(React.createElement(BookingHistory));
   assert.equal(expired, 1);
   assert.equal(sessionStorage.getItem('accessToken'), null);
 });

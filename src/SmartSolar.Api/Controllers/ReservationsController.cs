@@ -120,6 +120,7 @@ public sealed class ReservationsController : ControllerBase
     }
 
     [HttpPost("{reservationId}/qr")]
+    [Authorize(Roles = "Prosumer")]
     public async Task<ActionResult<ReservationQrResponse>> IssueQr(
         string reservationId,
         CancellationToken cancellationToken)
@@ -170,6 +171,5 @@ public sealed class ReservationsController : ControllerBase
             User.GetNic(),
             new CompleteReservationTransferRequest(payload, reservationId),
             cancellationToken));
-    }
     }
 }

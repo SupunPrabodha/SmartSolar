@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { approveReservation, cancelReservation, getReservation, rejectReservation } from '../../api/reservations.js';
 import { ErrorNotice, Loading, ReservationSummary } from './ReservationComponents';
-import { changeRestriction } from './reservationUi.js';
+import { changeRestriction, shortReference } from './reservationUi.js';
 import { useReservationData, useReservationMutation } from './useReservationData.js';
 
 export default function ReservationDetailsPage() {
@@ -87,7 +87,7 @@ function Details({ reservationId }) {
   }
 
   return <>
-    <h1 className="h2 mb-4">Reservation details</h1>
+    <h1 className="h2 mb-4">{data ? `Reservation #${shortReference(data.reservationId)}` : 'Reservation details'}</h1>
     <ErrorNotice error={error} retry={reload} />
     {loading ? <Loading /> : data && <>
       {successMessage && <div ref={successRef} tabIndex="-1" className="alert alert-success" role="status">
@@ -97,8 +97,8 @@ function Details({ reservationId }) {
         <ReservationSummary reservation={data} />
         <p className="mt-2 text-secondary small">Changes require at least 12 hours’ notice. The server checks the final cutoff.</p>
         {restriction && <div className="alert alert-info mt-3" id="change-restriction">{restriction}</div>}
-        
-        <div className="d-flex flex-wrap gap-2 mt-4">
+
+        <div className="record-actions d-flex flex-wrap gap-2 mt-4">
           {isPending && <>
             <button className="btn btn-success" disabled={mutation.pending}
               onClick={() => { mutation.clearError(); setConfirmingApprove(true); }}>
@@ -167,7 +167,7 @@ function Details({ reservationId }) {
           <h2 id="reject-title" className="h4 text-danger">Reject this reservation?</h2>
           <p className="text-break">Reject reservation {data.reservationId} for Prosumer <strong>{data.prosumerNic}</strong>.</p>
           <p className="text-secondary small">This releases 1 slot capacity back to the station. Please state why the reservation is being rejected:</p>
-          
+
           <div className="mb-3">
             <label htmlFor="reject-remark" className="form-label fw-bold">Rejection Reason / Remark <span className="text-danger">*</span></label>
             <textarea

@@ -1,5 +1,6 @@
 package com.smartsolar.mobile.ui.reservations;
 
+import com.smartsolar.mobile.util.ReservationUiUtils;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -87,15 +88,30 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
         buttonCompleteTransfer = findViewById(R.id.buttonCompleteTransfer);
         progressCompleteTransfer = findViewById(R.id.progressCompleteTransfer);
 
-        textReservationId.setText(getString(R.string.reservation_id_label, reservationId != null ? reservationId : ""));
-        textStatus.setText(currentStatus != null ? currentStatus : "");
-        textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic != null ? prosumerNic : ""));
-        textStationSlot.setText(getString(R.string.station_slot_label, stationId != null ? stationId : "", slotId != null ? slotId : ""));
-        textSchedule.setText(getString(R.string.schedule_label, scheduleStart != null ? scheduleStart : "", scheduleEnd != null ? scheduleEnd : ""));
-        textEnergy.setText(getString(R.string.energy_label, energyAmount));
+        String idSnippet = reservationId != null && reservationId.length() > 8
+                ? reservationId.substring(0, 8) + "…"
+                : String.valueOf(reservationId);
+        textReservationId.setText("Reservation: " + idSnippet);
+
+        com.smartsolar.mobile.util.ReservationUiUtils.formatStatusBadge(textStatus, currentStatus);
+
+        if (prosumerNic != null && !prosumerNic.trim().isEmpty()) {
+            textProsumer.setText(getString(R.string.prosumer_nic_label, prosumerNic));
+            textProsumer.setVisibility(View.VISIBLE);
+        } else {
+            textProsumer.setVisibility(View.GONE);
+        }
+
+        String station = stationId != null ? stationId : "—";
+        textStationSlot.setText("Station " + ReservationUiUtils.shortReference(station));
+
+        String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
+        textSchedule.setText(ReservationUiUtils.schedule(scheduleStart, scheduleEnd));
+
+        textEnergy.setText(String.format(java.util.Locale.US, "%.1f kWh", energyAmount));
 
         if (qrIssuedAt != null && !qrIssuedAt.isEmpty()) {
-            textQrIssuedAt.setText(getString(R.string.qr_issued_at_label, qrIssuedAt));
+            textQrIssuedAt.setText(getString(R.string.qr_issued_at_label, ReservationUiUtils.formatUtc(qrIssuedAt)));
             textQrIssuedAt.setVisibility(View.VISIBLE);
         } else {
             textQrIssuedAt.setVisibility(View.GONE);
@@ -149,7 +165,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
             } else {
                 String message;
                 if (statusCode == 409) {
-                    message = "Reservation has already been completed or is no longer in an Approved state.";
+                    message = getString(errorRes != 0 ? errorRes : R.string.qr_changed);
                 } else if (statusCode == 403) {
                     message = getString(R.string.access_denied);
                 } else if (statusCode == 404) {
@@ -167,12 +183,13 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
     }
 
     private void onCompletionSuccess(ReservationCompletionResponse response) {
+        com.smartsolar.mobile.ui.workspace.WorkspaceChanges.reservationsChanged();
         currentStatus = response.getStatus();
-        textStatus.setText(response.getStatus());
+        ReservationUiUtils.formatStatusBadge(textStatus, response.getStatus());
         textCompletionStatus.setText(R.string.completion_success_message);
 
         if (response.getCompletedAtUtc() != null) {
-            textCompletedAt.setText(getString(R.string.completed_at_label, response.getCompletedAtUtc()));
+            textCompletedAt.setText(getString(R.string.completed_at_label, ReservationUiUtils.formatUtc(response.getCompletedAtUtc())));
             textCompletedAt.setVisibility(View.VISIBLE);
         }
         if (response.getCompletedByOperatorNic() != null) {
@@ -195,5 +212,9 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
             repository.close();
         }
         super.onDestroy();
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.title_transfer_details));
     }
 }

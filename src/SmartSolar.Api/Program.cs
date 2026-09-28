@@ -86,6 +86,11 @@ builder.Services.AddSingleton(sp =>
     sp.GetRequiredService<IMongoClient>().GetDatabase(mongoSettings.DatabaseName));
 builder.Services.AddSingleton<MongoDbInitializer>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IStationCatalogRepository, StationCatalogRepository>();
+builder.Services.AddScoped<IReservationReferenceReader, StationCatalogRepository>();
+builder.Services.AddSingleton<CatalogWriteGate>();
+builder.Services.AddScoped<StationService>();
+builder.Services.AddScoped<SlotService>();
 
 builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddScoped<ReservationRules>();

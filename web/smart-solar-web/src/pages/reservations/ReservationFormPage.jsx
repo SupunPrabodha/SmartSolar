@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { createReservation, getReservation, listAvailableSlots, updateReservation } from '../../api/reservations.js';
 import { ErrorNotice, Loading, OperationSuccess, ReservationSummary } from './ReservationComponents';
-import { changeRestriction, fieldMessages, formatUtc, validateReservationForm } from './reservationUi.js';
+import { changeRestriction, fieldMessages, formatUtc, shortReference, validateReservationForm } from './reservationUi.js';
 import { useReservationData, useReservationMutation } from './useReservationData.js';
 
 export default function ReservationFormPage({ creating = false }) {
@@ -93,7 +93,7 @@ function ReservationForm({ existing }) {
         <label className="form-label mb-0" htmlFor="slotId">Slot ID</label>
         <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none"
           onClick={() => setManualSlot(!manualSlot)}>
-          {manualSlot ? 'Select from active slots list' : 'Type custom Slot ID'}
+          {manualSlot ? 'Select from active slots list' : 'Enter slot reference'}
         </button>
       </div>
       {!manualSlot ? (
@@ -109,11 +109,11 @@ function ReservationForm({ existing }) {
                 : '-- Select an active slot --'}
           </option>
           {existing && !availableSlots.some(s => s.slotId === existing.slotId) && (
-            <option value={existing.slotId}>Current: {existing.slotId.slice(0, 8)}… — Station: {existing.stationId}</option>
+            <option value={existing.slotId}>Current: {existing.slotId.slice(0, 8)}… — Station: {shortReference(existing.stationId)}</option>
           )}
           {availableSlots.map(s => (
             <option key={s.slotId} value={s.slotId}>
-              {s.slotId.slice(0, 8)}… — Station: {s.stationId} ({formatUtc(s.startAtUtc)} | {s.availableSlots} avail)
+              {s.slotId.slice(0, 8)}… — Station: {shortReference(s.stationId)} ({formatUtc(s.startAtUtc)} | {s.availableSlots} avail)
             </option>
           ))}
         </select>
@@ -126,7 +126,7 @@ function ReservationForm({ existing }) {
           autoComplete="off" spellCheck={false} />
       )}
       {!!messages.length && <div id="slotId-error" className="invalid-feedback">{messages.join(' ')}</div>}
-      <p className="small text-secondary mt-1 mb-0">Select an active slot or enter a known slot GUID. The server confirms its station, schedule and capacity.</p>
+      <p className="small text-secondary mt-1 mb-0">Select an active slot or enter a known slot reference. Availability is confirmed when you save.</p>
     </div>;
   }
 

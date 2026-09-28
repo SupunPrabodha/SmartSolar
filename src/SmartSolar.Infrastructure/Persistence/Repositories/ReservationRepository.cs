@@ -108,7 +108,7 @@ public sealed class ReservationRepository : IReservationRepository
             x.TotalSlots == expected.TotalSlots && x.AvailableSlots > 0);
         filter &= new BsonDocument("$expr", new BsonDocument("$lte", new BsonArray { "$AvailableSlots", "$TotalSlots" }));
         var result = await _slots.UpdateOneAsync(filter,
-            Builders<EnergyBookingSlot>.Update.Inc(x => x.AvailableSlots, -1), cancellationToken: ct);
+            CapacityUpdate(-1), cancellationToken: ct);
         return result.ModifiedCount == 1;
     }
 
@@ -118,8 +118,30 @@ public sealed class ReservationRepository : IReservationRepository
         var filter = Builders<EnergyBookingSlot>.Filter.Where(x => x.SlotId == slotId && x.AvailableSlots >= 0);
         filter &= new BsonDocument("$expr", new BsonDocument("$lt", new BsonArray { "$AvailableSlots", "$TotalSlots" }));
         var result = await _slots.UpdateOneAsync(filter,
-            Builders<EnergyBookingSlot>.Update.Inc(x => x.AvailableSlots, 1), cancellationToken: ct);
+            CapacityUpdate(1), cancellationToken: ct);
         return result.ModifiedCount == 1;
+    }
+
+    private static UpdateDefinition<EnergyBookingSlot> CapacityUpdate(int delta)
+    {
+        // Atomically change count and advance the catalog token, even within one millisecond.
+        PipelineDefinition<EnergyBookingSlot, EnergyBookingSlot> pipeline = new[]
+        {
+            new BsonDocument("$set", new BsonDocument
+            {
+                { "AvailableSlots", new BsonDocument("$add", new BsonArray { "$AvailableSlots", delta }) },
+                { "UpdatedAtUtc", new BsonDocument("$max", new BsonArray
+                    {
+                        "$NOW",
+                        new BsonDocument("$add", new BsonArray
+                        {
+                            new BsonDocument("$ifNull", new BsonArray { "$UpdatedAtUtc", new BsonDateTime(DateTime.UnixEpoch) }), 1
+                        })
+                    })
+                }
+            })
+        };
+        return Builders<EnergyBookingSlot>.Update.Pipeline(pipeline);
     }
 
     public async Task InsertAsync(EnergyReservation reservation, CancellationToken ct = default)
@@ -128,14 +150,6 @@ public sealed class ReservationRepository : IReservationRepository
         await _reservations.InsertOneAsync(reservation, cancellationToken: ct);
     }
 
-    public async Task<bool> TryReplaceAsync(EnergyReservation expected, EnergyReservation replacement, CancellationToken ct = default)
-    {
-        // CAS detects changes from other workflows; field updates preserve unrelated future fields.
-        var filter = Builders<EnergyReservation>.Filter.Where(x =>
-            x.ReservationId == expected.ReservationId && x.ProsumerNic == expected.ProsumerNic &&
-            x.StationId == expected.StationId && x.SlotId == expected.SlotId && x.Status == expected.Status &&
-            x.EnergyAmountKwh == expected.EnergyAmountKwh && x.UpdatedAtUtc == expected.UpdatedAtUtc &&
-            x.ScheduledStartAtUtc == expected.ScheduledStartAtUtc && x.ScheduledEndAtUtc == expected.ScheduledEndAtUtc &&
     public async Task<bool> TryReplaceAsync(
         EnergyReservation expected,
         EnergyReservation replacement,
@@ -181,12 +195,6 @@ public sealed class ReservationRepository : IReservationRepository
 
         return result.MatchedCount == 1;
     }
-            .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
-            .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc).Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
-        var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
-        return result.MatchedCount == 1;
-    }
-
     public async Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default)
     {
         // Lookup an authoritative reservation by its deterministic SHA-256 token hash.

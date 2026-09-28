@@ -62,7 +62,7 @@ public final class SlotSpinnerAdapter extends BaseAdapter {
 
             String station = slot.getStationId() != null && !slot.getStationId().trim().isEmpty()
                     ? slot.getStationId() : "Station";
-            textSelectedStation.setText("Station: " + station);
+            textSelectedStation.setText("Station " + ReservationUiUtils.shortReference(station));
             textSelectedBadge.setText(slot.getAvailableSlots() + " Avail");
             textSelectedSchedule.setText(ReservationUiUtils.formatUtc(slot.getStartAtUtc()));
 
@@ -98,7 +98,7 @@ public final class SlotSpinnerAdapter extends BaseAdapter {
 
             String station = slot.getStationId() != null && !slot.getStationId().trim().isEmpty()
                     ? slot.getStationId() : "Station";
-            textDropdownStation.setText("Station: " + station);
+            textDropdownStation.setText("Station " + ReservationUiUtils.shortReference(station));
             textDropdownBadge.setText(slot.getAvailableSlots() + " Avail");
 
             String startFormatted = ReservationUiUtils.formatUtc(slot.getStartAtUtc());

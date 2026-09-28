@@ -63,7 +63,7 @@ public sealed class ReservationQueryService(
             || start.Kind != DateTimeKind.Utc || end.Kind != DateTimeKind.Utc || end <= start)
             throw new ConflictException("Reservation schedule requires verified backfill before use.");
         return new ReservationResponse(row.ReservationId, row.ProsumerNic, row.StationId, row.SlotId,
-            row.EnergyAmountKwh, start, end, row.Status, row.CreatedAtUtc, row.UpdatedAtUtc);
+            row.EnergyAmountKwh, start, end, row.Status, row.CreatedAtUtc, row.UpdatedAtUtc, row.RejectionRemark);
     }
 
     private static string? Clean(string? value)

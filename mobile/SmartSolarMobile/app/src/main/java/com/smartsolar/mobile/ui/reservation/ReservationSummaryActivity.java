@@ -1,6 +1,5 @@
 package com.smartsolar.mobile.ui.reservation;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -12,7 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.gson.Gson;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.dto.ReservationResponse;
-import com.smartsolar.mobile.ui.home.HomeActivity;
+import com.smartsolar.mobile.ui.workspace.WorkspaceActivity;
 import com.smartsolar.mobile.util.ReservationUiUtils;
 
 public final class ReservationSummaryActivity extends AppCompatActivity {
@@ -67,7 +66,7 @@ public final class ReservationSummaryActivity extends AppCompatActivity {
         TextView textCutoff = findViewById(R.id.textSummaryCutoff);
 
         textReservationId.setText(reservation.getReservationId());
-        textStatus.setText(reservation.getStatus());
+        ReservationUiUtils.formatStatusBadge(textStatus, reservation.getStatus());
         textNic.setText(reservation.getProsumerNic());
         textStationId.setText(reservation.getStationId());
         textSlotId.setText(reservation.getSlotId());
@@ -79,18 +78,12 @@ public final class ReservationSummaryActivity extends AppCompatActivity {
         Button buttonViewDetails = findViewById(R.id.buttonViewDetails);
         Button buttonBackHome = findViewById(R.id.buttonBackHome);
 
-        buttonViewDetails.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ReservationDetailsActivity.class);
-            intent.putExtra(ReservationDetailsActivity.EXTRA_RESERVATION_ID, reservation.getReservationId());
-            startActivity(intent);
-            finish();
-        });
-
-        buttonBackHome.setOnClickListener(v -> {
-            Intent intent = new Intent(this, HomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
-        });
+        buttonViewDetails.setText(R.string.done);
+        buttonViewDetails.setOnClickListener(v -> WorkspaceActivity.returnToWorkspace(this));
+        buttonBackHome.setOnClickListener(v -> WorkspaceActivity.returnToWorkspace(this));
+    }
+    @Override protected void onPostCreate(Bundle state) {
+        super.onPostCreate(state);
+        com.smartsolar.mobile.ui.common.DeepScreenChrome.attach(this, getString(R.string.title_reservation_summary));
     }
 }
