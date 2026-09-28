@@ -220,6 +220,7 @@ internal sealed class MemoryCatalog : IStationCatalogRepository, IReservationRef
         var match = Slots[value.SlotId].UpdatedAtUtc == expected;
         if (match) Slots[value.SlotId] = Copy(value); return Task.FromResult(match);
     }
+    public Task<decimal> ActiveAllocatedEnergyAsync(string id, CancellationToken ct) => Task.FromResult(0m);
     public Task<bool> HasActiveStationReservationsAsync(string id, CancellationToken ct)
     {
         // Simulate the active protection query; status filtering is tested against the real Mongo repository.

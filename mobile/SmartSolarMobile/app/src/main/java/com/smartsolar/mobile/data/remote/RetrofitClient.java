@@ -19,7 +19,7 @@ public final class RetrofitClient {
         if (url == null || !url.encodedPath().endsWith("/api/v1/") ||
                 !url.username().isEmpty() || !url.password().isEmpty() ||
                 url.query() != null || url.fragment() != null ||
-                (!url.isHttps() && !(debug && url.host().equals("10.0.2.2")))) {
+                (!url.isHttps() && !(debug && (url.host().equals("10.0.2.2") || url.host().equals("localhost") || url.host().equals("127.0.0.1"))))) {
             throw new IllegalArgumentException("API URL is not configured correctly");
         }
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();

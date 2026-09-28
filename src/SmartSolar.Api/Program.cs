@@ -35,6 +35,8 @@ builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>("mongodb");
 
 builder.Services.AddSwaggerGen(options =>
 {
+    options.OperationFilter<ReservationSwaggerFilter>();
+    options.SchemaFilter<ReservationSwaggerFilter>();
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Smart Solar Microgrid API",
@@ -90,7 +92,14 @@ builder.Services.AddSingleton<CatalogWriteGate>();
 builder.Services.AddScoped<StationService>();
 builder.Services.AddScoped<SlotService>();
 
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddScoped<ReservationRules>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IReservationReadRepository, ReservationReadRepository>();
+builder.Services.AddScoped<SmartSolar.Application.Abstractions.Reservations.IReservationQueryService, ReservationQueryService>();
+builder.Services.AddScoped<SmartSolar.Application.Abstractions.Reservations.IReservationService, ReservationService>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
+builder.Services.AddSingleton<IQrSecurityService, QrSecurityService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 

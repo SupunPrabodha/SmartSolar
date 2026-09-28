@@ -22,6 +22,9 @@ public sealed class User
 
     public UserStatus Status { get; set; }
 
+    // Internal non-expiring reservation mutex; abandoned writes require reconciliation.
+    public string? ReservationWriteLock { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }

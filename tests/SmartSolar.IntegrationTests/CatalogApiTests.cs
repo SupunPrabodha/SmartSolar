@@ -161,6 +161,55 @@ public sealed class CatalogApiTests
         await AssertReservationProtectionAsync(ReservationStatus.Completed, false);
     }
 
+    [MongoFact]
+    public async Task StationCapacityReductionUsesAllActiveReservationEnergy()
+    {
+        MongoMappings.Register();
+        var client = new MongoClient(Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO"));
+        var name = "SmartSolarTests_" + Guid.NewGuid().ToString("N");
+        var db = client.GetDatabase(name);
+        try
+        {
+            var repository = new StationCatalogRepository(db);
+            var gate = new CatalogWriteGate();
+            var stations = new StationService(repository, repository, gate);
+            var slots = new SlotService(repository, repository, gate);
+            var station = await stations.CreateAsync(new StationRequest {
+                Name = "Capacity fixture", Address = "Test road", Latitude = 6.9, Longitude = 79.8,
+                CapacityKwh = 100, TotalBatterySlots = 10,
+                OperatingSchedule = Enumerable.Range(1, 7).Select(day => new OperatingDayDto(day, true, null, null)).ToList()
+            });
+            var first = await slots.CreateAsync(station.StationId, new SlotRequest {
+                StartAtUtc = DateTimeOffset.Parse("2030-01-01T00:00:00Z"),
+                EndAtUtc = DateTimeOffset.Parse("2030-01-01T01:00:00Z"), TotalSlots = 2, AvailableSlots = 1
+            });
+            var second = await slots.CreateAsync(station.StationId, new SlotRequest {
+                StartAtUtc = DateTimeOffset.Parse("2030-01-01T02:00:00Z"),
+                EndAtUtc = DateTimeOffset.Parse("2030-01-01T03:00:00Z"), TotalSlots = 2, AvailableSlots = 1
+            });
+            var reservations = db.GetCollection<EnergyReservation>(CollectionNames.Reservations);
+            await reservations.InsertManyAsync(new[] {
+                new EnergyReservation { StationId = station.StationId, SlotId = first.SlotId, Status = ReservationStatus.Pending, EnergyAmountKwh = 60 },
+                new EnergyReservation { StationId = station.StationId, SlotId = second.SlotId, Status = ReservationStatus.Approved, EnergyAmountKwh = 40 }
+            });
+
+            await Assert.ThrowsAsync<ConflictException>(() => stations.UpdateAsync(station.StationId,
+                new StationRequest { Name = station.Name, Address = station.Address, Latitude = station.Latitude,
+                    Longitude = station.Longitude, CapacityKwh = 99, TotalBatterySlots = station.TotalBatterySlots,
+                    ExpectedUpdatedAtUtc = station.UpdatedAtUtc,
+                    OperatingSchedule = station.OperatingSchedule.ToList() }));
+
+            var unchanged = await stations.GetAsync(station.StationId, true);
+            var boundary = await stations.UpdateAsync(station.StationId,
+                new StationRequest { Name = unchanged.Name, Address = unchanged.Address, Latitude = unchanged.Latitude,
+                    Longitude = unchanged.Longitude, CapacityKwh = 100, TotalBatterySlots = unchanged.TotalBatterySlots,
+                    ExpectedUpdatedAtUtc = unchanged.UpdatedAtUtc,
+                    OperatingSchedule = unchanged.OperatingSchedule.ToList() });
+            Assert.Equal(100, boundary.CapacityKwh);
+        }
+        finally { await client.DropDatabaseAsync(name); }
+    }
+
     private static async Task AssertReservationProtectionAsync(ReservationStatus status, bool blocks)
     {
         // Isolate each status fixture; catalog operations must never rewrite reservation history or references.

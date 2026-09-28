@@ -2,6 +2,15 @@
     <style name="Base.Theme.SmartSolarMobile" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/solar_primary</item>
         <item name="colorOnPrimary">@color/solar_on_primary</item>
+        <item name="colorSurface">@color/solar_surface</item>
+        <item name="colorOnSurface">@color/solar_text</item>
+        <item name="colorOnSurfaceVariant">@color/solar_secondary</item>
+        <item name="colorOutlineVariant">@color/solar_border</item>
+        <item name="colorSecondaryContainer">@color/solar_approved_surface</item>
+        <item name="colorOnSecondaryContainer">@color/solar_primary</item>
+        <item name="colorSecondary">@color/solar_primary</item>
+        <item name="materialButtonStyle">@style/Solar.Button</item>
+        <item name="textInputStyle">@style/Solar.Input</item>
         <item name="android:colorBackground">@color/solar_background</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
@@ -17,7 +26,7 @@
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
     <style name="Solar.Card" parent="Widget.Material3.CardView.Outlined">
-        <item name="cardCornerRadius">16dp</item>
+        <item name="cardCornerRadius">@dimen/solar_card_radius</item>
         <item name="cardElevation">0dp</item>
     </style>
 </resources>

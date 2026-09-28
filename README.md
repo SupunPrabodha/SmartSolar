@@ -2,7 +2,7 @@
 
 SE4040 Enterprise Application Development assignment: a shared foundation for a four-member team building a microgrid energy trading system.
 
-Phase 0 provides account/authentication services, persistence contracts, a responsive web workspace and a native Android home screen. Member 1 now adds station management, operator slot inventory and Android Maps/nearby discovery. Other members' modules remain deferred. See [Member 1 implementation and manual checks](docs/MEMBER-1-IMPLEMENTATION-REPORT.md) for validation and the unresolved active-reservation policy.
+The integrated branch contains Member 1 station/slot management and Android Maps, Member 2 account management, Member 3 reservation lifecycle, and Member 4 booking views, QR verification and completion. Pending/Approved reservations protect station/slot changes; terminal statuses do not. Reservation and catalog writes share one in-process gate for the supported single-IIS-instance deployment, and QR completion uses the accepted reservation window and active related records. Automated validation is recorded in [FINAL-BLOCKER-REMEDIATION](docs/FINAL-BLOCKER-REMEDIATION.md); Maps-key revocation remains a manual owner action.
 
 ## Architecture
 
@@ -77,15 +77,15 @@ If your terminal is already in `mobile/SmartSolarMobile`, the backend path is `.
 | Android emulator health | `http://10.0.2.2:5000/health` |
 | Local MongoDB | `mongodb://127.0.0.1:27017` |
 
-The `https` launch profile serves both development ports. The `http` profile serves only port 5000. Development HTTP deliberately avoids redirecting the emulator to a host-only HTTPS certificate. Release/production retain HTTPS; there is no trust-all certificate implementation.
+The `https` launch profile serves both development ports. The `http` profile serves only port 5000. Development HTTP deliberately avoids redirecting the emulator to a host-only HTTPS certificate. Release/production retain HTTPS; there is no trust-all certificate implementation. API timestamps remain UTC; Web renders browser-local time and Android renders device-local time before sending local datetime inputs back as UTC.
 
 ## Accounts and persistence
 
 Prosumer registration starts in `PendingActivation`; Backoffice activates accounts. Active users may log in; inactive users are rejected. Roles remain `Backoffice`, `GridOperator`, `Prosumer`, and states remain `PendingActivation`, `Active`, `Deactivated`. NIC is the Prosumer business identifier.
 
-Web supports Backoffice/GridOperator; Android supports Prosumer/GridOperator and directs Backoffice users to web. JWT expiry, `/users/me`, invalid-session clearing and logout are common foundation behavior.
+Web supports Backoffice/GridOperator: `/stations` serves both roles and `/users` is Backoffice-only. GridOperator reservation operations are under `/operator/reservations`, with dashboard/current/pending/history/search and create/detail/edit routes. Android supports anonymous Prosumer registration, both mobile roles for local-time station and booking views, Prosumer account/reservation management and QR display, and GridOperator pending/current/history/search, scanning and completion; Backoffice uses web. JWT expiry, `/users/me`, invalid-session clearing and logout are common foundation behavior.
 
-MongoDB collections are `UsersDetail`, `SolarStationInfo`, `EnergyBookingSlots`, `EnergyReservation`. Compose uses MongoDB 7, a health check, named persistent volume and localhost-only binding. Android SQLite stores only a local profile cache; passwords are never stored there.
+MongoDB collections are `UsersDetail`, `SolarStationInfo`, `EnergyBookingSlots`, `EnergyReservation`. Compose uses MongoDB 7, a health check, named persistent volume and localhost-only binding. Android SQLite stores only a local profile cache; passwords are never stored there. The supported coursework deployment assumes one ASP.NET Core API process hosted by IIS so the singleton `CatalogWriteGate` coordinates catalog and reservation allocation writes.
 
 ## Validation and team workflow
 

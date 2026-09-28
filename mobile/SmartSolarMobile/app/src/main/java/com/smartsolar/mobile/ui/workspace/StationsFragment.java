@@ -1,4 +1,5 @@
-package com.smartsolar.mobile.ui.stations;
+package com.smartsolar.mobile.ui.workspace;
+import com.smartsolar.mobile.ui.stations.StationDetailActivity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -28,10 +29,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Displays API station records on Google Maps; coarse location is requested only on user action. */
-public final class StationDiscoveryActivity extends CatalogActivity {
+public final class StationsFragment extends WorkspaceFragment {
     private LinearLayout list;
     private TextView locationStatus;
     private GoogleMap map;
+    private boolean mapRendered;
     private CancellationTokenSource locationToken;
     private final List<StationResponse> stations = new ArrayList<>();
     private final Map<String, Double> distances = new HashMap<>();
@@ -39,30 +41,46 @@ public final class StationDiscoveryActivity extends CatalogActivity {
     private int locationGeneration;
     private final ActivityResultLauncher<String> permission = registerForActivityResult(
         new ActivityResultContracts.RequestPermission(), granted -> {
-            if (!visible) return;
+            if (!alive() || !isResumed()) return;
             if (granted) locate();
             else { locationStatus.setText(R.string.location_denied); latitude = longitude = null; load(); }
         });
-    @Override protected void onCreate(Bundle saved) {
-        super.onCreate(saved); setup(R.layout.activity_station_discovery);
+    private com.smartsolar.mobile.data.remote.api.ApiService api;
+    private TextView message;
+    private final List<retrofit2.Call<?>> calls = new ArrayList<>();
+    private int requestGeneration;
+    private boolean authorized() { return alive() && workspace().isVerified(); }
+    @Override protected boolean bookingData() { return false; }
+    @Override protected int layout() { return R.layout.fragment_stations; }
+    @Override protected void bind(Bundle saved) {
+        api = com.smartsolar.mobile.data.remote.RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
+        message = findViewById(R.id.catalogMessage);
+        findViewById(R.id.catalogRetry).setOnClickListener(v -> retry());
         androidx.core.view.ViewCompat.setAccessibilityHeading(findViewById(R.id.discoveryTitle), true);
         list = findViewById(R.id.stationList); locationStatus = findViewById(R.id.locationStatus);
-        if (saved != null && saved.containsKey("latitude")) { latitude = saved.getDouble("latitude"); longitude = saved.getDouble("longitude"); }
+        Bundle coords = saved == null ? memory.values : saved;
+        if (coords.containsKey("latitude")) { latitude = coords.getDouble("latitude"); longitude = coords.getDouble("longitude"); }
+        if (memory.data instanceof Snapshot) {
+            Snapshot snapshot = (Snapshot) memory.data;
+            stations.addAll(snapshot.stations); distances.putAll(snapshot.distances);
+        }
         findViewById(R.id.findNearby).setOnClickListener(v -> {
-            if (!authorized) { verify(); return; }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) locate();
+            if (!authorized()) { workspace().verify(); return; }
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) locate();
             else permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
         });
         findViewById(R.id.showAllStations).setOnClickListener(v -> {
             cancelLocation(); latitude = longitude = null; locationStatus.setText(R.string.all_stations); load();
         });
         if (BuildConfig.MAPS_CONFIGURED) {
-            SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.stationMap);
+            SupportMapFragment fragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.stationMap);
             if (fragment == null) {
-                fragment = SupportMapFragment.newInstance();
-                getSupportFragmentManager().beginTransaction().replace(R.id.stationMap, fragment).commitNow();
+                fragment = SupportMapFragment.newInstance(new com.google.android.gms.maps.GoogleMapOptions().useViewLifecycleInFragment(true));
+                getChildFragmentManager().beginTransaction().replace(R.id.stationMap, fragment).commitNow();
             }
+            final int viewRequest = viewGeneration;
             fragment.getMapAsync(ready -> {
+                if (!alive() || viewRequest != viewGeneration) return;
                 map = ready; map.getUiSettings().setZoomControlsEnabled(true);
                 map.setOnMarkerClickListener(marker -> { if (marker.getTag() instanceof String) openStation((String) marker.getTag()); return true; });
                 renderMap();
@@ -71,15 +89,16 @@ public final class StationDiscoveryActivity extends CatalogActivity {
             findViewById(R.id.stationMap).setVisibility(View.GONE);
             ((TextView) findViewById(R.id.mapStatus)).setText(R.string.map_unavailable);
         }
+        if (memory.data != null) render();
     }
-    @Override protected void onVerified() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            latitude = longitude = null;
-        load();
+    @Override protected void onWorkspaceReady() {
+        if (map != null && !mapRendered) renderMap();
     }
-    private void load() {
-        if (!authorized || list == null) return;
+    @Override protected void load() {
+        if (!authorized() || list == null) return;
         resetRequests(); clearContent(); message.setText("");
+        memory.loading = true; memory.refresh.attempted(0);
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) latitude = longitude = null;
         if (latitude != null && longitude != null) {
             locationStatus.setText(R.string.nearby_radius);
             request(api.nearbyStations(latitude, longitude, 25), rows -> {
@@ -91,22 +110,24 @@ public final class StationDiscoveryActivity extends CatalogActivity {
         } else request(api.listStations(), rows -> { for (StationResponse row : rows) if (row.isActive) stations.add(row); render(); });
     }
     private void locate() {
-        if (!authorized) return;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        if (!authorized()) return;
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
         cancelLocation();
         final int current = locationGeneration;
         locationToken = new CancellationTokenSource();
         locationStatus.setText(R.string.locating);
         CurrentLocationRequest request = new CurrentLocationRequest.Builder()
             .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY).setMaxUpdateAgeMillis(30000).setDurationMillis(15000).build();
-        LocationServices.getFusedLocationProviderClient(this).getCurrentLocation(request, locationToken.getToken())
-            .addOnSuccessListener(this, location -> {
-                if (!visible || !authorized || current != locationGeneration) return;
+        LocationServices.getFusedLocationProviderClient(requireContext()).getCurrentLocation(request, locationToken.getToken())
+            .addOnSuccessListener(location -> {
+                if (!alive() || !isResumed() || !authorized() || current != locationGeneration) return;
+                locationToken = null;
                 if (location == null) { latitude = longitude = null; locationStatus.setText(R.string.location_unavailable); }
                 else { latitude = location.getLatitude(); longitude = location.getLongitude(); }
                 load();
-            }).addOnFailureListener(this, error -> {
-                if (!visible || !authorized || current != locationGeneration) return;
+            }).addOnFailureListener(error -> {
+                if (!alive() || !isResumed() || !authorized() || current != locationGeneration) return;
+                locationToken = null;
                 latitude = longitude = null; locationStatus.setText(R.string.location_unavailable); load();
             });
     }
@@ -124,12 +145,15 @@ public final class StationDiscoveryActivity extends CatalogActivity {
             row.findViewById(R.id.stationOpen).setOnClickListener(v -> openStation(station.stationId));
             list.addView(row);
         }
+        memory.data = new Snapshot(stations, distances);
         renderMap();
     }
     private void renderMap() {
         if (map == null) return;
         map.clear();
-        if (!authorized || stations.isEmpty()) return;
+        if (!authorized()) return;
+        mapRendered = true;
+        if (stations.isEmpty()) return;
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         for (StationResponse station : stations) {
             LatLng point = new LatLng(station.latitude, station.longitude); bounds.include(point);
@@ -137,18 +161,20 @@ public final class StationDiscoveryActivity extends CatalogActivity {
             if (marker != null) marker.setTag(station.stationId);
         }
         findViewById(R.id.stationMap).post(() -> {
-            if (!visible || stations.isEmpty() || map == null) return;
-            if (stations.size() == 1) map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(stations.get(0).latitude, stations.get(0).longitude), 13));
+            if (!alive() || stations.isEmpty() || map == null) return;
+            com.google.android.gms.maps.model.CameraPosition camera = memory.values.getParcelable("camera");
+            if (camera != null) { map.moveCamera(CameraUpdateFactory.newCameraPosition(camera)); memory.values.remove("camera"); }
+            else if (stations.size() == 1) map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(stations.get(0).latitude, stations.get(0).longitude), 13));
             else map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 60));
         });
     }
     private void openStation(String id) {
-        if (!authorized) return;
-        Intent intent = new Intent(this, StationDetailActivity.class).putExtra("stationId", id);
+        if (!authorized()) return;
+        Intent intent = new Intent(requireContext(), StationDetailActivity.class).putExtra("stationId", id);
         Double km = distances.get(id); if (km != null) intent.putExtra("distanceKm", km);
         startActivity(intent);
     }
-    @Override protected void clearContent() {
+    private void clearContent() {
         stations.clear(); distances.clear();
         if (list != null) list.removeAllViews();
         if (map != null) map.clear();
@@ -157,9 +183,48 @@ public final class StationDiscoveryActivity extends CatalogActivity {
         locationGeneration++;
         if (locationToken != null) { locationToken.cancel(); locationToken = null; }
     }
-    @Override protected void onSaveInstanceState(Bundle out) {
+    @Override public void onSaveInstanceState(Bundle out) {
         if (latitude != null) { out.putDouble("latitude", latitude); out.putDouble("longitude", longitude); }
         super.onSaveInstanceState(out);
     }
-    @Override protected void onStop() { cancelLocation(); super.onStop(); }
+    private void resetRequests() {
+        requestGeneration++; for (retrofit2.Call<?> call : calls) call.cancel(); calls.clear();
+    }
+    private <T> void request(retrofit2.Call<T> call, java.util.function.Consumer<T> success) {
+        final int request = requestGeneration;
+        calls.add(call); findViewById(R.id.catalogProgress).setVisibility(View.VISIBLE);
+        call.enqueue(new retrofit2.Callback<T>() {
+            @Override public void onResponse(retrofit2.Call<T> c, retrofit2.Response<T> response) {
+                calls.remove(c);
+                if (!alive() || request != requestGeneration) { if (response.errorBody() != null) response.errorBody().close(); return; }
+                memory.loading = false; findViewById(R.id.catalogProgress).setVisibility(View.GONE);
+                if (response.code() == 401) workspace().openLogin();
+                else if (response.isSuccessful() && response.body() != null) success.accept(response.body());
+                else message.setText(R.string.catalog_request_failed);
+                if (response.errorBody() != null) response.errorBody().close();
+            }
+            @Override public void onFailure(retrofit2.Call<T> c, Throwable error) {
+                calls.remove(c);
+                if (!alive() || request != requestGeneration || c.isCanceled()) return;
+                memory.loading = false; findViewById(R.id.catalogProgress).setVisibility(View.GONE); message.setText(R.string.connection_failed);
+            }
+        });
+    }
+    @Override public void onPause() {
+        if (locationToken != null && locationStatus != null) locationStatus.setText(R.string.location_explanation);
+        cancelLocation(); super.onPause();
+    }
+    @Override public void onDestroyView() {
+        cancelLocation(); resetRequests();
+        if (map != null) memory.values.putParcelable("camera", map.getCameraPosition());
+        if (latitude != null) { memory.values.putDouble("latitude", latitude); memory.values.putDouble("longitude", longitude); }
+        else { memory.values.remove("latitude"); memory.values.remove("longitude"); }
+        map = null; mapRendered = false; stations.clear(); distances.clear(); list = null;
+        super.onDestroyView();
+    }
+    private static final class Snapshot {
+        final List<StationResponse> stations;
+        final Map<String,Double> distances;
+        Snapshot(List<StationResponse> rows, Map<String,Double> km) { stations = new ArrayList<>(rows); distances = new HashMap<>(km); }
+    }
 }

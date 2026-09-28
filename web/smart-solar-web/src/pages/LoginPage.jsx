@@ -28,8 +28,8 @@ export default function LoginPage() {
   if (user) return <Navigate to="/" replace />;
   return <main className="login-page">
     <section className="login-story"><Brand />
-      <div><p className="eyebrow">SMART SOLAR MICROGRID</p><h1>Shared energy.<br />A connected community.</h1>
-        <p>Your workspace for a smarter local energy network.</p></div><small>Phase 0 / Common foundation</small>
+      <div><p className="eyebrow">SMART SOLAR MICROGRID</p><h1>Powering local<br />energy exchange.</h1>
+        <p>Manage microgrid operations, reservations and secure energy transfers.</p></div><small>CONNECTED ENERGY · LOCAL IMPACT</small>
     </section>
     <section className="login-panel" aria-labelledby="login-title"><div className="login-form">
       <p className="eyebrow">WELCOME BACK</p><h2 id="login-title">Sign in to your workspace</h2>

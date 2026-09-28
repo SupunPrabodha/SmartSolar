@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fromUtcInput, toUtcInput, stationPayload } from '../src/util/catalog.js';
-test('UTC form round trip preserves timezone and precision', () => {
+test('local datetime input round trip preserves the instant and precision', () => {
   const instant = '2026-09-22T10:15:20.123Z';
   assert.equal(fromUtcInput(toUtcInput(instant)), instant);
-  assert.equal(fromUtcInput('2026-09-22T10:15'), '2026-09-22T10:15:00.000Z');
+  assert.equal(fromUtcInput('2026-09-22T10:15'), new Date('2026-09-22T10:15').toISOString());
 });
-test('UTC form rejects missing, ambiguous and zoned input', () => {
+test('local datetime input rejects missing, ambiguous and invalid input', () => {
   for (const value of ['', '22/09/2026 10:15', '2026-09-22T10:15Z', '2026-99-99T10:15', '2026-02-31T10:15']) assert.throws(() => fromUtcInput(value));
 });
 test('station payload retains concurrency token and removes closed hours', () => {
