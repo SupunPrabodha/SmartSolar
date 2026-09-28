@@ -38,21 +38,22 @@ public sealed class ReservationQueryTests
     [MongoFact]
     public async Task CurrentIncludesOngoingAndFutureActiveOnlyAndScopesOwners()
     {
-        // End-time membership retains ongoing bookings; terminal/final-boundary rows belong to history.
+        // End-time membership retains ongoing bookings; only Approved reservations with future end belong to current.
         await WithApi(async f =>
         {
             var ongoing = Row(1, ReservationStatus.Approved, -1, 1);
-            var future = Row(2, ReservationStatus.Pending, 2, 3);
-            var other = Row(3, ReservationStatus.Pending, 4, 5, P2);
-            await f.Rows.InsertManyAsync(new[] { ongoing, future, other,
-                Row(4, ReservationStatus.Pending, -2, 0), Row(5, ReservationStatus.Approved, -3, -2),
-                Row(6, ReservationStatus.Cancelled, 1, 2), Row(7, ReservationStatus.Completed, 1, 2),
-                Row(8, ReservationStatus.Rejected, 1, 2) });
+            var futureApproved = Row(2, ReservationStatus.Approved, 2, 3);
+            var pending = Row(3, ReservationStatus.Pending, 2, 3);
+            var otherApproved = Row(4, ReservationStatus.Approved, 4, 5, P2);
+            await f.Rows.InsertManyAsync(new[] { ongoing, futureApproved, pending, otherApproved,
+                Row(5, ReservationStatus.Pending, -2, 0), Row(6, ReservationStatus.Approved, -3, -2),
+                Row(7, ReservationStatus.Cancelled, 1, 2), Row(8, ReservationStatus.Completed, 1, 2),
+                Row(9, ReservationStatus.Rejected, 1, 2) });
             using var owner = f.Client(P1);
-            Assert.Equal(new[] { ongoing.ReservationId, future.ReservationId }, await Ids(owner, "current"));
+            Assert.Equal(new[] { ongoing.ReservationId, futureApproved.ReservationId }, await Ids(owner, "current"));
             using var op = f.Client("OP");
-            Assert.Equal(new[] { ongoing.ReservationId, future.ReservationId, other.ReservationId }, await Ids(op, "current"));
-            Assert.Equal(new[] { other.ReservationId }, await Ids(op, "current?prosumerNic=" + P2));
+            Assert.Equal(new[] { ongoing.ReservationId, futureApproved.ReservationId, otherApproved.ReservationId }, await Ids(op, "current"));
+            Assert.Equal(new[] { otherApproved.ReservationId }, await Ids(op, "current?prosumerNic=" + P2));
         });
     }
 

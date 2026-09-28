@@ -16,18 +16,18 @@ export default function CurrentBookingsPage() {
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
           <p className="eyebrow">LIVE BOOKINGS</p>
-          <h1 className="h2">Current Bookings</h1>
-          <p className="text-secondary mb-0">Pending and Approved reservations whose accepted end is still ahead. Times shown in your local timezone ({localTimeZone()}).</p>
+          <h1 className="h2">Active Bookings</h1>
+          <p className="text-secondary mb-0">Approved reservations whose accepted end is still ahead. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>Refresh</button>
       </div>
       <ErrorNotice error={error} retry={reload} />
       {loading ? <Loading /> : !error && (items.length ? <>
-        <ReservationTable items={items} caption="Current reservations ordered by accepted start." />
+        <ReservationTable items={items} caption="Active reservations ordered by accepted start." />
         <PaginationControls page={page} hasMore={Boolean(data?.hasMore)} onPageChange={setPage} loading={loading} />
       </> : <section className="surface-card text-center py-5">
-        <h2 className="h4">No current bookings</h2>
-        <p className="text-secondary mb-0">No Pending or Approved reservations are currently in progress or scheduled.</p>
+        <h2 className="h4">No active bookings</h2>
+        <p className="text-secondary mb-0">No Approved reservations are currently in progress or scheduled.</p>
       </section>)}
     </div>
   );
