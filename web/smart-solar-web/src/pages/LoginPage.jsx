@@ -8,6 +8,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [nic, setNic] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +30,7 @@ export default function LoginPage() {
   return <main className="login-page">
     <section className="login-story"><Brand />
       <div><p className="eyebrow">SMART SOLAR MICROGRID</p><h1>Powering local<br />energy exchange.</h1>
-        <p>Manage microgrid operations, reservations and secure energy transfers.</p></div><small>CONNECTED ENERGY · LOCAL IMPACT</small>
+        <p>A connected workspace for community energy, confident decisions and secure transfers.</p><div className="energy-network" aria-hidden="true"><span>Generation</span><i /><span>Community</span><i /><span>Exchange</span></div></div><small>CONNECTED ENERGY · LOCAL IMPACT</small>
     </section>
     <section className="login-panel" aria-labelledby="login-title"><div className="login-form">
       <p className="eyebrow">WELCOME BACK</p><h2 id="login-title">Sign in to your workspace</h2>
@@ -40,8 +41,9 @@ export default function LoginPage() {
           <input id="nic" autoComplete="username" className="form-control form-control-lg" value={nic}
             onChange={e => setNic(e.target.value)} required disabled={loading} /></div>
         <div className="mb-4"><label className="form-label" htmlFor="password">Password</label>
-          <input id="password" type="password" autoComplete="current-password" className="form-control form-control-lg"
-            value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} /></div>
+          <div className="password-control"><input id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="form-control form-control-lg"
+            value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} />
+          <button type="button" className="password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} disabled={loading} onClick={() => setShowPassword(v => !v)}>{showPassword ? 'Hide' : 'Show'}</button></div></div>
         <button className="btn btn-primary btn-lg w-100" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
         <div className="visually-hidden" role="status">{loading ? 'Signing in, please wait.' : ''}</div>
       </form>

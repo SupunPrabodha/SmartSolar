@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="315" android:startColor="@color/solar_hero" android:endColor="@color/solar_primary_dark"/>
+    <corners android:radius="@dimen/solar_radius_large"/>
+</shape>

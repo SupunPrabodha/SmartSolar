@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { apiFetch } from '../api/apiClient';
@@ -7,6 +7,8 @@ import Icon from '../components/Icon';
 import { activeWorkspaceRoute } from '../util/navigation';
 import OperationsDashboardPage from './reservations/OperationsDashboardPage';
 import { useReservationData } from './reservations/useReservationData';
+
+import { ConfirmDialog } from '../components/Overlay';
 
 const operatorLinks = [
   ['/operator/reservations', 'Manage Reservations', 'bookings'],
@@ -20,6 +22,7 @@ const operatorLinks = [
 export default function HomePage({ children }) {
   const { user, logout, refreshProfile, refreshing, sessionError, lastVerifiedAt } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const location = useLocation();
   if (!user) return null;
   const links = [['/', 'Home', 'home'],
@@ -31,18 +34,23 @@ export default function HomePage({ children }) {
   const hour = new Date().getHours();
   const greeting = `Good ${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}, ${user.fullName}`;
   return <div className="workspace">
+    {signingOut && <ConfirmDialog title="Sign out of Smart Solar?" action="Sign out" danger={false} onClose={() => setSigningOut(false)} onConfirm={logout}><p>You can sign back in to continue your work.</p></ConfirmDialog>}
     <a className="skip-link" href="#main">Skip to content</a>
     <aside className="workspace-sidebar">
       <div className="sidebar-heading"><Brand /><button className="nav-toggle" aria-expanded={menuOpen} aria-controls="workspace-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? 'Close menu' : 'Menu'}</button></div>
       <nav id="workspace-navigation" className={menuOpen ? 'workspace-nav open' : 'workspace-nav'} aria-label="Workspace">
         <span className="nav-caption">WORKSPACE</span>
-        {links.map(([path, label, icon]) => <Link key={path} to={path} aria-current={active === path ? 'page' : undefined}
-          className={`workspace-nav-item${active === path ? ' active' : ''}`} onClick={() => setMenuOpen(false)}><Icon name={icon} />{label}</Link>)}
+        {links.map(([path, label, icon]) => <Fragment key={path}>
+          {path === '/users' && <span className="nav-caption nav-group">PEOPLE</span>}
+          {path === '/stations' && <span className="nav-caption nav-group">NETWORK</span>}
+          {path === '/operator/reservations' && <span className="nav-caption nav-group">OPERATIONS</span>}
+          <Link to={path} aria-current={active === path ? 'page' : undefined}
+          className={`workspace-nav-item${active === path ? ' active' : ''}`} onClick={() => setMenuOpen(false)}><Icon name={icon} />{label}</Link></Fragment>)}
       </nav>
-      <div className="sidebar-footer"><span className="status-dot" />Connected community<small>Shared energy. Local impact.</small></div>
+      <div className="sidebar-footer"><span className="status-dot" />Community energy<small>Shared energy. Local impact.</small></div>
     </aside>
     <div className="workspace-body">
-      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={logout}>Sign out</button></div></header>
+      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={() => setSigningOut(true)}>Sign out</button></div></header>
       <main id="main" className="workspace-main" tabIndex="-1">
         {children || <>
           {user.role === 'GridOperator' ? <OperationsDashboardPage greeting={greeting} /> : <BackofficeOverview greeting={greeting} />}

@@ -8,7 +8,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -143,7 +143,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
     }
 
     private void showCompletionConfirmation() {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_completion_title)
                 .setMessage(getString(R.string.confirm_completion_message, energyAmount, reservationId != null ? reservationId : ""))
                 .setPositiveButton(R.string.confirm_action, (dialog, which) -> executeCompletion())
@@ -173,7 +173,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
                 } else {
                     message = getString(errorRes != 0 ? errorRes : R.string.load_failed);
                 }
-                new AlertDialog.Builder(this)
+                new MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.error_title)
                         .setMessage(message)
                         .setPositiveButton(R.string.close, null)

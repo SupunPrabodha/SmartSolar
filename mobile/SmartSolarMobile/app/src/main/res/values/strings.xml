@@ -4,7 +4,7 @@
     <!-- Shared application / branding -->
     <string name="app_name">Smart Solar Microgrid</string>
     <string name="brand_name">Smart Solar</string>
-    <string name="brand_subtitle">Microgrid workspace</string>
+    <string name="brand_subtitle">Microgrid Trading System</string>
 
     <!-- Authentication -->
     <string name="login_title">Welcome back</string>
@@ -219,4 +219,7 @@
     <string name="rejection_reason">Rejection Reason</string>
     <string name="my_bookings_tab">My reservations</string>
     <string name="workspace_verified">Verified account</string>
+    <string name="sign_out_confirmation">Sign out of Smart Solar? You can sign back in to continue your work.</string>
+    <string name="hide_station_map">Hide map · focus on list</string>
+    <string name="show_station_map">Show station map</string>
 </resources>
