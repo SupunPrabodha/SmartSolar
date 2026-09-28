@@ -113,10 +113,10 @@
     <!-- Member 4 - Dashboard / booking views -->
     <string name="generated_at">Updated %1$s</string>
 
-    <string name="current_bookings">Current Bookings</string>
+    <string name="current_bookings">Active Bookings</string>
     <string name="pending_bookings">Pending Bookings</string>
 
-    <string name="no_current_bookings">No current bookings\nUpcoming and in-progress reservations will appear here.</string>
+    <string name="no_current_bookings">No active bookings\nApproved and in-progress reservations will appear here.</string>
     <string name="no_pending_bookings">No pending bookings\nReservations awaiting operator action will appear here.</string>
     <string name="no_booking_history">No booking history\nYour concluded reservations will appear here.</string>
     <string name="no_matching_bookings">No matching bookings\nTry adjusting or clearing your filters.</string>
@@ -180,7 +180,7 @@
     <string name="nav_scan">Scan</string>
     <string name="nav_bookings">Bookings</string>
     <string name="nav_search">Search</string>
-    <string name="nav_current">Current</string>
+    <string name="nav_current">Active</string>
     <string name="nav_pending">Pending</string>
     <string name="navigate_back">Back</string>
     <string name="approved_future_short">Approved future</string>

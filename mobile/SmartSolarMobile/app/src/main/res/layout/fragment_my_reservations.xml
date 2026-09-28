@@ -39,6 +39,21 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Status Filter Dropdown -->
+        <TextView
+            style="@style/Solar.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_status"
+            android:layout_marginTop="12dp" />
+
+        <Spinner
+            android:id="@+id/spinnerMyStatusFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:contentDescription="@string/label_status" />
+
         <!-- Feedback & Status Messages -->
         <TextView
             android:id="@+id/textError"
