@@ -5,12 +5,13 @@
    <com.google.android.material.button.MaterialButton android:id="@+id/findNearby" style="@style/Solar.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/find_nearby"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/showAllStations" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_stations"/>
   </LinearLayout>
-  <TextView android:id="@+id/locationStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/location_explanation" android:accessibilityLiveRegion="polite" android:layout_marginVertical="8dp"/>
-  <com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="8dp" app:cardUseCompatPadding="false">
+  <com.google.android.material.button.MaterialButton android:id="@+id/toggleStationMap" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_station_map"/>
+  <TextView android:id="@+id/locationStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/location_explanation" android:accessibilityLiveRegion="polite" android:layout_marginVertical="@dimen/solar_space_sm"/>
+  <com.google.android.material.card.MaterialCardView android:id="@+id/stationMapSurface" style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="@dimen/solar_space_sm" app:cardUseCompatPadding="false">
    <FrameLayout android:id="@+id/stationMap" android:layout_width="match_parent" android:layout_height="240dp"/>
   </com.google.android.material.card.MaterialCardView>
   <TextView android:id="@+id/mapStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/map_alternative" android:textSize="12sp"/>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="16dp">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/solar_space_base">
    <TextView android:id="@+id/discoveryTitle" style="@style/Solar.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/station_results" android:textSize="18sp"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/catalog_retry"/>
   </LinearLayout>

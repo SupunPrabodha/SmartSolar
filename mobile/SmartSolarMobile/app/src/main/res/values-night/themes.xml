@@ -9,6 +9,9 @@
         <item name="colorSecondaryContainer">@color/solar_approved_surface</item>
         <item name="colorOnSecondaryContainer">@color/solar_primary</item>
         <item name="colorSecondary">@color/solar_primary</item>
+        <item name="materialAlertDialogTheme">@style/Solar.Dialog</item>
+        <item name="colorError">@color/solar_status_rejected</item>
+        <item name="colorOutline">@color/solar_secondary</item>
         <item name="materialButtonStyle">@style/Solar.Button</item>
         <item name="textInputStyle">@style/Solar.Input</item>
         <item name="android:colorBackground">@color/solar_background</item>

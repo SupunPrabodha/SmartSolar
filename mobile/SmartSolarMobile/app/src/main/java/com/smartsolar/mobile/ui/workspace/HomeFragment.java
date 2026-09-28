@@ -20,7 +20,9 @@ public final class HomeFragment extends WorkspaceFragment {
     @Override protected void bind(Bundle saved) {
         repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));
         findViewById(R.id.profileContent).setVisibility(View.VISIBLE);
-        findViewById(R.id.buttonLogout).setOnClickListener(v -> workspace().logout());
+        findViewById(R.id.buttonLogout).setOnClickListener(v -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setIcon(R.drawable.ic_solar_brand).setTitle(R.string.sign_out).setMessage(R.string.sign_out_confirmation)
+            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.sign_out, (dialog, which) -> workspace().logout()).show());
         findViewById(R.id.buttonRefresh).setOnClickListener(v -> { retry(); workspace().verify(); });
         findViewById(R.id.buttonCurrentBookings).setOnClickListener(v -> workspace().openSection(Section.CURRENT));
         findViewById(R.id.buttonPendingBookings).setOnClickListener(v -> workspace().openSection(Section.PENDING));

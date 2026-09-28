@@ -38,7 +38,7 @@ public final class AccountFragment extends WorkspaceFragment {
         }
         findViewById(R.id.buttonSave).setOnClickListener(v -> save());
         findViewById(R.id.buttonDeactivate).setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.deactivate_account).setMessage(R.string.deactivation_confirmation)
+            .setIcon(R.drawable.ic_nav_account).setTitle(R.string.deactivate_account).setMessage(R.string.deactivation_confirmation)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.deactivate_account, (dialog, which) -> deactivate()).show());
     }
     private void populate() {
@@ -77,7 +77,8 @@ public final class AccountFragment extends WorkspaceFragment {
                     memory.values.remove("draft"); memory.hierarchy = null;
                     populate();
                 }
-                ((TextView)findViewById(R.id.textResult)).setText(result);
+                ((TextView)findViewById(R.id.textResult)).setText(user == null ? getString(result) : "");
+                if (user != null) com.google.android.material.snackbar.Snackbar.make(root, result, com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show();
             });
         });
     }
@@ -102,6 +103,7 @@ public final class AccountFragment extends WorkspaceFragment {
         });
     }
     private void busy(boolean value) {
+        ((com.google.android.material.button.MaterialButton)findViewById(R.id.buttonSave)).setText(value ? R.string.working : R.string.save_profile);
         name.setEnabled(!value); email.setEnabled(!value); phone.setEnabled(!value);
         findViewById(R.id.buttonSave).setEnabled(!value); findViewById(R.id.buttonDeactivate).setEnabled(!value);
     }

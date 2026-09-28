@@ -16,4 +16,7 @@
     <color name="solar_rejected_surface">#472A2D</color>
     <color name="solar_cancelled_surface">#303D35</color>
     <color name="solar_completed_surface">#203C43</color>
+    <color name="solar_glass">#F21D3026</color>
+    <color name="solar_surface_soft">#20372B</color>
+    <color name="solar_on_surface_variant">#B5C9BD</color>
 </resources>

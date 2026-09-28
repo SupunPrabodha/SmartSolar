@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Toast } from '../../components/Feedback';
 import { approveReservation, cancelReservation, getReservation, rejectReservation } from '../../api/reservations.js';
 import { ErrorNotice, Loading, ReservationSummary } from './ReservationComponents';
 import { changeRestriction, shortReference } from './reservationUi.js';
@@ -25,7 +26,6 @@ function Details({ reservationId }) {
   const cancelDialog = useRef(null);
   const approveDialog = useRef(null);
   const rejectDialog = useRef(null);
-  const successRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -47,9 +47,6 @@ function Details({ reservationId }) {
     else rejectDialog.current?.close();
   }, [rejectModalOpen]);
 
-  useEffect(() => {
-    if (successMessage) successRef.current?.focus();
-  }, [successMessage]);
 
   const restriction = data ? changeRestriction(data, now) : '';
   const isPending = data?.status === 'Pending';
@@ -90,9 +87,7 @@ function Details({ reservationId }) {
     <h1 className="h2 mb-4">{data ? `Reservation #${shortReference(data.reservationId)}` : 'Reservation details'}</h1>
     <ErrorNotice error={error} retry={reload} />
     {loading ? <Loading /> : data && <>
-      {successMessage && <div ref={successRef} tabIndex="-1" className="alert alert-success" role="status">
-        {successMessage}
-      </div>}
+      <Toast key={successMessage} message={successMessage} />
       <section className="surface-card">
         <ReservationSummary reservation={data} />
         <p className="mt-2 text-secondary small">Changes require at least 12 hours’ notice. The server checks the final cutoff.</p>

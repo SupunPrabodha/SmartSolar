@@ -50,7 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/solar_space_base">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -71,8 +71,8 @@
                         android:id="@+id/textQrStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
+                        android:paddingStart="@dimen/solar_space_sm"
+                        android:paddingEnd="@dimen/solar_space_sm"
                         android:paddingTop="2dp"
                         android:paddingBottom="2dp"
                         android:textSize="12sp"
@@ -109,7 +109,7 @@
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/solar_space_xs"
                     android:textSize="12sp" />
 
                 <TextView
@@ -117,7 +117,7 @@
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/solar_space_xs"
                     android:textSize="12sp"
                     android:visibility="gone" />
 
@@ -131,7 +131,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="32dp"
+            android:padding="@dimen/solar_space_xl"
             android:visibility="gone">
 
             <ProgressBar
@@ -142,7 +142,7 @@
                 style="@style/Solar.Body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/solar_space_base"
                 android:text="@string/qr_issuance_in_progress" />
         </LinearLayout>
 
@@ -169,7 +169,7 @@
                 style="@style/Solar.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/solar_space_base"
                 android:text="@string/retry" />
         </LinearLayout>
 
@@ -192,7 +192,7 @@
                 <ImageView
                     android:id="@+id/imageQrCode"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:adjustViewBounds="true" android:maxHeight="300dp" android:background="@android:color/white" android:padding="8dp"
+                    android:layout_height="wrap_content" android:adjustViewBounds="true" android:maxHeight="320dp" android:background="@android:color/white" android:padding="@dimen/solar_space_base"
                     android:contentDescription="@string/transaction_qr_title" />
 
                 <TextView
@@ -200,7 +200,7 @@
                     style="@style/Solar.Body"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/solar_space_base"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -211,7 +211,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="24dp">
+            android:layout_marginTop="@dimen/solar_space_lg">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonCloseQr"
@@ -226,7 +226,7 @@
                 style="@style/Solar.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/solar_space_sm"
                 android:minHeight="48dp"
                 android:text="@string/btn_back_to_workspace"  android:visibility="gone"/>
         </LinearLayout>
