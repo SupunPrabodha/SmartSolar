@@ -30,6 +30,7 @@ import com.smartsolar.mobile.data.remote.dto.StationResponse;
 import com.smartsolar.mobile.data.repository.ReservationError;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.util.ReservationUiUtils;
+import com.smartsolar.mobile.util.StationNameResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -217,18 +218,14 @@ public final class MyReservationsFragment extends WorkspaceFragment {
 
         for (ReservationResponse res : reservations) {
             View card = inflater.inflate(R.layout.item_reservation_card, layoutReservationsList, false);
-
-            TextView textCardIdSnippet = card.findViewById(R.id.textCardIdSnippet);
+            View viewStatusAccent = card.findViewById(R.id.viewStatusAccent);
             TextView textCardStatus = card.findViewById(R.id.textCardStatus);
             TextView textCardStation = card.findViewById(R.id.textCardStation);
             TextView textCardEnergy = card.findViewById(R.id.textCardEnergy);
-            TextView textCardStartPreview = card.findViewById(R.id.textCardStartPreview);
             TextView textChevron = card.findViewById(R.id.textChevron);
             View cardHeader = card.findViewById(R.id.cardHeader);
             View layoutExpandedDetails = card.findViewById(R.id.layoutExpandedDetails);
 
-            TextView textExpandedReservationId = card.findViewById(R.id.textExpandedReservationId);
-            TextView textExpandedSlotId = card.findViewById(R.id.textExpandedSlotId);
             TextView textExpandedStart = card.findViewById(R.id.textExpandedStart);
             TextView textExpandedEnd = card.findViewById(R.id.textExpandedEnd);
             TextView textExpandedCutoff = card.findViewById(R.id.textExpandedCutoff);
@@ -242,18 +239,14 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             Button buttonCardGetDirections = card.findViewById(R.id.buttonCardGetDirections);
 
             // Bind Essential Preview Info
-            textCardIdSnippet.setText("Reservation #" + ReservationUiUtils.shortReference(res.getReservationId()));
-
             textCardStatus.setText(res.getStatus());
             formatStatusBadge(textCardStatus, res.getStatus());
+            ReservationUiUtils.formatStatusAccent(viewStatusAccent, res.getStatus());
 
-            textCardStation.setText("Station " + ReservationUiUtils.shortReference(res.getStationId()));
+            StationNameResolver.bindStationName(textCardStation, res.getStationId());
             textCardEnergy.setText(String.format(Locale.US, "%.1f kWh", res.getEnergyAmountKwh()));
-            textCardStartPreview.setText(ReservationUiUtils.schedule(res.getScheduledStartAtUtc(), res.getScheduledEndAtUtc()));
 
             // Bind Expanded Details
-            textExpandedReservationId.setText(res.getReservationId());
-            textExpandedSlotId.setText(res.getSlotId() != null ? res.getSlotId() : "—");
             textExpandedStart.setText(ReservationUiUtils.formatUtc(res.getScheduledStartAtUtc()));
             textExpandedEnd.setText(ReservationUiUtils.formatUtc(res.getScheduledEndAtUtc()));
             textExpandedCutoff.setText(ReservationUiUtils.formatCutoffUtc(res.getScheduledStartAtUtc()));

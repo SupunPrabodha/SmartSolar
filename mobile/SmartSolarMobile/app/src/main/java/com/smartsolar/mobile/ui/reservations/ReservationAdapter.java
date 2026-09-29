@@ -29,6 +29,7 @@ import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.ui.reservation.ModifyReservationActivity;
 import com.smartsolar.mobile.ui.reservation.ReservationSummaryActivity;
 import com.smartsolar.mobile.util.ReservationUiUtils;
+import com.smartsolar.mobile.util.StationNameResolver;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -99,21 +100,17 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
     }
 
     public static final class ViewHolder extends RecyclerView.ViewHolder {
+        private final View viewStatusAccent;
         private final View cardHeader;
         private final TextView textCardEnergy;
         private final TextView textCardStatus;
-        private final TextView textCardStartPreview;
         private final TextView textCardStation;
-        private final TextView textCardIdSnippet;
         private final TextView textChevron;
 
         private final View layoutExpandedDetails;
-        private final TextView textExpandedReservationId;
-        private final TextView textExpandedSlotId;
         private final TextView textExpandedStart;
         private final TextView textExpandedEnd;
         private final TextView textExpandedCutoff;
-        private final TextView textExpandedProsumer;
         private final View layoutRejectionNotice;
         private final TextView textRejectionRemark;
         private final TextView textExpandedRestriction;
@@ -126,21 +123,17 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            viewStatusAccent = itemView.findViewById(R.id.viewStatusAccent);
             cardHeader = itemView.findViewById(R.id.cardHeader);
             textCardEnergy = itemView.findViewById(R.id.textCardEnergy);
             textCardStatus = itemView.findViewById(R.id.textCardStatus);
-            textCardStartPreview = itemView.findViewById(R.id.textCardStartPreview);
             textCardStation = itemView.findViewById(R.id.textCardStation);
-            textCardIdSnippet = itemView.findViewById(R.id.textCardIdSnippet);
             textChevron = itemView.findViewById(R.id.textChevron);
 
             layoutExpandedDetails = itemView.findViewById(R.id.layoutExpandedDetails);
-            textExpandedReservationId = itemView.findViewById(R.id.textExpandedReservationId);
-            textExpandedSlotId = itemView.findViewById(R.id.textExpandedSlotId);
             textExpandedStart = itemView.findViewById(R.id.textExpandedStart);
             textExpandedEnd = itemView.findViewById(R.id.textExpandedEnd);
             textExpandedCutoff = itemView.findViewById(R.id.textExpandedCutoff);
-            textExpandedProsumer = itemView.findViewById(R.id.textExpandedProsumer);
             layoutRejectionNotice = itemView.findViewById(R.id.layoutRejectionNotice);
             textRejectionRemark = itemView.findViewById(R.id.textRejectionRemark);
             textExpandedRestriction = itemView.findViewById(R.id.textExpandedRestriction);
@@ -157,31 +150,17 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
             long nowMillis = System.currentTimeMillis();
 
             // Bind Essential Preview Info
-            textCardIdSnippet.setText("Reservation #" + ReservationUiUtils.shortReference(item.getReservationId()));
             textCardStatus.setText(item.getStatus());
             ReservationUiUtils.formatStatusBadge(textCardStatus, item.getStatus());
+            ReservationUiUtils.formatStatusAccent(viewStatusAccent, item.getStatus());
 
-            String station = item.getStationId() != null ? item.getStationId() : "—";
-            textCardStation.setText("Station " + ReservationUiUtils.shortReference(station));
+            StationNameResolver.bindStationName(textCardStation, item.getStationId());
             textCardEnergy.setText(String.format(Locale.US, "%.1f kWh", item.getEnergyAmountKwh()));
-            textCardStartPreview.setText(ReservationUiUtils.schedule(item.getScheduledStartAtUtc(), item.getScheduledEndAtUtc()));
 
             // Bind Expanded Details
-            textExpandedReservationId.setText(item.getReservationId() != null ? item.getReservationId() : "—");
-            textExpandedSlotId.setText(item.getSlotId() != null ? item.getSlotId() : "—");
             textExpandedStart.setText(ReservationUiUtils.formatUtc(item.getScheduledStartAtUtc()));
             textExpandedEnd.setText(ReservationUiUtils.formatUtc(item.getScheduledEndAtUtc()));
             textExpandedCutoff.setText(ReservationUiUtils.formatCutoffUtc(item.getScheduledStartAtUtc()));
-
-            // Prosumer NIC (if present)
-            if (textExpandedProsumer != null) {
-                if (item.getProsumerNic() != null && !item.getProsumerNic().trim().isEmpty()) {
-                    textExpandedProsumer.setText(context.getString(R.string.prosumer_nic_label, item.getProsumerNic()));
-                    textExpandedProsumer.setVisibility(View.VISIBLE);
-                } else {
-                    textExpandedProsumer.setVisibility(View.GONE);
-                }
-            }
 
             // Rejection remark
             if ("Rejected".equalsIgnoreCase(item.getStatus()) && item.getRejectionRemark() != null && !item.getRejectionRemark().trim().isEmpty()) {

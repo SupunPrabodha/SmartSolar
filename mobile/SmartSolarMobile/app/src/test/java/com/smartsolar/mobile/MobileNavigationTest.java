@@ -14,7 +14,7 @@ public class MobileNavigationTest {
         assertEquals(java.util.Arrays.asList(Destination.HOME, Destination.STATIONS, Destination.SCAN, Destination.BOOKINGS, Destination.SEARCH), MobileNavigation.destinations("GridOperator"));
     }
     @Test public void subsectionsBelongToCorrectParent() {
-        for (Section section : new Section[]{Section.MINE, Section.CURRENT, Section.PENDING, Section.SEARCH}) assertEquals(Destination.RESERVATIONS, MobileNavigation.parent("Prosumer", section));
+        for (Section section : new Section[]{Section.MINE, Section.CURRENT, Section.PENDING, Section.SUMMARY, Section.SEARCH}) assertEquals(Destination.RESERVATIONS, MobileNavigation.parent("Prosumer", section));
         for (Section section : new Section[]{Section.CURRENT, Section.PENDING, Section.HISTORY}) assertEquals(Destination.BOOKINGS, MobileNavigation.parent("GridOperator", section));
         assertEquals(Destination.HISTORY, MobileNavigation.parent("Prosumer", Section.HISTORY));
         assertEquals(Destination.SEARCH, MobileNavigation.parent("GridOperator", Section.SEARCH));

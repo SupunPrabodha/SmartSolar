@@ -109,11 +109,23 @@ public final class StationsFragment extends WorkspaceFragment {
             locationStatus.setText(R.string.nearby_radius);
             request(api.nearbyStations(latitude, longitude, 25), rows -> {
                 for (com.smartsolar.mobile.data.remote.dto.NearbyStationResponse row : rows) {
-                    if (row.station != null && row.station.isActive) { stations.add(row.station); distances.put(row.station.stationId, row.distanceKm); }
+                    if (row.station != null && row.station.isActive) {
+                        stations.add(row.station);
+                        distances.put(row.station.stationId, row.distanceKm);
+                        com.smartsolar.mobile.util.StationNameResolver.put(row.station.stationId, row.station.name);
+                    }
                 }
                 render();
             });
-        } else request(api.listStations(), rows -> { for (StationResponse row : rows) if (row.isActive) stations.add(row); render(); });
+        } else request(api.listStations(), rows -> {
+            for (StationResponse row : rows) {
+                if (row.isActive) {
+                    stations.add(row);
+                    com.smartsolar.mobile.util.StationNameResolver.put(row.stationId, row.name);
+                }
+            }
+            render();
+        });
     }
     private void locate() {
         if (!authorized()) return;

@@ -98,7 +98,7 @@
     <string name="label_accepted_end">Scheduled end</string>
     <string name="label_energy_amount">Energy amount</string>
     <string name="label_status">Status</string>
-    <string name="label_change_cutoff">Change cutoff</string>
+    <string name="label_change_cutoff">Change possible untill: </string>
 
     <string name="no_reservations_found">No reservations found. Tap \'New reservation\' to book energy.</string>
     <string name="btn_refresh_details">Refresh</string>
@@ -223,4 +223,27 @@
     <string name="sign_out_confirmation">Sign out of Smart Solar? You can sign back in to continue your work.</string>
     <string name="hide_station_map">Hide map · focus on list</string>
     <string name="show_station_map">Show station map</string>
+    <string name="nav_summary">Summary</string>
+    <string name="summary_period_all_time">All time</string>
+    <string name="summary_period_this_month">This month</string>
+    <string name="summary_period_this_week">This week</string>
+    <string name="summary_period_last_30_days">Last 30 days</string>
+    <string name="summary_period_this_year">This year</string>
+    <string name="summary_provided_to_grid">Provided to grid</string>
+    <string name="summary_pending_approval">Pending approval</string>
+    <string name="summary_approved_scheduled">Approved &amp; scheduled</string>
+    <string name="summary_total_energy">Total Energy</string>
+    <string name="summary_no_data">No reservations found for the selected period.</string>
+    <string name="summary_bookings_count">%1$d bookings</string>
+    <string name="summary_booking_count_single">1 booking</string>
+    <string name="summary_carbon_offset_title">Carbon Offset &amp; Green Impact</string>
+    <string name="summary_carbon_formula_note">~0.85 kg CO₂ prevented per kWh of clean solar energy delivered</string>
+    <string name="summary_trees_equivalent">Equivalent to ~%1$.1f tree-years of CO₂ absorption</string>
+    <string name="summary_top_station_title">Top Trading Station</string>
+    <string name="summary_top_station_empty">No completed transfers in this period</string>
+    <string name="summary_top_station_transfers">%1$d completed transfers</string>
+    <string name="summary_top_station_transfers_single">1 completed transfer</string>
+    <string name="summary_top_station_share">%1$.1f%% of your supplied energy</string>
+    <string name="prosumer_label_caps">Prosumer NIC</string>
+    <string name="rejection_reason_formatted">&#9888; Rejection Reason</string>
 </resources>

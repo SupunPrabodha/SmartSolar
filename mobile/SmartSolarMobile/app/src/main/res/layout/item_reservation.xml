@@ -4,234 +4,334 @@
     style="@style/Solar.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/solar_space_base">
+    android:layout_marginBottom="@dimen/solar_space_base"
+    app:cardCornerRadius="14dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/solar_border">
 
+    <!-- Outer Container with Left Status Accent Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
-        <!-- Clickable Header with Essential Information & Chevron -->
-        <LinearLayout android:id="@+id/cardHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_card_padding" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:minHeight="48dp">
- <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-  <TextView android:id="@+id/textCardEnergy" style="@style/Solar.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="22sp"/>
-  <TextView android:id="@+id/textCardStatus" style="@style/Solar.Status" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
- </LinearLayout>
- <TextView android:id="@+id/textCardStartPreview" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_sm" android:textColor="@color/solar_text" android:textSize="14sp"/>
- <TextView android:id="@+id/textCardStation" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_sm" android:textSize="13sp"/>
- <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
-  <TextView android:id="@+id/textCardIdSnippet" style="@style/Solar.Body" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="12sp"/>
-  <TextView android:id="@+id/textChevron" style="@style/Solar.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/details_chevron" android:importantForAccessibility="no"/>
- </LinearLayout>
-</LinearLayout>
+        <!-- Left Status Color Accent Strip -->
+        <View
+            android:id="@+id/viewStatusAccent"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_status_accent_bar" />
 
-        <!-- Expanded Details & Actions Container -->
+        <!-- Main Card Contents -->
         <LinearLayout
-            android:id="@+id/layoutExpandedDetails"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/solar_space_base"
-            android:paddingEnd="@dimen/solar_space_base"
-            android:paddingBottom="@dimen/solar_space_base"
-            android:visibility="gone">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="@dimen/solar_space_md"
-                android:background="?attr/colorOutlineVariant" />
-
-            <TextView
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/label_reservation_id"
-                android:textSize="11sp" />
-            <TextView
-                android:id="@+id/textExpandedReservationId"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_sm"
-                android:text="@string/label_slot_id"
-                android:textSize="11sp" />
-            <TextView
-                android:id="@+id/textExpandedSlotId"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_sm"
-                android:text="@string/label_accepted_start"
-                android:textSize="11sp" />
-            <TextView
-                android:id="@+id/textExpandedStart"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_sm"
-                android:text="@string/label_accepted_end"
-                android:textSize="11sp" />
-            <TextView
-                android:id="@+id/textExpandedEnd"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_sm"
-                android:text="@string/label_change_cutoff"
-                android:textSize="11sp" />
-            <TextView
-                android:id="@+id/textExpandedCutoff"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/textExpandedProsumer"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_sm"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
+            <!-- Clickable Header with Hero Information & Chevron -->
             <LinearLayout
-                android:id="@+id/layoutRejectionNotice"
+                android:id="@+id/cardHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_md"
-                android:padding="@dimen/solar_space_md"
-                android:background="@drawable/bg_rejection_notice"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:padding="@dimen/solar_card_padding"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="48dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/rejection_reason"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/solar_status_rejected" />
-
-                <TextView
-                    android:id="@+id/textRejectionRemark"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_xs"
-                    android:textSize="13sp"
-                    android:textColor="?attr/colorOnSurface" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/textExpandedRestriction"
-                style="@style/Solar.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_md"
-                android:padding="10dp"
-                android:background="@color/solar_background"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
-            <!-- Expanded Section Action Buttons (2-Column Grid Layout) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/solar_space_base"
-                android:orientation="vertical">
-
-                <!-- Primary Action Row (Modify & Cancel) -->
+                <!-- Top Row: Hero Energy Amount (Primary Focus) & Status Badge -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonCardModify"
+                    <TextView
+                        android:id="@+id/textCardEnergy"
+                        style="@style/Solar.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginEnd="@dimen/solar_space_xs"
-                        android:minHeight="48dp"
-                        android:paddingHorizontal="4dp"
-                        android:textSize="13sp"
-                        android:text="@string/btn_modify_reservation" />
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/solar_text" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonCardCancel"
-                        style="@style/Solar.Button.Danger"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/solar_space_xs"
-                        android:minHeight="48dp"
-                        android:paddingHorizontal="4dp"
-                        android:textSize="13sp"
-                        android:text="@string/btn_cancel_reservation" />
+                    <TextView
+                        android:id="@+id/textCardStatus"
+                        style="@style/Solar.Status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
-                <!-- Approved Action Row (View QR & Directions) -->
+                <!-- Bottom Row: Station Name & Chevron -->
                 <LinearLayout
-                    android:id="@+id/layoutCardApprovedActions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_sm"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/textCardStation"
+                        style="@style/Solar.Body"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="13sp"
+                        android:textColor="@color/solar_secondary"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/textChevron"
+                        style="@style/Solar.Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/solar_space_xs"
+                        android:textSize="16sp"
+                        android:textColor="@color/solar_secondary"
+                        android:text="@string/details_chevron"
+                        android:importantForAccessibility="no" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Expanded Details & Actions Container -->
+            <LinearLayout
+                android:id="@+id/layoutExpandedDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/solar_space_base"
+                android:paddingEnd="@dimen/solar_space_base"
+                android:paddingBottom="@dimen/solar_space_base"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="@dimen/solar_space_md"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- 2-Column Dashboard Grid: Timestamps & Metadata -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Grid Row 1: Start & End Times -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Tile 1: Accepted Start -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/bg_detail_tile"
+                            android:orientation="vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_accepted_start"
+                                android:textColor="@color/solar_secondary"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/textExpandedStart"
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/solar_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Tile 2: Accepted End -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_detail_tile"
+                            android:orientation="vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_accepted_end"
+                                android:textColor="@color/solar_secondary"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/textExpandedEnd"
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/solar_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Grid Row 2: Modification Cutoff -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_detail_tile"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <TextView
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_change_cutoff"
+                            android:textColor="@color/solar_secondary"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textExpandedCutoff"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/solar_text"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Rejection Notice Banner -->
+                <LinearLayout
+                    android:id="@+id/layoutRejectionNotice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/solar_space_md"
+                    android:padding="@dimen/solar_space_md"
+                    android:background="@drawable/bg_rejection_notice"
+                    android:orientation="vertical"
                     android:visibility="gone">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonCardViewQr"
-                        style="@style/Solar.Button.Outlined"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="@dimen/solar_space_xs"
-                        android:minHeight="48dp"
-                        android:paddingHorizontal="4dp"
-                        android:textSize="13sp"
-                        android:text="@string/view_qr_code" />
+                        android:text="@string/rejection_reason_formatted"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/solar_status_rejected" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonCardGetDirections"
-                        style="@style/Solar.Button.Outlined"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/textRejectionRemark"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/solar_space_xs"
-                        android:minHeight="48dp"
-                        android:paddingHorizontal="4dp"
+                        android:layout_marginTop="@dimen/solar_space_xs"
                         android:textSize="13sp"
-                        android:text="@string/btn_get_directions" />
+                        android:textColor="?attr/colorOnSurface" />
+                </LinearLayout>
+
+                <!-- Restriction Notice Banner -->
+                <TextView
+                    android:id="@+id/textExpandedRestriction"
+                    style="@style/Solar.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/solar_space_md"
+                    android:padding="10dp"
+                    android:background="@drawable/bg_restriction_banner"
+                    android:textColor="@color/solar_secondary"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <!-- Expanded Section Action Buttons (2-Column Grid Layout) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/solar_space_base"
+                    android:orientation="vertical">
+
+                    <!-- Primary Action Row (Modify & Cancel) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonCardModify"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/solar_space_xs"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="4dp"
+                            android:textSize="13sp"
+                            android:text="@string/btn_modify_reservation" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonCardCancel"
+                            style="@style/Solar.Button.Danger"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/solar_space_xs"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="4dp"
+                            android:textSize="13sp"
+                            android:text="@string/btn_cancel_reservation" />
+                    </LinearLayout>
+
+                    <!-- Approved Action Row (View QR & Directions) -->
+                    <LinearLayout
+                        android:id="@+id/layoutCardApprovedActions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/solar_space_sm"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonCardViewQr"
+                            style="@style/Solar.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/solar_space_xs"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="4dp"
+                            android:textSize="13sp"
+                            android:text="@string/view_qr_code" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonCardGetDirections"
+                            style="@style/Solar.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/solar_space_xs"
+                            android:minHeight="48dp"
+                            android:paddingHorizontal="4dp"
+                            android:textSize="13sp"
+                            android:text="@string/btn_get_directions" />
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </LinearLayout>
