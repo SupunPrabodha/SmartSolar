@@ -77,8 +77,20 @@ public sealed class UserRepository : IUserRepository
                 .Set(x => x.FullName, user.FullName).Set(x => x.Email, user.Email)
                 .Set(x => x.PhoneNumber, user.PhoneNumber).Set(x => x.PasswordHash, user.PasswordHash)
                 .Set(x => x.Role, user.Role).Set(x => x.Status, user.Status)
-                .Set(x => x.CreatedAtUtc, user.CreatedAtUtc).Set(x => x.UpdatedAtUtc, user.UpdatedAtUtc);
-            await _collection.UpdateOneAsync(x => x.Nic == user.Nic, update, cancellationToken: cancellationToken);
+                .Set(x => x.CreatedAtUtc, user.CreatedAtUtc).Set(x => x.UpdatedAtUtc, user.UpdatedAtUtc)
+                .Set(x => x.ApprovedAtUtc, user.ApprovedAtUtc).Set(x => x.EmailVerifiedAtUtc, user.EmailVerifiedAtUtc)
+                .Set(x => x.EmailVerificationHash, user.EmailVerificationHash)
+                .Set(x => x.EmailVerificationExpiresAtUtc, user.EmailVerificationExpiresAtUtc)
+                .Inc(x => x.AccountVersion, 1);
+            // Legacy documents have no version; all subsequent account edits compare and increment it.
+            var filters = Builders<User>.Filter;
+            var version = filters.Eq(x => x.AccountVersion, user.AccountVersion);
+            if (user.AccountVersion == 0) version |= filters.Exists(x => x.AccountVersion, false);
+            var result = await _collection.UpdateOneAsync(filters.Eq(x => x.Nic, user.Nic) & version,
+                update, cancellationToken: cancellationToken);
+            if (result.MatchedCount == 0)
+                throw new ConflictException("This account changed. Refresh and try again.");
+            user.AccountVersion++;
         }
         catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {

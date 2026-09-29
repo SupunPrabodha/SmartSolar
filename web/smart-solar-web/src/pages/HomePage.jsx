@@ -13,7 +13,7 @@ import { ConfirmDialog } from '../components/Overlay';
 const operatorLinks = [
   ['/operator/reservations', 'Manage Reservations', 'bookings'],
   ['/operator/reservations/dashboard', 'Operations Dashboard', 'dashboard'],
-  ['/operator/reservations/current', 'Current Bookings', 'current'],
+  ['/operator/reservations/current', 'Active Bookings', 'current'],
   ['/operator/reservations?status=Pending', 'Pending Queue', 'pending'],
   ['/operator/reservations/history', 'Booking History', 'history'],
   ['/operator/reservations/search', 'Search Bookings', 'search']

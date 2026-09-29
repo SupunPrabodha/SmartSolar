@@ -13,7 +13,7 @@
     <string name="create_account">Create Prosumer account</string>
     <string name="registration_title">Create your Prosumer account</string>
     <string name="registration_description">Register for approval, then sign in after Backoffice activation.</string>
-    <string name="registration_pending">Registration submitted\nYour account is awaiting Backoffice activation.</string>
+    <string name="registration_pending">Registration submitted\nBackoffice will review your account and email you a verification link. Verify your email before signing in.</string>
     <string name="registration_failed">Unable to create your account.</string>
     <string name="nic_hint">NIC</string>
     <string name="password_hint">Password</string>
@@ -23,7 +23,7 @@
     <string name="working">Please wait&#8230;</string>
     <string name="credentials_required">NIC and password are required.</string>
     <string name="session_expired">Your session has expired. Please sign in again.</string>
-    <string name="login_failed">Login failed. Check your credentials and account status.</string>
+    <string name="login_failed">Login failed. Check your NIC and password. New Prosumers need Backoffice approval and email verification before signing in.</string>
     <string name="connection_failed">Unable to connect. Check your connection and try again.</string>
     <string name="session_failed">Unable to save or restore the session. Please sign in again.</string>
     <string name="api_not_configured">This app is not connected to a service. Contact your administrator.</string>
@@ -113,10 +113,10 @@
     <!-- Member 4 - Dashboard / booking views -->
     <string name="generated_at">Updated %1$s</string>
 
-    <string name="current_bookings">Current Bookings</string>
+    <string name="current_bookings">Active Bookings</string>
     <string name="pending_bookings">Pending Bookings</string>
 
-    <string name="no_current_bookings">No current bookings\nUpcoming and in-progress reservations will appear here.</string>
+    <string name="no_current_bookings">No active bookings\nApproved and in-progress reservations will appear here.</string>
     <string name="no_pending_bookings">No pending bookings\nReservations awaiting operator action will appear here.</string>
     <string name="no_booking_history">No booking history\nYour concluded reservations will appear here.</string>
     <string name="no_matching_bookings">No matching bookings\nTry adjusting or clearing your filters.</string>
@@ -180,7 +180,7 @@
     <string name="nav_scan">Scan</string>
     <string name="nav_bookings">Bookings</string>
     <string name="nav_search">Search</string>
-    <string name="nav_current">Current</string>
+    <string name="nav_current">Active</string>
     <string name="nav_pending">Pending</string>
     <string name="navigate_back">Back</string>
     <string name="approved_future_short">Approved future</string>

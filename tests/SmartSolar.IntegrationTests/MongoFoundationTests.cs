@@ -55,6 +55,14 @@ public sealed class MongoFoundationTests
             user.Status = UserStatus.Active;
             await users.ReplaceAsync(user);
             Assert.Single(await users.GetByStatusAsync(UserStatus.Active));
+            // An older profile save must not undo a concurrent Backoffice deactivation.
+            var stale = (await users.GetByNicAsync(user.Nic))!;
+            var current = (await users.GetByNicAsync(user.Nic))!;
+            current.Status = UserStatus.Deactivated;
+            await users.ReplaceAsync(current);
+            stale.FullName = "Stale edit";
+            await Assert.ThrowsAsync<ConflictException>(() => users.ReplaceAsync(stale));
+            Assert.Equal(UserStatus.Deactivated, (await users.GetByNicAsync(user.Nic))!.Status);
         }
         finally { await client.DropDatabaseAsync(name); }
     }

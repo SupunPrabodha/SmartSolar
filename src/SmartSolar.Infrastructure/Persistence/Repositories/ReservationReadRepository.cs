@@ -28,7 +28,7 @@ public sealed class ReservationReadRepository(IMongoDatabase database) : IReserv
         if (request.StationId is not null) filter &= Filters.Eq(x => x.StationId, request.StationId);
         if (request.Status.HasValue) filter &= Filters.Eq(x => x.Status, request.Status.Value);
         if (request.View == ReservationReadView.Pending) filter &= Filters.Eq(x => x.Status, ReservationStatus.Pending);
-        if (request.View == ReservationReadView.Current) filter &= Active();
+        if (request.View == ReservationReadView.Current) filter &= Filters.Eq(x => x.Status, ReservationStatus.Approved);
         await EnsureSchedulesAsync(filter, ct);
 
         filter &= request.View switch

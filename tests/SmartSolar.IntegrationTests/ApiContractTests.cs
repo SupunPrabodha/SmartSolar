@@ -19,6 +19,27 @@ namespace SmartSolar.IntegrationTests;
 public sealed class ApiContractTests
 {
     [Theory]
+    [InlineData("200012345678", 64, true)]
+    [InlineData("", 64, false)]
+    [InlineData("200012345678", 0, false)]
+    [InlineData("200012345678", 65, false)]
+    public void VerificationRequestUsesMvcValidation(string nic, int tokenLength, bool valid)
+    {
+        // Exercise MVC record validation, which can fail before the controller or service is invoked.
+        var collection = new ServiceCollection();
+        collection.AddLogging();
+        collection.AddControllers();
+        using var services = collection.BuildServiceProvider();
+        var context = new Microsoft.AspNetCore.Mvc.ActionContext(
+            new DefaultHttpContext { RequestServices = services },
+            new Microsoft.AspNetCore.Routing.RouteData(),
+            new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor());
+        var validator = services.GetRequiredService<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IObjectModelValidator>();
+        validator.Validate(context, null, "", new SmartSolar.Api.Controllers.VerifyEmailRequest(nic, new string('a', tokenLength)));
+        Assert.Equal(valid, context.ModelState.IsValid);
+    }
+
+    [Theory]
     [InlineData(400)]
     [InlineData(401)]
     [InlineData(403)]

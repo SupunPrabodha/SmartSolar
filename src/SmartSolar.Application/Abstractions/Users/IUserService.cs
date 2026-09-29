@@ -19,5 +19,6 @@ public interface IUserService
     Task<UserResponse> UpdateProsumerAsync(string nic, UpdateProsumerRequest request, CancellationToken cancellationToken = default);
     Task RequestOwnDeactivationAsync(string nic, CancellationToken cancellationToken = default);
     Task ActivateAsync(string nic, CancellationToken cancellationToken = default);
+    Task VerifyEmailAsync(string nic, string token, CancellationToken cancellationToken = default);
     Task DeactivateAsync(string nic, CancellationToken cancellationToken = default);
 }
