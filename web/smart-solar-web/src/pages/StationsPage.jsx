@@ -5,6 +5,8 @@ import HomePage from './HomePage';
 import { StatusBadge } from './reservations/ReservationComponents';
 import { localTimeZone } from './reservations/reservationUi';
 import { fromUtcInput, toUtcInput, stationPayload } from '../util/catalog';
+import Overlay, { ConfirmDialog } from '../components/Overlay';
+import { Toast, LoadingState, EmptyState } from '../components/Feedback';
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const emptyStation = () => ({ name: '', address: '', latitude: '', longitude: '', capacityKwh: '',
   totalBatterySlots: '', operatingSchedule: days.map((_, i) => ({ day: i + 1, isClosed: true, opensAt: null, closesAt: null })) });
@@ -30,7 +32,7 @@ function StationForm({ station, onSaved, onCancel }) {
       onSaved(result);
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
-  return <section className="surface-card my-3"><h2>{station ? 'Edit station' : 'Add station'}</h2>
+  return <Overlay title={station ? 'Edit station' : 'Add station'} onClose={onCancel} busy={busy} wide>
     <ErrorMessage value={error} /><form onSubmit={save}><fieldset disabled={busy}>
       <div className="row"><div className="col-md-6"><Field label="Name" required minLength={2} maxLength={120} {...field('name')} /></div>
         <div className="col-md-6"><Field label="Address" required minLength={3} maxLength={300} {...field('address')} /></div>
@@ -50,7 +52,7 @@ function StationForm({ station, onSaved, onCancel }) {
       </div>)}
       <div className="d-flex gap-2 mt-3"><button className="btn btn-primary">{busy ? 'Saving…' : 'Save station'}</button>
         <button className="btn btn-outline-secondary" type="button" onClick={onCancel}>Cancel</button></div>
-    </fieldset></form></section>;
+    </fieldset></form></Overlay>;
 }
 
 function SlotForm({ slot, station, onSaved, onCancel }) {
@@ -67,14 +69,14 @@ function SlotForm({ slot, station, onSaved, onCancel }) {
       }); onSaved();
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
-  return <form className="surface-card my-3" onSubmit={save}><h3>{slot ? 'Edit slot' : 'Add slot'}</h3>
+  return <Overlay title={slot ? 'Edit slot' : 'Add slot'} onClose={onCancel} busy={busy}><form onSubmit={save}>
     <ErrorMessage value={error} /><fieldset disabled={busy}><p>Enter local times ({localTimeZone()}). Active windows at a station cannot overlap.</p>
       <div className="row"><div className="col-md-6"><Field label="Start (local time)" type="datetime-local" step="0.001" required {...field('start')} /></div>
         <div className="col-md-6"><Field label="End (local time)" type="datetime-local" step="0.001" required {...field('end')} /></div>
         <div className="col-md-6"><Field label="Total slots" type="number" min="1" max={station.totalBatterySlots} step="1" required {...field('total')} /></div>
         <div className="col-md-6"><Field label="Available slots" type="number" min="0" max={form.total || station.totalBatterySlots} step="1" required {...field('available')} /></div></div>
       <div className="d-flex gap-2"><button className="btn btn-primary">{busy ? 'Saving...' : 'Save slot'}</button>
-        <button type="button" className="btn btn-outline-secondary" onClick={onCancel}>Cancel</button></div></fieldset></form>;
+        <button type="button" className="btn btn-outline-secondary" onClick={onCancel}>Cancel</button></div></fieldset></form></Overlay>;
 }
 function SlotRow({ slot, canManage, busy, onEdit, onAvailability, onDeactivate }) {
   const [available, setAvailable] = useState(slot.availableSlots);
@@ -95,6 +97,7 @@ function StationDetails({ id, onClose, onChanged }) {
   const [version, setVersion] = useState(0), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [success, setSuccess] = useState('');
   const [editing, setEditing] = useState(false), [slotForm, setSlotForm] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
   const canManage = user.role === 'GridOperator';
   useEffect(() => {
     const abort = new AbortController(); setLoading(true); setError(''); setStation(null);
@@ -107,14 +110,17 @@ function StationDetails({ id, onClose, onChanged }) {
   function saved(message) { setEditing(false); setSlotForm(null); setSuccess(message); setVersion(v => v + 1); onChanged(); }
   async function mutate(path, body, message) {
     setBusy(true); setError(''); setSuccess('');
-    try { await apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) }); saved(message); }
+    try { await apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) }); setConfirmation(null); saved(message); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   return <section className="mt-4">
     <div className="d-flex gap-2 mb-3"><button className="btn btn-outline-secondary" onClick={onClose}>Back to stations</button>
       <button className="btn btn-outline-secondary" disabled={busy || loading} onClick={() => { setEditing(false); setSlotForm(null); setVersion(v => v + 1); }}>Reload details</button></div>
-    <ErrorMessage value={error} />{success && <div role="status" className="alert alert-success">{success}</div>}
-    {loading && <p role="status">Loading station and slots...</p>}
+    {!confirmation && <ErrorMessage value={error} />}<Toast key={success} message={success} />
+    {confirmation && <ConfirmDialog title={confirmation.title} action="Deactivate" busy={busy} onClose={() => { setConfirmation(null); setError(''); }} onConfirm={() => mutate(confirmation.path, confirmation.body, confirmation.message)}>
+      <p>{confirmation.description}</p><ErrorMessage value={error} />
+    </ConfirmDialog>}
+    {loading && <LoadingState label="Loading station and availability…" />}
     {station && <><article className="surface-card"><h2>{station.name}</h2><p>{station.address}</p>
       <dl className="row"><dt className="col-sm-4">Status</dt><dd className="col-sm-8">{station.isActive ? 'Active' : 'Inactive'}</dd>
         <dt className="col-sm-4">Coordinates</dt><dd className="col-sm-8">{station.latitude}, {station.longitude}</dd>
@@ -124,10 +130,7 @@ function StationDetails({ id, onClose, onChanged }) {
         {days[day.day - 1]}: {day.isClosed ? 'Closed' : day.opensAt + '-' + day.closesAt}</li>)}</ul> : <p>Schedule not configured. Provide all seven days when editing.</p>}
       {user.role === 'Backoffice' && <div className="d-flex flex-wrap gap-2">
         <button className="btn btn-primary" disabled={busy} onClick={() => setEditing(true)}>Edit station</button>
-        {station.isActive && <button className="btn btn-outline-danger" disabled={busy} onClick={() => {
-          if (window.confirm('Deactivate ' + station.name + '? It will disappear from station discovery. Historical records are retained.'))
-            mutate('/stations/' + id + '/deactivate', { expectedUpdatedAtUtc: station.updatedAtUtc }, 'Station deactivated.');
-        }}>Deactivate station</button>}</div>}</article>
+        {station.isActive && <button className="btn btn-outline-danger" disabled={busy} onClick={() => { setError(''); setConfirmation({ title: 'Deactivate ' + station.name + '?', description: 'The station will disappear from discovery. Historical records remain. Active reservations may prevent this change.', path: '/stations/' + id + '/deactivate', body: { expectedUpdatedAtUtc: station.updatedAtUtc }, message: 'Station deactivated.' }); }}>Deactivate station</button>}</div>}</article>
       {editing && <StationForm key={station.updatedAtUtc} station={station} onSaved={() => saved('Station saved.')} onCancel={() => setEditing(false)} />}
       <div className="d-flex flex-wrap justify-content-between gap-2 mt-4 mb-2"><h2 className="h4">Booking slots</h2>
         {canManage && station.isActive && <button className="btn btn-primary" disabled={busy} onClick={() => setSlotForm({})}>Add slot</button>}</div>
@@ -140,8 +143,7 @@ function StationDetails({ id, onClose, onChanged }) {
           <tbody>{slots.map(slot => <SlotRow key={slot.slotId} slot={slot} busy={busy} canManage={canManage}
             onEdit={() => setSlotForm(slot)} onAvailability={availableSlots => mutate('/slots/' + slot.slotId + '/availability',
               { availableSlots, expectedUpdatedAtUtc: slot.updatedAtUtc }, 'Availability updated.')}
-            onDeactivate={() => { if (window.confirm('Deactivate this slot? Its history will be retained.'))
-              mutate('/slots/' + slot.slotId + '/deactivate', { expectedUpdatedAtUtc: slot.updatedAtUtc }, 'Slot deactivated.'); }} />)}</tbody></table></div>}
+            onDeactivate={() => { setError(''); setConfirmation({ title: 'Deactivate this slot?', description: 'The slot will no longer be available. Its history will be retained. Active reservations may prevent this change.', path: '/slots/' + slot.slotId + '/deactivate', body: { expectedUpdatedAtUtc: slot.updatedAtUtc }, message: 'Slot deactivated.' }); }} />)}</tbody></table></div>}
     </>}
   </section>;
 }
@@ -161,15 +163,16 @@ export default function StationsPage() {
   return <HomePage><div className="page-heading"><div><p className="eyebrow">STATION NETWORK</p><h1>Microgrid stations</h1>
     <p>Station information and energy slot inventory.</p></div>
     {user.role === 'Backoffice' && !selected && <button className="btn btn-primary" onClick={() => setAdding(true)}>Add station</button>}</div>
+    <Toast key={success} message={success} />
     {selected ? <StationDetails key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setVersion(v => v + 1)} /> : <>
-      {success && <div role="status" className="alert alert-success">{success}</div>}
+      <Toast key={success} message={success} />
       {adding && <StationForm onCancel={() => setAdding(false)} onSaved={station => { setAdding(false); setSelected(station.stationId); setSuccess('Station created.'); setVersion(v => v + 1); }} />}
       <form className="surface-card d-flex flex-wrap align-items-end gap-3 my-3" onSubmit={e => { e.preventDefault(); setFilter(search.trim()); setVersion(v => v + 1); }}>
         <label className="flex-grow-1">Search name or address<input className="form-control" maxLength={120} value={search} onChange={e => setSearch(e.target.value)} /></label>
         <label className="mb-2"><input type="checkbox" checked={inactive} onChange={e => setInactive(e.target.checked)} /> Include inactive</label>
         <button className="btn btn-outline-primary">Search / reload</button></form>
-      <ErrorMessage value={error} />{loading ? <p role="status">Loading stations...</p> : !error && (
-        !stations.length ? <p className="surface-card">No stations match this search.</p> :
+      <ErrorMessage value={error} />{loading ? <LoadingState label="Loading your station network…" /> : !error && (
+        !stations.length ? <EmptyState title="No stations found">Try a different name or address, or include inactive stations.</EmptyState> :
           <div className="module-grid">{stations.map(station => <article className="surface-card station-card" key={station.stationId}>
             <StatusBadge status={station.isActive ? 'Active' : 'Inactive'}/><h2>{station.name}</h2><p>{station.address}</p><div className="station-specs"><p><strong>{station.capacityKwh}</strong>kWh capacity</p><p><strong>{station.totalBatterySlots}</strong>battery slots</p></div><button className="btn btn-outline-primary" onClick={() => { setSelected(station.stationId); setAdding(false); }}>
               Manage station</button></article>)}</div>)}

@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
+import { LoadingState } from '../../components/Feedback';
 import HomePage from '../HomePage';
 import { errorMessage, formatUtc, localTimeZone, shortReference, scheduleParts } from './reservationUi.js';
 
@@ -11,7 +12,7 @@ export function ReservationLayout() {
 }
 
 export function Loading() {
-  return <div className="py-5 text-center" role="status"><span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />Loading reservations…</div>;
+  return <LoadingState label="Loading reservations…" />;
 }
 
 export function ErrorNotice({ error, retry, mutation = false }) {

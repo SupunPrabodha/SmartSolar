@@ -53,6 +53,12 @@ public final class StationsFragment extends WorkspaceFragment {
     @Override protected boolean bookingData() { return false; }
     @Override protected int layout() { return R.layout.fragment_stations; }
     @Override protected void bind(Bundle saved) {
+        if (saved != null) memory.values.putBoolean("mapHidden", saved.getBoolean("mapHidden", false));
+        findViewById(R.id.toggleStationMap).setOnClickListener(v -> {
+            memory.values.putBoolean("mapHidden", !memory.values.getBoolean("mapHidden", false));
+            updateMapVisibility();
+        });
+        updateMapVisibility();
         api = com.smartsolar.mobile.data.remote.RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
         message = findViewById(R.id.catalogMessage);
         findViewById(R.id.catalogRetry).setOnClickListener(v -> retry());
@@ -148,7 +154,15 @@ public final class StationsFragment extends WorkspaceFragment {
         memory.data = new Snapshot(stations, distances);
         renderMap();
     }
+    private void updateMapVisibility() {
+        boolean hidden = memory.values.getBoolean("mapHidden", false);
+        findViewById(R.id.stationMapSurface).setVisibility(hidden ? View.GONE : View.VISIBLE);
+        if (!hidden && !mapRendered) findViewById(R.id.stationMap).post(() -> { if (alive() && map != null) renderMap(); });
+        ((com.google.android.material.button.MaterialButton)findViewById(R.id.toggleStationMap))
+            .setText(hidden ? R.string.show_station_map : R.string.hide_station_map);
+    }
     private void renderMap() {
+        if (memory.values.getBoolean("mapHidden", false)) { mapRendered = false; return; }
         if (map == null) return;
         map.clear();
         if (!authorized()) return;
@@ -162,6 +176,7 @@ public final class StationsFragment extends WorkspaceFragment {
         }
         findViewById(R.id.stationMap).post(() -> {
             if (!alive() || stations.isEmpty() || map == null) return;
+            if (memory.values.getBoolean("mapHidden", false)) { mapRendered = false; return; }
             com.google.android.gms.maps.model.CameraPosition camera = memory.values.getParcelable("camera");
             if (camera != null) { map.moveCamera(CameraUpdateFactory.newCameraPosition(camera)); memory.values.remove("camera"); }
             else if (stations.size() == 1) map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(stations.get(0).latitude, stations.get(0).longitude), 13));
@@ -185,6 +200,7 @@ public final class StationsFragment extends WorkspaceFragment {
     }
     @Override public void onSaveInstanceState(Bundle out) {
         if (latitude != null) { out.putDouble("latitude", latitude); out.putDouble("longitude", longitude); }
+        out.putBoolean("mapHidden", memory.values.getBoolean("mapHidden", false));
         super.onSaveInstanceState(out);
     }
     private void resetRequests() {

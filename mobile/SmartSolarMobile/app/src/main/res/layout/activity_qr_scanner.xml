@@ -17,10 +17,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:visibility="gone"
-        android:background="#80000000"
+        android:background="@color/solar_scrim"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="@dimen/solar_space_base">
 
         <ImageButton
             android:id="@+id/buttonBack"
@@ -35,7 +35,7 @@
             style="@style/Solar.Title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/solar_space_sm"
             android:layout_weight="1"
             android:text="@string/scan_transaction_qr"
             android:textColor="@android:color/white"
@@ -48,11 +48,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="@dimen/solar_space_xl"
         android:gravity="center"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:text="@string/scanning_qr"
+        android:paddingStart="@dimen/solar_space_lg"
+        android:paddingEnd="@dimen/solar_space_lg"
+        android:text="@string/scanning_qr" android:background="@color/solar_scrim" android:paddingVertical="@dimen/solar_space_base"
         android:textColor="@android:color/white"
         android:textSize="14sp" />
 
@@ -64,7 +64,7 @@
         android:background="@color/solar_hero"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="@dimen/solar_space_xl"
         android:visibility="gone">
 
         <TextView
@@ -89,10 +89,10 @@
         android:id="@+id/layoutVerifying"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CC000000"
+        android:background="@color/solar_scrim"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="@dimen/solar_space_xl"
         android:visibility="gone">
 
         <ProgressBar
@@ -115,10 +115,10 @@
         android:id="@+id/layoutScanError"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E6000000"
+        android:background="@color/solar_scrim"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="@dimen/solar_space_xl"
         android:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
