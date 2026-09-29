@@ -24,6 +24,8 @@
      </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
    </LinearLayout>
+   <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enterprise_recent" android:layout_marginTop="20dp"/>
+   <TextView android:id="@+id/textRecentActivity" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"/>
    <TextView android:id="@+id/textMetricsStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_sm" android:textSize="12sp"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonScanTransaction" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" app:icon="@drawable/ic_nav_scan" android:text="@string/scan_transaction_qr" android:visibility="gone"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonModuleTwo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:text="@string/new_reservation" android:visibility="gone"/>

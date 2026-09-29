@@ -5,6 +5,8 @@
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Security.Claims;
@@ -29,7 +31,41 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+{
+    context.ProblemDetails.Extensions["correlationId"] = context.HttpContext.TraceIdentifier;
+    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+});
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var problem = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(context.ModelState)
+            { Status = 400, Title = "Check the submitted fields." };
+        problem.Extensions["correlationId"] = context.HttpContext.TraceIdentifier;
+        problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problem);
+    });
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRequestIdentity, RequestIdentity>();
+builder.Services.AddScoped<IPasswordSecurityRepository, PasswordSecurityRepository>();
+builder.Services.AddScoped<IAccountSecurityEmailSender, SmtpVerificationEmailSender>();
+builder.Services.AddScoped<PasswordSecurityService>();
+builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
+builder.Services.AddScoped<NotificationDispatcher>();
+builder.Services.AddHostedService<NotificationWorker>();
+builder.Services.AddSingleton<PasswordRecoveryQueue>();
+builder.Services.AddHostedService<PasswordRecoveryWorker>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.AddPolicy("authentication", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
+    options.OnRejected = async (context, ct) =>
+        await Results.Problem(statusCode: 429, title: "Too many attempts",
+            detail: "Wait one minute before trying again.", extensions: new Dictionary<string, object?>
+            { ["correlationId"] = context.HttpContext.TraceIdentifier, ["traceId"] = context.HttpContext.TraceIdentifier }).ExecuteAsync(context.HttpContext);
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks().AddCheck<MongoHealthCheck>("mongodb");
 
@@ -133,9 +169,10 @@ builder.Services
                 // Enforce current account status/role even when a previously issued JWT has not expired.
                 var nic = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                 var users = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
-                var user = nic is null ? null : await users.GetByNicAsync(nic, context.HttpContext.RequestAborted);
+                var user = nic is null ? null : await users.GetSessionUserAsync(nic, context.HttpContext.RequestAborted);
                 if (user is null || user.Status != SmartSolar.Domain.Enums.UserStatus.Active ||
-                    context.Principal?.FindFirstValue(ClaimTypes.Role) != user.Role.ToString())
+                    context.Principal?.FindFirstValue(ClaimTypes.Role) != user.Role.ToString() ||
+                    !SessionVersion.Matches(context.Principal?.FindFirstValue("security_version"), user.SecurityVersion))
                 {
                     context.Fail("Account is unavailable or its permissions have changed.");
                 }
@@ -167,7 +204,7 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(allowedOrigins)
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod().WithExposedHeaders("X-Correlation-ID", "Content-Disposition");
         }
     });
 });
@@ -176,6 +213,7 @@ builder.Services.AddScoped<DevelopmentDataSeeder>();
 
 var app = builder.Build();
 
+app.UseMiddleware<CorrelationMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseStatusCodePages();
 
@@ -191,6 +229,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseCors("ClientApps");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

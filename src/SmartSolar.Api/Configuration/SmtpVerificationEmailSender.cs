@@ -3,6 +3,7 @@
  * Project: Smart Solar Microgrid Trading System
  * Purpose: Sends Prosumer verification links through deployment-configured SMTP.
  */
+using SmartSolar.Application.Abstractions.Security;
 using System.Net;
 using System.Net.Mail;
 using SmartSolar.Application.Abstractions.Users;
@@ -10,7 +11,7 @@ using SmartSolar.Application.Exceptions;
 
 namespace SmartSolar.Api.Configuration;
 
-public sealed class SmtpVerificationEmailSender(IConfiguration configuration) : IVerificationEmailSender
+public sealed class SmtpVerificationEmailSender(IConfiguration configuration) : IVerificationEmailSender, IAccountSecurityEmailSender
 {
     public void EnsureConfigured()
     {
@@ -32,15 +33,39 @@ public sealed class SmtpVerificationEmailSender(IConfiguration configuration) : 
         EnsureConfigured();
         var settings = configuration.GetSection("VerificationEmail");
         var link = settings["VerificationPageUrl"] + "#nic=" + Uri.EscapeDataString(nic) + "&token=" + Uri.EscapeDataString(token);
-        using var message = new MailMessage(settings["From"]!, email)
-        {
-            Subject = "Smart Solar: verify your email",
-            Body = "Backoffice has approved your Smart Solar account. Open the link below and select Verify email to activate your account. " +
-                "The link expires in 24 hours and can only be used once.\n\n" + link +
-                "\n\nAfter verification, sign in to the Android app using your NIC and the password you chose. " +
-                "If you did not request this account, ignore this email.",
-            IsBodyHtml = false
-        };
+        await DeliverAsync(email, "Smart Solar: verify your email",
+            "Backoffice has approved your Smart Solar account. Open the link below and select Verify email to activate your account. " +
+            "The link expires in 24 hours and can only be used once.\n\n" + link +
+            "\n\nAfter verification, sign in using your NIC and chosen password. If you did not request this account, ignore this email.", cancellationToken);
+    }
+
+    public Task SendResetAsync(string email, string token, CancellationToken ct)
+    {
+        EnsureConfigured();
+        var settings = configuration.GetSection("VerificationEmail");
+        var value = settings["ResetPageUrl"] ??
+            new Uri(new Uri(settings["VerificationPageUrl"]!), "/reset-password").AbsoluteUri;
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var page) ||
+            (page.Scheme != "https" && !(page.Scheme == "http" && page.IsLoopback)) ||
+            !string.IsNullOrEmpty(page.Query) || !string.IsNullOrEmpty(page.Fragment) || !string.IsNullOrEmpty(page.UserInfo))
+            throw new ConflictException("Password recovery email is not configured.");
+        return DeliverAsync(email, "Smart Solar: reset your password",
+            "A password reset was requested for your Smart Solar account. Open this link to choose a new password. " +
+            "It expires in 20 minutes and works once.\n\n" + page.AbsoluteUri + "#token=" + Uri.EscapeDataString(token) +
+            "\n\nIf you did not request this, ignore this email. Your password has not changed.", ct);
+    }
+
+    public Task SendChangedAsync(string email, bool reset, CancellationToken ct) =>
+        DeliverAsync(email, "Smart Solar: password security alert",
+            "Your Smart Solar password was " + (reset ? "reset" : "changed") +
+            ". All previous sessions have been invalidated. If this was not you, contact your administrator immediately.", ct);
+
+    private async Task DeliverAsync(string email, string subject, string body, CancellationToken cancellationToken)
+    {
+        // Share the established STARTTLS transport; never log message content or provider diagnostics.
+        EnsureConfigured();
+        var settings = configuration.GetSection("VerificationEmail");
+        using var message = new MailMessage(settings["From"]!, email) { Subject = subject, Body = body, IsBodyHtml = false };
         using var client = new SmtpClient(settings["Host"], int.Parse(settings["Port"]!))
         {
             EnableSsl = true,

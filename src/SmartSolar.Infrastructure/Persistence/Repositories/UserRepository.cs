@@ -5,6 +5,7 @@
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 
+using SmartSolar.Application.Abstractions.Security;
 using MongoDB.Driver;
 using SmartSolar.Application.Exceptions;
 using SmartSolar.Application.Abstractions.Persistence;
@@ -17,10 +18,12 @@ namespace SmartSolar.Infrastructure.Persistence.Repositories;
 public sealed class UserRepository : IUserRepository
 {
     private readonly IMongoCollection<User> _collection;
+    private readonly IRequestIdentity? _identity;
 
-    public UserRepository(IMongoDatabase database)
+    public UserRepository(IMongoDatabase database, IRequestIdentity? identity = null)
     {
         // Resolve the assignment-required UsersDetail collection once for this repository instance.
+        _identity = identity;
         _collection = database.GetCollection<User>(CollectionNames.Users);
     }
 
@@ -29,6 +32,11 @@ public sealed class UserRepository : IUserRepository
         // Retrieve a single user by NIC, which is persisted as the MongoDB document ID.
         return await _collection.Find(x => x.Nic == nic).FirstOrDefaultAsync(cancellationToken);
     }
+
+    public Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default) =>
+        _collection.Find(x => x.Nic == nic)
+            .Project<User>(Builders<User>.Projection.Include(x => x.Nic).Include(x => x.Role).Include(x => x.Status).Include(x => x.SecurityVersion))
+            .FirstOrDefaultAsync(cancellationToken)!;
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
@@ -59,6 +67,8 @@ public sealed class UserRepository : IUserRepository
         // Insert a new user document into MongoDB.
         try
         {
+            user.AuditHistory.Add(AuditTrail.Create(_identity, "AccountCreated", "Profile", user.Nic, user.Nic,
+                user.Status == UserStatus.PendingActivation ? "Backoffice" : null));
             await _collection.InsertOneAsync(user, cancellationToken: cancellationToken);
         }
         catch (MongoWriteException exception) when (exception.WriteError.Category == ServerErrorCategory.DuplicateKey)
@@ -72,16 +82,26 @@ public sealed class UserRepository : IUserRepository
         // Persist account fields by immutable NIC while preserving internal reservation coordination.
         try
         {
+            var previous = await GetByNicAsync(user.Nic, cancellationToken);
+            var eventName = previous?.Status != user.Status ? "Account" + user.Status :
+                previous.ApprovedAtUtc != user.ApprovedAtUtc ? "AccountApproved" :
+                previous.ProfileCompletedAtUtc != user.ProfileCompletedAtUtc && user.ProfileCompletedAtUtc is not null ? "ProfileCompleted" : "ProfileUpdated";
+            var notifyOwner = eventName.StartsWith("Account") ? user.Nic : null;
             // Update account fields only: a stale profile must never erase the reservation mutex.
             var update = Builders<User>.Update
                 .Set(x => x.FullName, user.FullName).Set(x => x.Email, user.Email)
+                .Set(x => x.ProfileCompletedAtUtc, user.ProfileCompletedAtUtc)
                 .Set(x => x.PhoneNumber, user.PhoneNumber).Set(x => x.PasswordHash, user.PasswordHash)
                 .Set(x => x.Role, user.Role).Set(x => x.Status, user.Status)
                 .Set(x => x.CreatedAtUtc, user.CreatedAtUtc).Set(x => x.UpdatedAtUtc, user.UpdatedAtUtc)
                 .Set(x => x.ApprovedAtUtc, user.ApprovedAtUtc).Set(x => x.EmailVerifiedAtUtc, user.EmailVerifiedAtUtc)
                 .Set(x => x.EmailVerificationHash, user.EmailVerificationHash)
                 .Set(x => x.EmailVerificationExpiresAtUtc, user.EmailVerificationExpiresAtUtc)
-                .Inc(x => x.AccountVersion, 1);
+                .Inc(x => x.AccountVersion, 1)
+                .PushEach(x => x.AuditHistory, [AuditTrail.Create(_identity, eventName, "Profile", user.Nic, notifyOwner)], slice: -100);
+            if (previous?.Email != user.Email || user.Status == UserStatus.Deactivated)
+                update = update.Unset(x => x.PasswordResetTokenHash).Unset(x => x.PasswordResetExpiresAtUtc)
+                    .Unset(x => x.PasswordResetRequestedAtUtc);
             // Legacy documents have no version; all subsequent account edits compare and increment it.
             var filters = Builders<User>.Filter;
             var version = filters.Eq(x => x.AccountVersion, user.AccountVersion);

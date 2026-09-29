@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import Brand from '../components/Brand';
 
@@ -47,6 +47,7 @@ export default function LoginPage() {
         <button className="btn btn-primary btn-lg w-100" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
         <div className="visually-hidden" role="status">{loading ? 'Signing in, please wait.' : ''}</div>
       </form>
+      <Link className="d-inline-block mt-3" to="/forgot-password">Forgot password?</Link>
       <p className="small text-secondary mt-4">Your account must be active. Contact your Backoffice administrator if you need access.</p>
     </div></section>
   </main>;

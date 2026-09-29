@@ -1,6 +1,10 @@
 package com.smartsolar.mobile.data.remote.dto;
 
 public class UserResponse {
+    private boolean profileComplete;
+    private String avatarVersion;
+    public boolean isProfileComplete() { return profileComplete; }
+    public String getAvatarVersion() { return avatarVersion; }
     private String nic;
     private String fullName;
     private String email;

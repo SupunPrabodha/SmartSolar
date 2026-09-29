@@ -1,3 +1,5 @@
+import { AuditHistory, ExportButton } from '../components/Experience';
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../api/apiClient';
 import { useAuth } from '../auth/AuthContext';
@@ -94,6 +96,7 @@ function SlotRow({ slot, canManage, busy, onEdit, onAvailability, onDeactivate }
 function StationDetails({ id, onClose, onChanged }) {
   const { user } = useAuth();
   const [station, setStation] = useState(null), [slots, setSlots] = useState([]);
+  const [auditSlot,setAuditSlot] = useState('');
   const [version, setVersion] = useState(0), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [success, setSuccess] = useState('');
   const [editing, setEditing] = useState(false), [slotForm, setSlotForm] = useState(null);
@@ -131,6 +134,8 @@ function StationDetails({ id, onClose, onChanged }) {
       {user.role === 'Backoffice' && <div className="d-flex flex-wrap gap-2">
         <button className="btn btn-primary" disabled={busy} onClick={() => setEditing(true)}>Edit station</button>
         {station.isActive && <button className="btn btn-outline-danger" disabled={busy} onClick={() => { setError(''); setConfirmation({ title: 'Deactivate ' + station.name + '?', description: 'The station will disappear from discovery. Historical records remain. Active reservations may prevent this change.', path: '/stations/' + id + '/deactivate', body: { expectedUpdatedAtUtc: station.updatedAtUtc }, message: 'Station deactivated.' }); }}>Deactivate station</button>}</div>}</article>
+      <AuditHistory kind="stations" id={id} />
+      {slots.length > 0 && <section className="surface-card p-3 my-3"><label className="form-label">Slot audit history<select className="form-select" value={auditSlot} onChange={e=>setAuditSlot(e.target.value)}><option value="">Select a slot</option>{slots.map(x=><option key={x.slotId} value={x.slotId}>{x.slotId}</option>)}</select></label>{auditSlot && <AuditHistory kind="slots" id={auditSlot}/>}</section>}
       {editing && <StationForm key={station.updatedAtUtc} station={station} onSaved={() => saved('Station saved.')} onCancel={() => setEditing(false)} />}
       <div className="d-flex flex-wrap justify-content-between gap-2 mt-4 mb-2"><h2 className="h4">Booking slots</h2>
         {canManage && station.isActive && <button className="btn btn-primary" disabled={busy} onClick={() => setSlotForm({})}>Add slot</button>}</div>
@@ -149,8 +154,9 @@ function StationDetails({ id, onClose, onChanged }) {
 }
 export default function StationsPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(''), [filter, setFilter] = useState(''), [inactive, setInactive] = useState(false);
-  const [stations, setStations] = useState([]), [selected, setSelected] = useState(null), [adding, setAdding] = useState(false);
+  const [stations, setStations] = useState([]), [selected, setSelected] = useState(searchParams.get('id')), [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [version, setVersion] = useState(0), [success, setSuccess] = useState('');
   useEffect(() => {
     const abort = new AbortController(); setLoading(true); setError('');
@@ -164,6 +170,7 @@ export default function StationsPage() {
     <p>Station information and energy slot inventory.</p></div>
     {user.role === 'Backoffice' && !selected && <button className="btn btn-primary" onClick={() => setAdding(true)}>Add station</button>}</div>
     <Toast key={success} message={success} />
+    <ExportButton kind="stations" query={new URLSearchParams({ search: filter, includeInactive: String(inactive) }).toString()} />
     {selected ? <StationDetails key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setVersion(v => v + 1)} /> : <>
       <Toast key={success} message={success} />
       {adding && <StationForm onCancel={() => setAdding(false)} onSaved={station => { setAdding(false); setSelected(station.stationId); setSuccess('Station created.'); setVersion(v => v + 1); }} />}

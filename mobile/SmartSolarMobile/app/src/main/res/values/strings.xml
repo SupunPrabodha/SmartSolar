@@ -222,4 +222,7 @@
     <string name="sign_out_confirmation">Sign out of Smart Solar? You can sign back in to continue your work.</string>
     <string name="hide_station_map">Hide map · focus on list</string>
     <string name="show_station_map">Show station map</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="photo_security">Profile photo and account security</string>
+    <string name="enterprise_recent">Recent activity</string>
 </resources>

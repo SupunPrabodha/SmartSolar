@@ -70,6 +70,17 @@ public sealed class MongoDbInitializer
                 new CreateIndexOptions { Unique = true, Name = "ux_users_email" }),
             cancellationToken: cancellationToken);
 
+        await users.Indexes.CreateManyAsync(new[]
+        {
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(x => x.FullName), new CreateIndexOptions { Name = "ix_users_name_prefix" }),
+            new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(x => x.PasswordResetTokenHash),
+                new CreateIndexOptions<User> { Name = "ux_users_reset_hash", Unique = true,
+                    PartialFilterExpression = Builders<User>.Filter.Type(x => x.PasswordResetTokenHash, BsonType.String) })
+        }, cancellationToken: cancellationToken);
+        await stations.Indexes.CreateOneAsync(new CreateIndexModel<SolarStation>(
+            Builders<SolarStation>.IndexKeys.Ascending(x => x.Name), new CreateIndexOptions { Name = "ix_stations_name_prefix" }),
+            cancellationToken: cancellationToken);
+
         await stations.Indexes.CreateOneAsync(
             new CreateIndexModel<SolarStation>(
                 Builders<SolarStation>.IndexKeys

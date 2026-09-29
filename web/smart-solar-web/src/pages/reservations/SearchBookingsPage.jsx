@@ -1,3 +1,4 @@
+import { ExportButton } from '../../components/Experience';
 import { useCallback, useState } from 'react';
 import { fromUtcInput } from '../../util/catalog.js';
 import { searchBookings } from '../../api/reservations.js';
@@ -56,6 +57,7 @@ export default function SearchBookingsPage() {
           <h1 className="h2">Search Bookings</h1>
           <p className="text-secondary mb-0">Find a reservation by reference, account or schedule. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
+        <ExportButton kind="reservations" query={new URLSearchParams(Object.fromEntries(Object.entries(activeFilters).filter(([,v])=>v).map(([k,v])=>[k,k==='fromUtc'||k==='toUtc'?fromUtcInput(v):v]))).toString()} />
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>
           Refresh
         </button>

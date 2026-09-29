@@ -1,3 +1,4 @@
+import { ExportButton } from '../../components/Experience';
 import { localTimeZone } from './reservationUi.js';
 import { useCallback, useState } from 'react';
 import { getCurrentBookings } from '../../api/reservations.js';
@@ -19,6 +20,7 @@ export default function CurrentBookingsPage() {
           <h1 className="h2">Active Bookings</h1>
           <p className="text-secondary mb-0">Approved reservations whose accepted end is still ahead. Times shown in your local timezone ({localTimeZone()}).</p>
         </div>
+        <ExportButton kind="reservations" query="view=current" />
         <button className="btn btn-outline-secondary" type="button" disabled={loading} onClick={reload}>Refresh</button>
       </div>
       <ErrorNotice error={error} retry={reload} />

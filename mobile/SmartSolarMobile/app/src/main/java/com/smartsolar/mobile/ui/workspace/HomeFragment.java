@@ -44,6 +44,16 @@ public final class HomeFragment extends WorkspaceFragment {
         findViewById(R.id.buttonScanTransaction).setVisibility(operator ? View.VISIBLE : View.GONE);
         findViewById(R.id.buttonModuleTwo).setVisibility(operator ? View.GONE : View.VISIBLE);
         ((TextView) findViewById(R.id.textSession)).setText(R.string.workspace_verified);
+        StringBuilder recent = new StringBuilder();
+        if (workspace().inbox != null) {
+            for (int i = 0; i < Math.min(3, workspace().inbox.items.size()); i++) {
+                com.smartsolar.mobile.data.remote.dto.NotificationInbox.Item item = workspace().inbox.items.get(i);
+                recent.append(item.message).append("\n").append(ReservationUiUtils.formatTime(item.atUtc)).append("\n\n");
+            }
+        }
+        TextView activity = findViewById(R.id.textRecentActivity);
+        activity.setText(recent.length() == 0 ? "Open Notifications for your latest business and security updates." : recent.toString());
+        activity.setOnClickListener(v -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(requireActivity(), "inbox"));
     }
     @Override protected void onWorkspaceReady() { profile(); }
     @Override protected void load() {
