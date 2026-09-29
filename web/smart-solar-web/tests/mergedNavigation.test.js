@@ -10,6 +10,7 @@ import { createRoutesFromElements, matchRoutes } from 'react-router-dom';
 // Compile real JSX without a browser; only the session provider is substituted.
 const bundle = await build({
   stdin: { contents: `export { default as Home } from './src/pages/HomePage';
+    export { default as Profile } from './src/pages/ProfilePage';
     export { default as Users } from './src/pages/UserManagementPage';
     export { ReservationLayout } from './src/pages/reservations/ReservationComponents';
     export { ExperienceProvider } from './src/components/Experience';
@@ -26,7 +27,7 @@ const bundle = await build({
 });
 const compiled = { exports: {} };
 new Function('module', 'exports', 'require', bundle.outputFiles[0].text)(compiled, compiled.exports, createRequire(import.meta.url));
-const { Home, Users, App, ReservationLayout, ExperienceProvider } = compiled.exports;
+const { Home, Users, Profile, App, ReservationLayout, ExperienceProvider } = compiled.exports;
 function session(role) {
   globalThis.integrationSession = { user: { nic: 'test-account', profileComplete: true, fullName: 'Integration User', role, status: 'Active' },
     loading: false, refreshing: false, lastVerifiedAt: null, logout() {}, refreshProfile() {} };
@@ -128,4 +129,26 @@ test('only one sidebar item is selected for each queue, view and nested transact
     assert.equal((navigation(html).match(/aria-current="page"/g) ?? []).length, 1, location);
     assert.doesNotMatch(html, /Phase 0|Common foundation|Integrated team|Server Calculated|Development/);
   }
+});
+
+test('icon toolbar retains accessible notification and account destinations', () => {
+  session('GridOperator');
+  const html = render(Home);
+  assert.match(html, /aria-label="Notifications, 0 unread"/);
+  assert.match(html, /<summary[^>]*aria-label="Account options"/);
+  assert.match(html, /href="\/profile#account-security"/);
+  assert.match(html, /<button[^>]*>[\s\S]*Sign out<\/button>/);
+  assert.match(html, /title="Search workspace \(Ctrl or Command \+ K\)"/);
+});
+
+test('profile separates personal and security forms with labelled controls', () => {
+  session('Backoffice');
+  const html = render(Profile);
+  assert.equal((html.match(/<form\b/g) || []).length, 2);
+  for (const id of ['fullName', 'email', 'phoneNumber', 'current-password', 'new-password', 'confirm-password'])
+    assert.ok(html.includes('for="' + id + '"'), id + ' has a persistent label');
+  assert.match(html, /id="account-security"/);
+  assert.match(html, /Personal information/);
+  assert.match(html, /Profile complete/);
+  assert.doesNotMatch(html, /<input[^>]*id="nic"/);
 });

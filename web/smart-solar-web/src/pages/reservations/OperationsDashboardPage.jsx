@@ -22,8 +22,8 @@ export default function OperationsDashboardPage({ greeting }) {
     <h2 className="section-title">Operational shortcuts</h2>
     <div className="quick-actions">
       {[['','Manage Reservations','Review and assist bookings.','bookings'],['?status=Pending','Pending Queue','Approve or reject requests.','pending'],['/current','Active Bookings','Track upcoming and active transfers.','current'],['/search','Search Bookings','Find a reservation quickly.','search'],['/history','Booking History','Review concluded bookings.','history']].map(([path,title,description,icon]) =>
-        <Link key={path} className="quick-action" to={'/operator/reservations'+path}><Icon name={icon}/><span><strong>{title}</strong><small>{description}</small></span><span aria-hidden="true">→</span></Link>)}
-      <Link className="quick-action" to="/stations"><Icon name="station"/><span><strong>Stations &amp; Slots</strong><small>Manage published energy availability.</small></span><span aria-hidden="true">→</span></Link>
+        <Link key={path} className="quick-action" to={'/operator/reservations'+path}><Icon name={icon}/><span><strong>{title}</strong><small>{description}</small></span><Icon name="arrow"/></Link>)}
+      <Link className="quick-action" to="/stations"><Icon name="station"/><span><strong>Stations &amp; Slots</strong><small>Manage published energy availability.</small></span><Icon name="arrow"/></Link>
     </div>
   </div>;
 }

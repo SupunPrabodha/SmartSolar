@@ -10,6 +10,11 @@ import android.os.Looper;
 import android.text.InputType;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.FrameLayout;
+import android.view.Gravity;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.smartsolar.mobile.ui.common.SurfaceUi;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
@@ -44,7 +49,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final EnterpriseFeedback feedback = new EnterpriseFeedback();
-    private LinearLayout content;
+    private LinearLayout content, section;
     private TextView status;
     private ApiService api;
     private SessionManager sessions;
@@ -109,28 +114,45 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         });
     }
     private void clear() {
-        content.removeAllViews(); retryAvailable=false; status = text(""); status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        content.removeAllViews(); section=content; retryAvailable=false; status = text(""); status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
     }
     private TextView text(String value) {
         TextView view = new TextView(this);
         view.setText(value); view.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
-        view.setPadding(0,12,0,12); content.addView(view); return view;
+        view.setTextColor(getColor(R.color.solar_secondary)); view.setPadding(0,SurfaceUi.dp(this,8),0,SurfaceUi.dp(this,8)); section.addView(view); return view;
     }
     private MaterialButton button(String label, Runnable action) {
-        MaterialButton view = new MaterialButton(this); view.setText(label); view.setOnClickListener(v -> { if(!busy) action.run(); });
-        content.addView(view,new LinearLayout.LayoutParams(-1,-2)); return view;
+        MaterialButton view = new MaterialButton(new androidx.appcompat.view.ContextThemeWrapper(this,R.style.Solar_Button_Outlined)); view.setText(label); view.setOnClickListener(v -> { if(!busy) action.run(); });
+        view.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_surface)));
+        view.setTextColor(getColor(R.color.solar_primary));view.setStrokeWidth(SurfaceUi.dp(this,1));view.setStrokeColor(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_border)));
+        view.setIconTint(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
+        if(label.equals("Save profile")||label.equals("Send reset instructions"))primary(view);
+        if(label.equals(getString(R.string.polish_change_photo)))view.setIconResource(R.drawable.ic_ui_camera);
+        if(label.equals("Change password"))view.setIconResource(R.drawable.ic_ui_shield);
+        if(label.equals("View security history"))view.setIconResource(R.drawable.ic_nav_history);
+        if(label.equals("Mark read"))view.setIconResource(R.drawable.ic_ui_check_all);
+        view.setMinHeight(SurfaceUi.dp(this,48)); section.addView(view,new LinearLayout.LayoutParams(-2,-2)); return view;
     }
     private TextInputEditText field(String label, String value, int type, int max) {
-        TextInputLayout wrapper = new TextInputLayout(this); wrapper.setHint(label);
+        TextInputLayout wrapper = new TextInputLayout(new androidx.appcompat.view.ContextThemeWrapper(this,R.style.Solar_Input)); wrapper.setHint(label);
+        wrapper.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
+        wrapper.setStartIconDrawable(label.contains("password") ? R.drawable.ic_ui_shield : label.contains("Email") ? R.drawable.ic_ui_mail : label.contains("Phone") ? R.drawable.ic_ui_phone : R.drawable.ic_nav_account);
         TextInputEditText edit = new TextInputEditText(wrapper.getContext()); edit.setInputType(type); edit.setText(value);
         edit.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(max)});
         if ((type & InputType.TYPE_TEXT_VARIATION_PASSWORD) == InputType.TYPE_TEXT_VARIATION_PASSWORD) {
             wrapper.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE); edit.setSaveEnabled(false);
         }
-        wrapper.addView(edit,new LinearLayout.LayoutParams(-1,-2)); content.addView(wrapper); return edit;
+        wrapper.addView(edit,new LinearLayout.LayoutParams(-1,-2)); LinearLayout.LayoutParams spacing=new LinearLayout.LayoutParams(-1,-2);spacing.topMargin=SurfaceUi.dp(this,12);spacing.bottomMargin=SurfaceUi.dp(this,4);section.addView(wrapper,spacing); return edit;
+    }
+    private void section(String title,int icon) {
+        section=SurfaceUi.card(content);SurfaceUi.heading(section,title,icon);
+    }
+    private MaterialButton primary(MaterialButton button) {
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
+        button.setTextColor(getColor(R.color.solar_on_primary));return button;
     }
     private void recovery() {
-        clear(); text("Enter the email or NIC for your account. Reset your password using the link sent by email.");
+        clear(); section("Recover account",R.drawable.ic_ui_shield); text("Enter the email or NIC for your account. Reset your password using the link sent by email.");
         TextInputEditText identifier=field("Email or NIC","",InputType.TYPE_CLASS_TEXT,254);
         button("Send reset instructions",()->{
             String value=identifier.getText().toString().trim();
@@ -143,12 +165,20 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     }
     private void profile() {
         clear();
-        text(profile.getFullName()+"\n"+profile.getNic()+" · "+profile.getRole()+" · "+profile.getStatus());
-        TextView initials = text(profile.getFullName().isEmpty() ? "?" : profile.getFullName().substring(0,1));
-        initials.setTextSize(40);
-        ImageView picture=new ImageView(this); picture.setContentDescription("Your profile photo");picture.setAdjustViewBounds(true);
-        int size=(int)(120*getResources().getDisplayMetrics().density);
-        content.addView(picture,new LinearLayout.LayoutParams(size,size));
+        section=SurfaceUi.card(content);
+        FrameLayout avatarFrame=new FrameLayout(this);
+        LinearLayout.LayoutParams avatarSpace=new LinearLayout.LayoutParams(SurfaceUi.dp(this,120),SurfaceUi.dp(this,120));
+        avatarSpace.gravity=Gravity.CENTER_HORIZONTAL;avatarSpace.bottomMargin=SurfaceUi.dp(this,16);section.addView(avatarFrame,avatarSpace);
+        TextView initials=new TextView(this);initials.setText(profile.getFullName().isEmpty()?"?":profile.getFullName().substring(0,1));initials.setTextSize(40);initials.setGravity(Gravity.CENTER);
+        android.graphics.drawable.GradientDrawable ring=new android.graphics.drawable.GradientDrawable();ring.setShape(android.graphics.drawable.GradientDrawable.OVAL);ring.setColor(getColor(R.color.solar_approved_surface));ring.setStroke(SurfaceUi.dp(this,2),getColor(R.color.solar_primary));
+        initials.setBackground(ring);initials.setTextColor(getColor(R.color.solar_primary));avatarFrame.addView(initials,new FrameLayout.LayoutParams(-1,-1));
+        ShapeableImageView picture=new ShapeableImageView(this);picture.setContentDescription(getString(R.string.polish_photo_description));picture.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        picture.setShapeAppearanceModel(picture.getShapeAppearanceModel().toBuilder().setAllCornerSizes(new com.google.android.material.shape.RelativeCornerSize(.5f)).build());
+        picture.setStrokeColor(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));picture.setStrokeWidth(SurfaceUi.dp(this,2));avatarFrame.addView(picture,new FrameLayout.LayoutParams(-1,-1));
+        TextView name=SurfaceUi.heading(section,profile.getFullName(),0);name.setTextSize(24);name.setGravity(Gravity.CENTER);
+        TextView identity=text(profile.getNic()+" · "+profile.getRole());identity.setGravity(Gravity.CENTER);
+        SurfaceUi.pill(section,profile.getStatus(),R.color.solar_status_approved,R.color.solar_approved_surface);
+        SurfaceUi.pill(section,getString(profile.isProfileComplete()?R.string.polish_complete:R.string.polish_incomplete),R.color.solar_secondary,R.color.solar_surface_soft);
         if(profile.getAvatarVersion()!=null) {
             final int request=generation;
             worker.execute(()->{
@@ -162,13 +192,18 @@ public final class AccountExperienceActivity extends AppCompatActivity {
                 }catch(Exception ignored){}
             });
         }
-        text("JPEG, PNG or WebP up to 2 MB. Your photo stays on the server and is not stored in SQLite.");
-        button("Choose photo",()->{saveDraft();picker.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());});
+        text(getString(R.string.polish_photo_hint));
+        MaterialButton changePhoto=button(getString(R.string.polish_change_photo),()->{saveDraft();picker.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());});
+        section.removeView(changePhoto);changePhoto.setText("");changePhoto.setContentDescription(getString(R.string.polish_change_photo));changePhoto.setTooltipText(getString(R.string.polish_change_photo));
+        changePhoto.setIconPadding(0);changePhoto.setPadding(0,0,0,0);changePhoto.setInsetTop(0);changePhoto.setInsetBottom(0);primary(changePhoto);changePhoto.setIconTint(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_on_primary)));
+        FrameLayout.LayoutParams cameraPosition=new FrameLayout.LayoutParams(SurfaceUi.dp(this,48),SurfaceUi.dp(this,48),Gravity.BOTTOM|Gravity.END);avatarFrame.addView(changePhoto,cameraPosition);
         if(profile.getAvatarVersion()!=null)button("Remove photo",()->run(()->{checked(api.removeAvatar().execute());return true;},result->{profileFeedback("Photo removed.");recreate();}));
+        section(getString(R.string.polish_personal),R.drawable.ic_nav_account);
+        TextView info=text(getString(R.string.polish_identity_info));info.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_ui_info,0,0,0);info.setCompoundDrawablePadding(SurfaceUi.dp(this,8));info.setTextSize(14);
         fullName=field("Full name",draftName==null?profile.getFullName():draftName,InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PERSON_NAME,120);
         email=field("Email",draftEmail==null?profile.getEmail():draftEmail,InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,254);
         phone=field("Phone number",draftPhone==null?profile.getPhoneNumber():draftPhone,InputType.TYPE_CLASS_PHONE,20);
-        text("NIC, role and account state cannot be edited here. Changing a Prosumer email requires new approval and verification.");
+        if("Prosumer".equals(profile.getRole()))text("Changing your email requires new approval and verification.");
         button("Save profile",()->{
             saveDraft();
             if(draftName.trim().length()<2 || !android.util.Patterns.EMAIL_ADDRESS.matcher(draftEmail).matches() || draftPhone.trim().length()<7){
@@ -183,7 +218,8 @@ public final class AccountExperienceActivity extends AppCompatActivity {
                 profile=user; draftName=draftEmail=draftPhone=null; profile(); profileFeedback("Profile saved.");
             });
         });
-        text("Account security\nUse 8–100 characters. Changing your password signs out all your current sessions.");
+        section(getString(R.string.polish_security),R.drawable.ic_ui_shield);
+        text("Use 8–100 characters. Changing your password signs out all your current sessions.");
         TextInputEditText current=field("Current password","",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD,100);
         TextInputEditText next=field("New password","",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD,100);
         TextInputEditText confirm=field("Confirm new password","",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD,100);
@@ -196,10 +232,13 @@ public final class AccountExperienceActivity extends AppCompatActivity {
             run(()->{checked(api.changePassword(Map.of("currentPassword",old,"newPassword",password)).execute());passwordChanged=true;sessions.clear();return true;},
                 result->login());
         });
+        section(getString(R.string.polish_history),R.drawable.ic_nav_history);
         button("View security history",()->run(()->checked(api.profileAudit().execute()),items->{
-            clear();text("Account audit history");
+            clear();
+            if(items.isEmpty())SurfaceUi.empty(content,getString(R.string.polish_no_history),getString(R.string.polish_history_hint),R.drawable.ic_nav_history);
+            section(getString(R.string.polish_history),R.drawable.ic_nav_history);
             for(com.google.gson.JsonObject item:items)text(item.get("event").getAsString()+"\n"+ReservationUiUtils.formatTime(item.get("atUtc").getAsString())+"\nReference: "+item.get("correlationId").getAsString());
-            button("Back to profile",this::profile);
+            section=content;button("Back to profile",this::profile);
         }));
     }
     private void upload(Uri uri) {
@@ -217,29 +256,46 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         run(()->checked(api.notifications().execute()),result->{inbox=result;renderInbox();});
     }
     private void renderInbox() {
-        clear();text("Notifications · "+inbox.unreadCount+" unread");
-        button("Refresh",this::loadInbox);
-        button("Mark all read",()->run(()->{checked(api.readNotifications().execute());return true;},result->loadInbox()));
-        button(unreadOnly?"Show all notifications":"Show unread only",()->{unreadOnly=!unreadOnly;renderInbox();});
-        button("Priority: "+(priority.isEmpty()?"All":priority),()->{
-            priority=priority.isEmpty()?"High":priority.equals("High")?"Medium":priority.equals("Medium")?"Low":"";renderInbox();
+        clear();
+        MaterialToolbar toolbar=findViewById(R.id.deepToolbar);
+        toolbar.setSubtitle(getResources().getQuantityString(R.plurals.polish_unread_count,inbox.unreadCount,inbox.unreadCount));toolbar.getMenu().clear();
+        toolbar.getMenu().add(0,1,0,getString(R.string.polish_refresh_notifications)).setIcon(R.drawable.ic_ui_refresh).setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.getMenu().add(0,2,1,getString(R.string.polish_mark_all)).setIcon(R.drawable.ic_ui_check_all).setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS);
+        toolbar.setOnMenuItemClickListener(item->{
+            if(busy)return true;
+            if(item.getItemId()==1)loadInbox();else run(()->{checked(api.readNotifications().execute());return true;},result->loadInbox());
+            return true;
         });
+        section(getString(R.string.polish_filters),R.drawable.ic_ui_filter);
+        SurfaceUi.choices(section,new String[]{getString(R.string.polish_all),getString(R.string.polish_unread)},unreadOnly?1:0,index->{if(!busy){unreadOnly=index==1;renderInbox();}});
+        text(getString(R.string.polish_priority));
+        String[] priorities={"","High","Medium","Low"};
+        SurfaceUi.choices(section,new String[]{getString(R.string.polish_all),getString(R.string.polish_high),getString(R.string.polish_medium),getString(R.string.polish_low)},java.util.Arrays.asList(priorities).indexOf(priority),index->{if(!busy){priority=priorities[index];renderInbox();}});
         int shown=0;
         for(NotificationInbox.Item item:inbox.items) {
             if(unreadOnly&&item.readAtUtc!=null || !priority.isEmpty()&&!priority.equals(item.priority))continue;
             shown++;
-            text(item.priority+" · "+item.category+(item.readAtUtc==null?" · Unread":"")+"\n"+item.message+"\n"+ReservationUiUtils.formatTime(item.atUtc));
+            section(item.category,"Security".equals(item.category)?R.drawable.ic_ui_shield:R.drawable.ic_ui_bell);
+            if(item.readAtUtc==null){
+                ((com.google.android.material.card.MaterialCardView)section.getParent()).setCardBackgroundColor(getColor(R.color.solar_surface_soft));
+                SurfaceUi.pill(section,getString(R.string.polish_unread),R.color.solar_status_approved,R.color.solar_approved_surface);
+            }
+            int color="High".equals(item.priority)?R.color.solar_status_rejected:"Medium".equals(item.priority)?R.color.solar_status_pending:R.color.solar_secondary;
+            int surface="High".equals(item.priority)?R.color.solar_rejected_surface:"Medium".equals(item.priority)?R.color.solar_pending_surface:R.color.solar_cancelled_surface;
+            SurfaceUi.pill(section,item.priority,color,surface);
+            text(item.message);TextView time=text(ReservationUiUtils.formatTime(item.atUtc));time.setTextSize(12);
             button("Open",()->run(()->{checked(api.readNotification(item.id).execute());return true;},result->openItem(item)));
             if(item.readAtUtc==null)button("Mark read",()->run(()->{checked(api.readNotification(item.id).execute());return true;},result->loadInbox()));
         }
-        if(shown==0)text("No notifications match these filters.");
+        if(shown==0)SurfaceUi.empty(content,getString(R.string.polish_caught_up),getString(R.string.polish_no_notifications),R.drawable.ic_ui_bell);
+        section=content;
     }
     private void openItem(NotificationInbox.Item item) {
         // Allowlisted destinations; the API rechecks ownership and current role on the target screen.
         if("Reservation".equals(item.action)&&item.resourceId!=null) {
 
             run(() -> checked(api.getReservation(item.resourceId).execute()), reservation -> {
-                clear(); text("Reservation details");
+                clear(); section("Reservation details",R.drawable.ic_nav_bookings);
                 text(reservation.getReservationId()+"\n"+reservation.getStatus()+" · "+reservation.getEnergyAmountKwh()+" kWh");
                 text("Starts: "+ReservationUiUtils.formatTime(reservation.getScheduledStartAtUtc())+"\nEnds: "+ReservationUiUtils.formatTime(reservation.getScheduledEndAtUtc()));
                 button("Back to notifications",this::loadInbox);
@@ -271,7 +327,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
                 busy=false;if(!active||request!=generation||isFinishing())return;
                 if (!"recovery".equals(mode) && !java.util.Objects.equals(expectedToken,getSharedPreferences("smart_solar_session",MODE_PRIVATE).getString("access_token",null))) { login(); return; }
                 if(problem==null){status.setText("");retryAction=null;result.accept(value);}
-                else{status.setText(problem); if(!retryAvailable){retryAvailable=true;button("Retry last request",()->{if(retryAction!=null)retryAction.run();});}}
+                else{status.setText(problem); if(!retryAvailable){retryAvailable=true;section=content;button("Retry last request",()->{if(retryAction!=null)retryAction.run();});}}
             });
         });
     }

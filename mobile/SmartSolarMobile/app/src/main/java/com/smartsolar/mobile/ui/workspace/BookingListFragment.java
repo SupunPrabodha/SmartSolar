@@ -27,6 +27,7 @@ public final class BookingListFragment extends WorkspaceFragment {
     }
     @Override protected int layout() { return R.layout.fragment_booking_list; }
     @Override protected void bind(Bundle saved) {
+        androidx.core.view.ViewCompat.setAccessibilityHeading(findViewById(R.id.polishBookingHeading),true);
         section = Section.valueOf(requireArguments().getString("section"));
         page = memory.values.getInt("page", 1);
         repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));

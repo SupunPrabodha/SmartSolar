@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.smartsolar.mobile.R;
@@ -69,7 +70,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
         private final TextView textStationSlot;
         private final TextView textEnergy;
         private final TextView textSchedule;
-        private final TextView textChevron;
+        private final ImageView textChevron;
 
         private final View layoutExpandedDetails;
         private final TextView textExpandedReservationId;
@@ -144,7 +145,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
                 layoutExpandedDetails.setVisibility(expandedIds.contains(item.getReservationId()) ? View.VISIBLE : View.GONE);
             }
             if (textChevron != null) {
-                textChevron.setText(expandedIds.contains(item.getReservationId()) ? "⌃" : "⌄");
+                textChevron.setRotation(expandedIds.contains(item.getReservationId()) ? 180f : 0f);
             }
 
             // Expand/Collapse interaction matching Member 3's card
@@ -157,7 +158,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
                         androidx.core.view.ViewCompat.setStateDescription(cardHeader, itemView.getContext().getString(isExpanded ? R.string.details_collapsed : R.string.details_expanded));
                         layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
                         if (textChevron != null) {
-                            textChevron.setText(isExpanded ? "⌄" : "⌃");
+                            textChevron.setRotation(isExpanded ? 0f : 180f);
                         }
                     }
                     if (listener != null) {
