@@ -33,12 +33,12 @@
 
             <!-- Clickable Base Header -->
             <LinearLayout
-                android:id="@+id/cardHeader"
+                android:id="@+id/cardHeader" android:background="@color/solar_surface_soft"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="@dimen/solar_card_padding"
-                android:background="?attr/selectableItemBackground"
+                android:foreground="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
                 android:minHeight="48dp">

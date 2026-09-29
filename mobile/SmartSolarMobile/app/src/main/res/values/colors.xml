@@ -1,7 +1,7 @@
 <resources>
     <color name="solar_primary">#0B3D2E</color>
     <color name="solar_on_primary">#FFFFFF</color>
-    <color name="solar_background">#F4F6F2</color>
+    <color name="solar_background">#F4F7F3</color>
     <color name="solar_accent">#F6C344</color>
     <color name="solar_hero">#0B3D2E</color>
     <color name="solar_hero_text">#FFFFFF</color>
@@ -23,7 +23,7 @@
     <color name="solar_emerald">#168B63</color>
     <color name="solar_primary_dark">#072B20</color>
     <color name="solar_glass">#F2FFFFFF</color>
-    <color name="solar_surface_soft">#EDF3EE</color>
+    <color name="solar_surface_soft">#EDF5F1</color>
     <color name="solar_scrim">#CC072B20</color>
     <color name="solar_brand_forest">#0B3D2E</color>
 </resources>

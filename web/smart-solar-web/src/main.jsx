@@ -9,3 +9,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 import './enterprise.css';
+
+import './visual-system.css';

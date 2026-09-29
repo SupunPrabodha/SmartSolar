@@ -76,6 +76,7 @@
             android:accessibilityLiveRegion="polite"
             android:visibility="gone" />
 
+        <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/reservationsSkeleton" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="@string/visual_loading_bookings" android:visibility="gone"/>
         <ProgressBar
             android:id="@+id/progress"
             android:layout_width="32dp"

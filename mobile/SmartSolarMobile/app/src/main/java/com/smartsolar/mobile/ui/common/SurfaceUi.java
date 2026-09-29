@@ -31,6 +31,9 @@ public final class SurfaceUi {
         int padding=dp(context,16);body.setPadding(padding,padding,padding,padding);
         card.addView(body,new LinearLayout.LayoutParams(-1,-2));return body;
     }
+    public static void tint(LinearLayout body, int color) {
+        ((MaterialCardView)body.getParent()).setCardBackgroundColor(ContextCompat.getColor(body.getContext(),color));
+    }
     public static TextView heading(LinearLayout parent,String title,int icon) {
         Context context=parent.getContext(); TextView view=new TextView(context);
         view.setText(title);view.setTextSize(18);view.setTypeface(view.getTypeface(),Typeface.BOLD);
@@ -55,7 +58,7 @@ public final class SurfaceUi {
         parent.addView(group,new LinearLayout.LayoutParams(-1,-2));
     }
     public static void empty(LinearLayout parent,String title,String description,int icon) {
-        LinearLayout body=card(parent);TextView heading=heading(body,title,icon);heading.setGravity(Gravity.CENTER);
+        LinearLayout body=card(parent);tint(body,R.color.solar_brand_surface);TextView heading=heading(body,title,icon);heading.setGravity(Gravity.CENTER);
         TextView detail=new TextView(parent.getContext());detail.setText(description);detail.setTextSize(14);detail.setGravity(Gravity.CENTER);
         detail.setTextColor(ContextCompat.getColor(parent.getContext(),R.color.solar_secondary));body.addView(detail,new LinearLayout.LayoutParams(-1,-2));
     }

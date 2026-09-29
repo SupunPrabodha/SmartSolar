@@ -1,3 +1,4 @@
+import { MetricSkeleton } from '../components/LoadingExperience';
 import { ExperienceTools, RecentActivity } from '../components/Experience';
 import { Fragment, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -76,9 +77,10 @@ function BackofficeOverview({ greeting }) {
   return <>
     <div className="page-heading"><div><p className="eyebrow">NETWORK ADMINISTRATION</p><h1>{greeting}</h1><p className="text-secondary mb-0">Manage community access and your microgrid station network.</p></div><button className="btn btn-outline-secondary" onClick={reload} disabled={loading}><Icon name="refresh"/>Refresh</button></div>
     {error && <div className="alert alert-danger" role="alert">Unable to load the overview. Try refreshing.</div>}
-    <section className="metrics-grid" aria-label="Network overview">
+    <section className="metrics-grid" aria-label="Network overview" aria-busy={loading}>
+      {loading && <span className="visually-hidden" role="status">Loading dashboard</span>}
       {[['Community accounts', data?.users], ['Pending activations', data?.pending], ['Microgrid stations', data?.stations]].map(([label,value]) =>
-        <article className="surface-card metric-card" key={label}><p className="card-label">{label}</p><strong className="metric-value">{loading ? '…' : error ? '—' : value ?? '—'}</strong></article>)}
+        <article className="surface-card metric-card" key={label}><p className="card-label">{label}</p>{loading ? <MetricSkeleton /> : <strong className="metric-value">{error ? '—' : value ?? '—'}</strong>}</article>)}
     </section>
     <h2 className="section-title">Administration</h2>
     <div className="quick-actions">

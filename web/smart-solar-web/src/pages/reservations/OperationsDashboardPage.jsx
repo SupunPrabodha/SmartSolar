@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getReservationDashboardSummary } from '../../api/reservations.js';
 import Icon from '../../components/Icon';
-import { ErrorNotice, Loading } from './ReservationComponents.jsx';
+import { MetricLoadingGrid } from '../../components/LoadingExperience';
+import { ErrorNotice } from './ReservationComponents.jsx';
 import { formatUtc } from './reservationUi.js';
 import { useReservationData } from './useReservationData.js';
 
@@ -12,7 +13,7 @@ export default function OperationsDashboardPage({ greeting }) {
   return <div>
     <div className="page-heading"><div><p className="eyebrow">ENERGY OPERATIONS</p><h1>{greeting || 'Reservation Operations'}</h1><p className="text-secondary mb-0">Monitor bookings, energy slots and transfer activity.</p></div><button className="btn btn-outline-secondary" disabled={loading} onClick={reload}>Refresh metrics</button></div>
     <ErrorNotice error={error} retry={reload}/>
-    {loading ? <Loading/> : !error && summary && <>
+    {loading ? <MetricLoadingGrid labels={['Pending Reservations', 'Approved Future Reservations']} /> : !error && summary && <>
       <section className="metrics-grid metrics-pair" aria-label="Reservation metrics">
         <article className="surface-card metric-card metric-pending"><div><p className="card-label">Pending Reservations</p><strong className="metric-value">{summary.pendingReservations}</strong><p>Awaiting operator review</p></div><Icon name="pending"/></article>
         <article className="surface-card metric-card metric-approved"><div><p className="card-label">Approved Future Reservations</p><strong className="metric-value">{summary.approvedFutureReservations}</strong><p>Scheduled energy transfers</p></div><Icon name="current"/></article>
