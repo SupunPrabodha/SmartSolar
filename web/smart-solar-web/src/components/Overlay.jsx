@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -31,7 +32,7 @@ export default function Overlay({ title, children, onClose, busy = false, wide =
     onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
     <header className="dialog-heading"><div><p className="eyebrow">SMART SOLAR</p>
       <h2 id={titleId} ref={heading} tabIndex="-1">{title}</h2></div>
-      <button type="button" className="btn btn-outline-secondary icon-button" aria-label="Close dialog" disabled={busy} onClick={onClose}>×</button>
+      <button type="button" className="btn btn-outline-secondary icon-button" aria-label="Close dialog" disabled={busy} onClick={onClose}><Icon name="close"/></button>
     </header>
     <div className="dialog-content">{children}</div>
   </dialog>, document.body);

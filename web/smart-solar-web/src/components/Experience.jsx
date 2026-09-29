@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -39,7 +40,7 @@ export function ExperienceProvider({ children }) {
   },[user?.nic,user?.avatarVersion,sessionRevision]);
   return <Context.Provider value={{inbox,error,unavailable,avatar}}>{children}</Context.Provider>;
 }
-export function ExperienceTools() {
+export function ExperienceTools({ onSignOut }) {
   const { inbox, unavailable, avatar } = useContext(Context);
   const { user, refreshProfile } = useAuth();
   const location = useLocation(), navigate = useNavigate();
@@ -52,10 +53,14 @@ export function ExperienceTools() {
   }, []);
   function closePrompt() { sessionStorage.setItem(key, 'seen'); setPrompt(false); }
   return <>
-    <button className="btn btn-outline-secondary btn-sm" onClick={()=>setPalette(true)}>Search <kbd>Ctrl K</kbd></button>
-    <Link className="btn btn-outline-secondary btn-sm" to="/notifications" aria-label={'Notifications, '+inbox.unreadCount+' unread'}>Notifications {inbox.unreadCount>0 && <span className="notification-badge">{inbox.unreadCount>99?'99+':inbox.unreadCount}</span>}</Link>
-    <Link className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" to="/profile">
-      {avatar?<img className="shell-avatar" src={avatar} alt=""/>:<span className="shell-avatar avatar-initials" aria-hidden="true">{user.fullName.slice(0,1)}</span>}My Profile</Link>
+    <div className="experience-toolbar">
+      <button className="toolbar-search" title="Search workspace (Ctrl or Command + K)" onClick={()=>setPalette(true)}><Icon name="search"/><span>Search</span><kbd>Ctrl K</kbd></button>
+      <Link className="toolbar-icon notification-trigger" to="/notifications" title="Notifications" aria-label={'Notifications, '+inbox.unreadCount+' unread'}><Icon name="bell"/>{inbox.unreadCount>0 && <span className="notification-badge">{inbox.unreadCount>99?'99+':inbox.unreadCount}</span>}</Link>
+      <details className="account-disclosure" onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary').focus();}}}>
+        <summary aria-label="Account options" title="Account options">{avatar?<img className="shell-avatar" src={avatar} alt=""/>:<span className="shell-avatar avatar-initials" aria-hidden="true">{user.fullName.slice(0,1)}</span>}<span className="toolbar-identity"><strong>{user.fullName}</strong><small>{user.role==='GridOperator'?'Grid Operator':user.role}</small></span><Icon name="chevron"/></summary>
+        <div className="account-popover"><Link to="/profile"><Icon name="profile"/>My Profile</Link><Link to="/profile#account-security"><Icon name="shield"/>Account security</Link><button onClick={onSignOut}><Icon name="logout"/>Sign out</button></div>
+      </details>
+    </div>
     {unavailable && <aside className="service-banner" role="status">Service unavailable. Displayed information may be out of date. <button onClick={()=>{refreshProfile();window.dispatchEvent(new Event('inbox-refresh'));}} className="btn btn-sm btn-outline-secondary">Retry connection</button></aside>}
     {palette && <CommandPalette onClose={()=>setPalette(false)}/>}
     {prompt && !user.profileComplete && <Overlay title="Make this workspace yours" onClose={closePrompt}>
@@ -71,7 +76,7 @@ function destination(item, role) {
 }
 export function RecentActivity() {
   const { inbox, error } = useContext(Context), {user} = useAuth();
-  return <section className="surface-card p-4 my-4"><div className="d-flex justify-content-between"><h2>Recent activity</h2><Link to="/notifications">View all</Link></div>
+  return <section className="surface-card p-4 my-4"><div className="d-flex justify-content-between"><h2 className="section-icon-title"><Icon name="history"/>Recent activity</h2><Link to="/notifications">View all</Link></div>
     {error ? <p role="status">Activity could not be refreshed. <button className="text-action" onClick={()=>window.dispatchEvent(new Event('inbox-refresh'))}>Retry</button></p> :
       inbox.items.length ? <ul className="activity-list">{inbox.items.slice(0,5).map(x=><li key={x.id}><Link to={destination(x,user.role)}>{x.message}</Link><small>{new Date(x.atUtc).toLocaleString()}</small></li>)}</ul> :
       <p className="text-secondary">Your business and security updates will appear here.</p>}</section>;
@@ -85,14 +90,14 @@ export function InboxContents() {
     catch(e) { notify(e.message,'error','inbox-error'); } finally {setBusy(false);}
   }
   const items = inbox.items.filter(x=>(!priority || x.priority===priority) && (!unread || !x.readAtUtc));
-  return <><div className="page-heading"><div><h1>Notifications</h1><p>Business and security updates for your account.</p></div><button className="btn btn-outline-secondary" disabled={busy || !inbox.unreadCount} onClick={()=>read()}>Mark all read</button></div>
-    <div className="d-flex gap-3 mb-3 flex-wrap"><label>Priority <select className="form-select" value={priority} onChange={e=>setPriority(e.target.value)}><option value="">All priorities</option>{['High','Medium','Low'].map(x=><option key={x}>{x}</option>)}</select></label>
-    <label><input type="checkbox" checked={unread} onChange={e=>setUnread(e.target.checked)}/> Unread only</label><button className="btn btn-outline-secondary" onClick={()=>window.dispatchEvent(new Event('inbox-refresh'))}>Refresh</button></div>
+  return <><div className="page-heading"><div><h1>Notifications</h1><p>Business and security updates for your account.</p></div><button className="btn btn-outline-secondary" disabled={busy || !inbox.unreadCount} onClick={()=>read()}><Icon name="checkAll"/>Mark all read</button></div>
+    <div className="surface-card inbox-filters"><label>Priority <select className="form-select" value={priority} onChange={e=>setPriority(e.target.value)}><option value="">All priorities</option>{['High','Medium','Low'].map(x=><option key={x}>{x}</option>)}</select></label>
+    <label><input type="checkbox" checked={unread} onChange={e=>setUnread(e.target.checked)}/> Unread only</label><button className="btn btn-outline-secondary" onClick={()=>window.dispatchEvent(new Event('inbox-refresh'))} aria-label="Refresh notifications" title="Refresh notifications"><Icon name="refresh"/></button></div>
     {error && <p role="alert" className="alert alert-warning">{error} Previously loaded notifications may be stale.</p>}
     <section className="surface-card p-4">{items.length ? <ul className="notification-list">{items.map(x=><li key={x.id} className={x.readAtUtc?'':'notification-unread'}>
-      <span className={'priority-pill priority-'+x.priority.toLowerCase()}>{x.priority}</span><strong>{x.category}</strong><p>{x.message}</p><small>{new Date(x.atUtc).toLocaleString()}</small>
+      <span className={'priority-pill priority-'+x.priority.toLowerCase()}>{x.priority}</span><strong className="notification-category"><Icon name={x.category==='Security'?'shield':'bell'}/>{x.category}{!x.readAtUtc && <span className="unread-label">Unread</span>}</strong><p>{x.message}</p><small>{new Date(x.atUtc).toLocaleString()}</small>
       <div className="d-flex gap-3 mt-2"><Link to={destination(x,user.role)} onClick={()=>read(x.id)}>Open</Link>{!x.readAtUtc && <button disabled={busy} className="text-action" onClick={()=>read(x.id)}>Mark read</button>}</div>
-    </li>)}</ul> : <p>No notifications match these filters.</p>}</section></>;
+    </li>)}</ul> : <div className="polished-empty"><Icon name="bell"/><h2>You’re all caught up</h2><p>No notifications match these filters.</p></div>}</section></>;
 }
 export function CommandPalette({onClose}) {
   const {user} = useAuth(), navigate = useNavigate();
@@ -121,13 +126,13 @@ export function CommandPalette({onClose}) {
 export function AuditHistory({kind,id}) {
   const [items,setItems]=useState([]),[error,setError]=useState(''),[revision,setRevision]=useState(0),[filter,setFilter]=useState('');
   useEffect(()=>{const controller=new AbortController();setItems([]);apiFetch('/audit/'+kind+'/'+encodeURIComponent(id),{signal:controller.signal}).then(x=>{setItems(x);setError('');}).catch(e=>{if(!controller.signal.aborted)setError(e.message);});return()=>controller.abort();},[kind,id,revision]);
-  return <section className="surface-card p-4 mb-4"><div className="d-flex justify-content-between"><h2>Audit history</h2><button className="text-action" onClick={()=>setRevision(x=>x+1)}>Refresh</button></div>
+  return <section className="surface-card p-4 mb-4"><div className="d-flex justify-content-between"><h2 className="section-icon-title"><Icon name="history"/>Audit history</h2><button className="text-action" onClick={()=>setRevision(x=>x+1)} aria-label="Refresh audit history" title="Refresh audit history"><Icon name="refresh"/></button></div>
     <label className="form-label d-block">Filter retained events by action or actor<input className="form-control" value={filter} onChange={e=>setFilter(e.target.value)}/></label>
-    {error?<p role="alert">{error}</p>:items.length?<ol className="activity-list">{items.filter(x=>(x.event+' '+x.actorNic).toLowerCase().includes(filter.toLowerCase())).map(x=><li key={x.id}><strong>{x.event.replace(/([a-z])([A-Z])/g,'$1 $2')}</strong><small>{new Date(x.atUtc).toLocaleString()} · {x.actorNic}</small><small>Reference: {x.correlationId}</small></li>)}</ol>:<p>No retained events yet.</p>}</section>;
+    {error?<p role="alert">{error}</p>:items.length?<ol className="activity-list">{items.filter(x=>(x.event+' '+x.actorNic).toLowerCase().includes(filter.toLowerCase())).map(x=><li key={x.id}><strong>{x.event.replace(/([a-z])([A-Z])/g,'$1 $2')}</strong><small>{new Date(x.atUtc).toLocaleString()} · {x.actorNic}</small><small>Reference: {x.correlationId}</small></li>)}</ol>:<div className="polished-empty"><Icon name="history"/><p>No retained events yet.</p></div>}</section>;
 }
 export function ExportButton({kind,query=''}) {
   const [busy,setBusy]=useState(false);
   async function run(){setBusy(true);notify('Preparing export…','loading','export');try{const blob=await apiFetch('/exports/'+kind+'.csv'+(query?'?'+query:''),{responseType:'blob'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=kind+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Export downloaded.','success','export');}
     catch(e){notify(e.message,'error','export');}finally{setBusy(false);}}
-  return <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={run}>{busy?'Exporting…':'Export CSV'}</button>;
+  return <button type="button" className="btn btn-outline-secondary" disabled={busy} onClick={run}><Icon name="download"/>{busy?'Exporting…':'Export CSV'}</button>;
 }

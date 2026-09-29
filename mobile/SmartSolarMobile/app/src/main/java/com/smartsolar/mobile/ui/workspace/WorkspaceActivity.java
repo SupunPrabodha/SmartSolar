@@ -70,7 +70,9 @@ public final class WorkspaceActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.workspaceToolbar);
         toolbarTitle = findViewById(R.id.workspaceToolbarTitle);
         toolbar.getMenu().add(0, 1001, 0, "My Profile").setIcon(R.drawable.ic_nav_account).setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        toolbar.getMenu().add(0, 1002, 1, "Notifications").setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        android.view.MenuItem notifications=toolbar.getMenu().add(0, 1002, 1, "Notifications").setIcon(R.drawable.ic_ui_bell);
+        notifications.setActionView(R.layout.view_notification_action);notifications.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS);
+        notifications.getActionView().setOnClickListener(v->{if(isVerified())com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this,"inbox");});
         toolbar.setOnMenuItemClickListener(item -> {
             if (!isVerified()) return true;
             com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this, item.getItemId() == 1001 ? "profile" : "inbox");
@@ -168,6 +170,10 @@ public final class WorkspaceActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     inbox = response.body();
                     toolbar.getMenu().findItem(1002).setTitle("Notifications" + (inbox.unreadCount == 0 ? "" : " (" + (inbox.unreadCount > 99 ? "99+" : inbox.unreadCount) + ")"));
+                    View bell=toolbar.getMenu().findItem(1002).getActionView();
+                    bell.setContentDescription(getResources().getQuantityString(R.plurals.polish_notification_description,inbox.unreadCount,inbox.unreadCount));
+                    TextView badge=bell.findViewById(R.id.toolbarUnreadBadge);
+                    badge.setText(inbox.unreadCount>99?"99+":String.valueOf(inbox.unreadCount));badge.setVisibility(inbox.unreadCount>0?View.VISIBLE:View.GONE);
                     notifyReady(getSupportFragmentManager());
                 }
             }

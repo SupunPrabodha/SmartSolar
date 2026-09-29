@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Solar.Card"
     android:layout_width="match_parent"
@@ -29,7 +31,7 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Clickable Base Header with Hero Information, Station, Timestamps, & Chevron -->
+            <!-- Clickable Base Header -->
             <LinearLayout
                 android:id="@+id/cardHeader"
                 android:layout_width="match_parent"
@@ -41,7 +43,7 @@
                 android:focusable="true"
                 android:minHeight="48dp">
 
-                <!-- Top Row: Hero Energy Amount (Primary Focus) & Status Badge -->
+                <!-- Top Row: Energy Amount + Status -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -63,9 +65,10 @@
                         style="@style/Solar.Status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
+
                 </LinearLayout>
 
-                <!-- Station Name & Expand/Collapse Chevron Row -->
+                <!-- Station Name + Vector Chevron -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -84,32 +87,30 @@
                         android:maxLines="1"
                         android:ellipsize="end" />
 
-                    <TextView
+                    <ImageView
                         android:id="@+id/textChevron"
-                        style="@style/Solar.Body"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:layout_marginStart="@dimen/solar_space_xs"
-                        android:textSize="16sp"
-                        android:textColor="@color/solar_secondary"
-                        android:text="@string/details_chevron"
+                        android:src="@drawable/ic_ui_chevron"
                         android:importantForAccessibility="no" />
+
                 </LinearLayout>
 
-                <!-- 2-Column Dashboard Grid: Timestamps & Cutoff in Base Section -->
+                <!-- Timestamp / Cutoff Grid -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:orientation="vertical">
 
-                    <!-- Grid Row 1: Scheduled Start & End Times -->
+                    <!-- Start + End Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <!-- Tile 1: Scheduled Start -->
+                        <!-- Scheduled Start -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -137,9 +138,10 @@
                                 android:textColor="@color/solar_text"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
+
                         </LinearLayout>
 
-                        <!-- Tile 2: Scheduled End -->
+                        <!-- Scheduled End -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -167,11 +169,12 @@
                                 android:textColor="@color/solar_text"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
+
                         </LinearLayout>
 
                     </LinearLayout>
 
-                    <!-- Grid Row 2: Change Possible Until Cutoff -->
+                    <!-- Change Cutoff -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -198,13 +201,14 @@
                             android:textColor="@color/solar_text"
                             android:textSize="12sp"
                             android:textStyle="bold" />
+
                     </LinearLayout>
 
                 </LinearLayout>
 
             </LinearLayout>
 
-            <!-- Expanded Details & Actions Container -->
+            <!-- Expanded Details and Actions -->
             <LinearLayout
                 android:id="@+id/layoutExpandedDetails"
                 android:layout_width="match_parent"
@@ -215,13 +219,14 @@
                 android:paddingBottom="@dimen/solar_space_base"
                 android:visibility="gone">
 
+                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginBottom="@dimen/solar_space_md"
                     android:background="?attr/colorOutlineVariant" />
 
-                <!-- Rejection Notice Banner -->
+                <!-- Rejection Notice -->
                 <LinearLayout
                     android:id="@+id/layoutRejectionNotice"
                     android:layout_width="match_parent"
@@ -246,9 +251,10 @@
                         android:layout_marginTop="@dimen/solar_space_xs"
                         android:textSize="13sp"
                         android:textColor="?attr/colorOnSurface" />
+
                 </LinearLayout>
 
-                <!-- Restriction Notice Banner -->
+                <!-- Restriction Notice -->
                 <TextView
                     android:id="@+id/textExpandedRestriction"
                     style="@style/Solar.Body"
@@ -261,14 +267,14 @@
                     android:textSize="12sp"
                     android:visibility="gone" />
 
-                <!-- Expanded Section Action Buttons (2-Column Grid Layout) -->
+                <!-- Action Buttons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/solar_space_base"
                     android:orientation="vertical">
 
-                    <!-- Primary Action Row (Modify & Cancel) -->
+                    <!-- Modify + Cancel -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -296,9 +302,10 @@
                             android:paddingHorizontal="4dp"
                             android:textSize="13sp"
                             android:text="@string/btn_cancel_reservation" />
+
                     </LinearLayout>
 
-                    <!-- Approved Action Row (View QR & Directions) -->
+                    <!-- Approved Actions -->
                     <LinearLayout
                         android:id="@+id/layoutCardApprovedActions"
                         android:layout_width="match_parent"
@@ -330,6 +337,7 @@
                             android:paddingHorizontal="4dp"
                             android:textSize="13sp"
                             android:text="@string/btn_get_directions" />
+
                     </LinearLayout>
 
                 </LinearLayout>

@@ -24,18 +24,20 @@
      </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
    </LinearLayout>
-   <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enterprise_recent" android:layout_marginTop="20dp"/>
+<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp"><TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enterprise_recent" android:textSize="18sp" app:drawableStartCompat="@drawable/ic_nav_history" android:drawablePadding="10dp"/>
    <TextView android:id="@+id/textRecentActivity" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
    <TextView android:id="@+id/textMetricsStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_sm" android:textSize="12sp"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonScanTransaction" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" app:icon="@drawable/ic_nav_scan" android:text="@string/scan_transaction_qr" android:visibility="gone"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonModuleTwo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:text="@string/new_reservation" android:visibility="gone"/>
-   <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="@string/quick_actions" android:textSize="16sp"/>
+<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp"><TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/quick_actions" android:textSize="18sp"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonCurrentBookings" style="@style/Solar.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="start|center_vertical" app:icon="@drawable/ic_nav_bookings" android:text="@string/current_bookings"/>
    <com.google.android.material.button.MaterialButton android:id="@+id/buttonPendingBookings" style="@style/Solar.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="start|center_vertical" app:icon="@drawable/ic_nav_history" android:text="@string/pending_bookings"/>
+</LinearLayout></com.google.android.material.card.MaterialCardView>
   </LinearLayout>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/solar_space_base">
-   <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefresh" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/refresh_profile"/>
-   <com.google.android.material.button.MaterialButton android:id="@+id/buttonLogout" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sign_out"/>
-  </LinearLayout>
+<com.google.android.material.card.MaterialCardView style="@style/Solar.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp"><TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/polish_account_actions" android:textSize="18sp" app:drawableStartCompat="@drawable/ic_nav_account" android:drawablePadding="10dp"/>
+   <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefresh" app:icon="@drawable/ic_ui_refresh" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/refresh_profile"/>
+   <com.google.android.material.button.MaterialButton android:id="@+id/buttonLogout" app:icon="@drawable/ic_ui_logout" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sign_out"/>
+  </LinearLayout></com.google.android.material.card.MaterialCardView>
  </LinearLayout>
 </ScrollView>
