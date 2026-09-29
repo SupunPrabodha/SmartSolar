@@ -67,9 +67,9 @@ SQLiteOpenHelper is supplied by Android, Gson by converter-gson. No feature libr
 
 Main manifest declares INTERNET, the single exported `ui.auth.LoginActivity` launcher, `allowBackup=false` and `usesCleartextTraffic=false`. No location, camera, storage or other dangerous runtime permissions were requested. AndroidX adds its normal signature-level receiver permission/components during manifest merging.
 
-Debug-only manifest references a network security configuration that allows cleartext to **10.0.2.2 only**. All other HTTP hosts are denied. Release has no reference to that debug resource. TLS/certificate/hostname verification uses the platform defaults; no unsafe trust implementation was added.
+Debug-only manifest references a network security configuration that allows cleartext to local API addresses for ADB reverse forwarding. Release has no reference to that debug resource. TLS/certificate/hostname verification uses the platform defaults; no unsafe trust implementation was added.
 
-Debug `BuildConfig.API_BASE_URL` is `http://10.0.2.2:5000/api/v1/`. Release is empty until a real HTTPS IIS URL is supplied using `-PsmartSolarApiBaseUrl=https://YOUR-IIS-HOST/api/v1/`. Gradle validates that release configuration. Empty release configuration fails closed at the login UI without network calls.
+Debug `BuildConfig.API_BASE_URL` is `http://localhost:5000/api/v1/`. Run `scripts\setup-adb-reverse.cmd` from the repository root with the emulator or USB-connected phone authorized; it forwards ports 5000 and 7001. Release is empty until a real HTTPS IIS URL is supplied using `-PsmartSolarApiBaseUrl=https://YOUR-IIS-HOST/api/v1/`. Gradle validates that release configuration. Empty release configuration fails closed at the login UI without network calls.
 
 Verified the generated release manifest has no debug network-security entry and disallows cleartext; generated release BuildConfig contains no emulator address. This is a static variant check, not a deployed release runtime test.
 

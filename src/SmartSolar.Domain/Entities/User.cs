@@ -22,6 +22,23 @@ public sealed class User
 
     public UserStatus Status { get; set; }
 
+    public long SecurityVersion { get; set; }
+    public string? PasswordResetTokenHash { get; set; }
+    public DateTime? PasswordResetExpiresAtUtc { get; set; }
+    public DateTime? PasswordResetRequestedAtUtc { get; set; }
+    public DateTime? ProfileCompletedAtUtc { get; set; }
+    public byte[]? AvatarBytes { get; set; }
+    public string? AvatarContentType { get; set; }
+    public string? AvatarVersion { get; set; }
+    public List<InboxNotification> Notifications { get; set; } = [];
+    public List<AuditEntry> AuditHistory { get; set; } = [];
+
+    public long AccountVersion { get; set; }
+    public DateTime? ApprovedAtUtc { get; set; }
+    public DateTime? EmailVerifiedAtUtc { get; set; }
+    public string? EmailVerificationHash { get; set; }
+    public DateTime? EmailVerificationExpiresAtUtc { get; set; }
+
     // Internal non-expiring reservation mutex; abandoned writes require reconciliation.
     public string? ReservationWriteLock { get; set; }
 

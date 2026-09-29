@@ -12,6 +12,8 @@ using SmartSolar.Application.DTOs.Users;
 using SmartSolar.Application.Exceptions;
 using SmartSolar.Domain.Entities;
 using SmartSolar.Domain.Enums;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SmartSolar.Application.Services;
 
@@ -19,12 +21,14 @@ public sealed class UserService : IUserService
 {
     private readonly IUserRepository _users;
     private readonly IPasswordService _passwords;
+    private readonly IVerificationEmailSender _email;
 
-    public UserService(IUserRepository users, IPasswordService passwords)
+    public UserService(IUserRepository users, IPasswordService passwords, IVerificationEmailSender email)
     {
         // Store persistence and password dependencies used by user-management operations.
         _users = users;
         _passwords = passwords;
+        _email = email;
     }
 
     public async Task<UserResponse> GetByNicAsync(string nic, CancellationToken cancellationToken = default)
@@ -106,11 +110,15 @@ public sealed class UserService : IUserService
             throw new ConflictException("A user with this email already exists.");
         }
 
+        InvalidateChangedEmail(user, email);
         user.FullName = request.FullName.Trim();
         user.Email = email;
         user.PhoneNumber = request.PhoneNumber.Trim();
         user.UpdatedAtUtc = DateTime.UtcNow;
 
+        user.ProfileCompletedAtUtc = user.AvatarVersion is not null &&
+            !string.IsNullOrWhiteSpace(user.FullName) && !string.IsNullOrWhiteSpace(user.Email) &&
+            !string.IsNullOrWhiteSpace(user.PhoneNumber) ? user.ProfileCompletedAtUtc ?? DateTime.UtcNow : null;
         await _users.ReplaceAsync(user, cancellationToken);
         return user.ToResponse();
     }
@@ -126,6 +134,7 @@ public sealed class UserService : IUserService
         }
 
         user.Status = UserStatus.Deactivated;
+        ClearVerification(user);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _users.ReplaceAsync(user, cancellationToken);
     }
@@ -140,6 +149,7 @@ public sealed class UserService : IUserService
         var existing = await _users.GetByEmailAsync(email, cancellationToken);
         if (existing is not null && !string.Equals(existing.Nic, user.Nic, StringComparison.OrdinalIgnoreCase))
             throw new ConflictException("A user with this email already exists.");
+        InvalidateChangedEmail(user, email);
         user.FullName = request.FullName.Trim(); user.Email = email; user.PhoneNumber = request.PhoneNumber.Trim();
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _users.ReplaceAsync(user, cancellationToken);
@@ -148,8 +158,27 @@ public sealed class UserService : IUserService
 
     public async Task ActivateAsync(string nic, CancellationToken cancellationToken = default)
     {
-        // Activate a pending or previously deactivated account through the Backoffice-only endpoint.
+        // Staff activation is immediate; Prosumer approval requires a one-use email proof before activation.
         var user = await FindRequiredAsync(nic, cancellationToken);
+        if (user.Status == UserStatus.Active) return;
+        if (user.Role == UserRole.Prosumer)
+        {
+            _email.EnsureConfigured();
+            var now = DateTime.UtcNow;
+            if (user.ApprovedAtUtc is DateTime sent && now - sent < TimeSpan.FromMinutes(1))
+                throw new ConflictException("Please wait one minute before resending verification.");
+            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            user.Status = UserStatus.PendingActivation;
+            user.ApprovedAtUtc = now;
+            user.EmailVerifiedAtUtc = null;
+            user.EmailVerificationHash = HashToken(token);
+            user.EmailVerificationExpiresAtUtc = now.AddHours(24);
+            user.UpdatedAtUtc = now;
+            await _users.ReplaceAsync(user, cancellationToken);
+            // A delivery failure leaves the account pending; Backoffice may resend after the cooldown.
+            await _email.SendAsync(user.Email, user.Nic, token, cancellationToken);
+            return;
+        }
         user.Status = UserStatus.Active;
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _users.ReplaceAsync(user, cancellationToken);
@@ -160,8 +189,51 @@ public sealed class UserService : IUserService
         // Deactivate the selected user account through the Backoffice administration workflow.
         var user = await FindRequiredAsync(nic, cancellationToken);
         user.Status = UserStatus.Deactivated;
+        ClearVerification(user);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _users.ReplaceAsync(user, cancellationToken);
+    }
+
+    public async Task VerifyEmailAsync(string nic, string token, CancellationToken cancellationToken = default)
+    {
+        // Match a bounded opaque token, then consume it using the repository's optimistic account version.
+        if (string.IsNullOrWhiteSpace(nic) || nic.Length > 20 || token is null || token.Length != 64)
+            throw new BadRequestException("Verification link is invalid or expired. Ask Backoffice to resend it.");
+        var user = await _users.GetByNicAsync(nic.Trim().ToUpperInvariant(), cancellationToken);
+        if (user is null || user.Role != UserRole.Prosumer || user.Status != UserStatus.PendingActivation ||
+            user.ApprovedAtUtc is null || user.EmailVerificationExpiresAtUtc is not DateTime expiry || expiry <= DateTime.UtcNow ||
+            user.EmailVerificationHash is null || !CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(user.EmailVerificationHash), Encoding.UTF8.GetBytes(HashToken(token))))
+            throw new BadRequestException("Verification link is invalid or expired. Ask Backoffice to resend it.");
+        user.Status = UserStatus.Active;
+        user.EmailVerifiedAtUtc = DateTime.UtcNow;
+        user.EmailVerificationHash = null;
+        user.EmailVerificationExpiresAtUtc = null;
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        await _users.ReplaceAsync(user, cancellationToken);
+    }
+
+    private static string HashToken(string token)
+    {
+        // Only the digest is stored in MongoDB; the bearer token travels in the email link.
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    }
+
+    private static void ClearVerification(User user)
+    {
+        // Revocation prevents a previously sent link from reopening a deactivated account.
+        user.ApprovedAtUtc = null;
+        user.EmailVerifiedAtUtc = null;
+        user.EmailVerificationHash = null;
+        user.EmailVerificationExpiresAtUtc = null;
+    }
+
+    private static void InvalidateChangedEmail(User user, string email)
+    {
+        // A new Prosumer address needs fresh Backoffice approval and ownership verification.
+        if (user.Role != UserRole.Prosumer || string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)) return;
+        ClearVerification(user);
+        if (user.Status == UserStatus.Active) user.Status = UserStatus.PendingActivation;
     }
 
     private async Task<User> FindRequiredAsync(string nic, CancellationToken cancellationToken)

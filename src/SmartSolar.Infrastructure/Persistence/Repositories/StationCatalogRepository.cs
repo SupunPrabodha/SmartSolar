@@ -3,6 +3,7 @@
  * Project: Smart Solar Microgrid Trading System
  * Purpose: Persists station and slot administration in the original collections.
  */
+using SmartSolar.Application.Abstractions.Security;
 using System.Text.RegularExpressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -14,12 +15,14 @@ namespace SmartSolar.Infrastructure.Persistence.Repositories;
 
 public sealed class StationCatalogRepository : IStationCatalogRepository, IReservationReferenceReader
 {
+    private readonly IRequestIdentity? _identity;
     private readonly IMongoCollection<SolarStation> _stations;
     private readonly IMongoCollection<EnergyBookingSlot> _slots;
     private readonly IMongoCollection<EnergyReservation> _reservations;
-    public StationCatalogRepository(IMongoDatabase database)
+    public StationCatalogRepository(IMongoDatabase database, IRequestIdentity? identity = null)
     {
         // Reuse exact collection contracts; no new collection or reservation write path is introduced.
+        _identity = identity;
         _stations = database.GetCollection<SolarStation>(CollectionNames.Stations);
         _slots = database.GetCollection<EnergyBookingSlot>(CollectionNames.BookingSlots);
         _reservations = database.GetCollection<EnergyReservation>(CollectionNames.Reservations);
@@ -47,6 +50,7 @@ public sealed class StationCatalogRepository : IStationCatalogRepository, IReser
     public async Task InsertStationAsync(SolarStation station, CancellationToken ct)
     {
         // Persist a server-generated station ID without altering related collections.
+        station.AuditHistory.Add(AuditTrail.Create(_identity, "StationCreated", "Station", station.StationId));
         await _stations.InsertOneAsync(station, cancellationToken: ct);
     }
 
@@ -57,7 +61,8 @@ public sealed class StationCatalogRepository : IStationCatalogRepository, IReser
             .Set(x => x.Latitude, station.Latitude).Set(x => x.Longitude, station.Longitude)
             .Set(x => x.CapacityKwh, station.CapacityKwh).Set(x => x.TotalBatterySlots, station.TotalBatterySlots)
             .Set(x => x.OperatingSchedule, station.OperatingSchedule).Set(x => x.IsActive, station.IsActive)
-            .Set(x => x.UpdatedAtUtc, station.UpdatedAtUtc);
+            .Set(x => x.UpdatedAtUtc, station.UpdatedAtUtc)
+            .PushEach(x => x.AuditHistory, [AuditTrail.Create(_identity, station.IsActive ? "StationUpdated" : "StationDeactivated", "Station", station.StationId)], slice: -100);
         return (await _stations.UpdateOneAsync(x => x.StationId == station.StationId && x.UpdatedAtUtc == expected,
             update, cancellationToken: ct)).MatchedCount == 1;
     }
@@ -78,6 +83,7 @@ public sealed class StationCatalogRepository : IStationCatalogRepository, IReser
     public async Task InsertSlotAsync(EnergyBookingSlot slot, CancellationToken ct)
     {
         // Store inventory only; reservation creation and availability allocation are not implemented here.
+        slot.AuditHistory.Add(AuditTrail.Create(_identity, "SlotCreated", "Station", slot.StationId));
         await _slots.InsertOneAsync(slot, cancellationToken: ct);
     }
 
@@ -87,7 +93,8 @@ public sealed class StationCatalogRepository : IStationCatalogRepository, IReser
         var update = Builders<EnergyBookingSlot>.Update.Set(x => x.StartAtUtc, slot.StartAtUtc)
             .Set(x => x.EndAtUtc, slot.EndAtUtc).Set(x => x.TotalSlots, slot.TotalSlots)
             .Set(x => x.AvailableSlots, slot.AvailableSlots).Set(x => x.IsActive, slot.IsActive)
-            .Set(x => x.UpdatedAtUtc, slot.UpdatedAtUtc);
+            .Set(x => x.UpdatedAtUtc, slot.UpdatedAtUtc)
+            .PushEach(x => x.AuditHistory, [AuditTrail.Create(_identity, slot.IsActive ? "SlotUpdated" : "SlotDeactivated", "Station", slot.StationId)], slice: -100);
         return (await _slots.UpdateOneAsync(x => x.SlotId == slot.SlotId && x.UpdatedAtUtc == expected,
             update, cancellationToken: ct)).MatchedCount == 1;
     }

@@ -1,3 +1,4 @@
+import { ExportButton } from '../../components/Experience';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { listReservations } from '../../api/reservations.js';
@@ -24,6 +25,7 @@ export default function ReservationListPage() {
     <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
       <div><p className="eyebrow">RESERVATION MANAGEMENT</p><h1 className="h2">{queryStatus === 'Pending' ? 'Pending Queue' : 'Manage Reservations'}</h1>
         <p className="text-secondary mb-0">Inspect and assist with energy reservations. Times shown in your local timezone ({localTimeZone()}).</p></div>
+      <ExportButton kind="reservations" query={new URLSearchParams(filters).toString()} />
       <Link className="btn btn-primary" to="new">New reservation</Link>
     </div>
     <form className="surface-card mb-4" onSubmit={apply} aria-label="Reservation filters">

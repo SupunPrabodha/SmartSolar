@@ -17,4 +17,8 @@ public sealed record UserResponse(
     UserRole Role,
     UserStatus Status,
     DateTime CreatedAtUtc,
-    DateTime UpdatedAtUtc);
+    DateTime UpdatedAtUtc,
+    DateTime? ApprovedAtUtc = null,
+    DateTime? EmailVerifiedAtUtc = null,
+    bool ProfileComplete = false,
+    string? AvatarVersion = null);

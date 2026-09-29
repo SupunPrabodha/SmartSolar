@@ -49,16 +49,17 @@ public sealed class ExceptionHandlingMiddleware
             ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
             NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            MongoDB.Driver.MongoConnectionException or TimeoutException => (StatusCodes.Status503ServiceUnavailable, "Service unavailable"),
             _ => (StatusCodes.Status500InternalServerError, "Server error")
         };
 
         if (statusCode >= 500)
         {
-            _logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
+            _logger.LogError( "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
         }
         else
         {
-            _logger.LogWarning(exception, "Request failed with {StatusCode} for {Method} {Path}", statusCode, context.Request.Method, context.Request.Path);
+            _logger.LogWarning( "Request failed with {StatusCode} for {Method} {Path}", statusCode, context.Request.Method, context.Request.Path);
         }
 
         context.Response.StatusCode = statusCode;
@@ -68,13 +69,14 @@ public sealed class ExceptionHandlingMiddleware
         {
             Status = statusCode,
             Title = title,
-            Detail = statusCode == StatusCodes.Status500InternalServerError
+            Detail = statusCode >= 500
                 ? "An unexpected server error occurred."
                 : exception.Message,
             Instance = context.Request.Path
         };
 
         problem.Extensions["traceId"] = context.TraceIdentifier;
+        problem.Extensions["correlationId"] = context.TraceIdentifier;
         await context.Response.WriteAsJsonAsync(problem, options: null, contentType: "application/problem+json", cancellationToken: context.RequestAborted);
     }
 }

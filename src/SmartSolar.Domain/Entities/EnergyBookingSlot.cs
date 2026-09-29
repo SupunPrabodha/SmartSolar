@@ -18,6 +18,7 @@ public sealed class EnergyBookingSlot
     public int TotalSlots { get; set; }
     public int AvailableSlots { get; set; }
     public bool IsActive { get; set; } = true;
+    public List<AuditEntry> AuditHistory { get; set; } = [];
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }

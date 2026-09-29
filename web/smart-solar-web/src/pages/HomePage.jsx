@@ -1,3 +1,4 @@
+import { ExperienceTools, RecentActivity } from '../components/Experience';
 import { Fragment, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -50,10 +51,11 @@ export default function HomePage({ children }) {
       <div className="sidebar-footer"><span className="status-dot" />Community energy<small>Shared energy. Local impact.</small></div>
     </aside>
     <div className="workspace-body">
-      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={() => setSigningOut(true)}>Sign out</button></div></header>
+      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><ExperienceTools /><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={() => setSigningOut(true)}>Sign out</button></div></header>
       <main id="main" className="workspace-main" tabIndex="-1">
         {children || <>
           {user.role === 'GridOperator' ? <OperationsDashboardPage greeting={greeting} /> : <BackofficeOverview greeting={greeting} />}
+          <RecentActivity />
           <div className="session-note">
             <span>{refreshing ? 'Checking profile…' : lastVerifiedAt ? `Profile updated ${lastVerifiedAt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` : user.status}</span>
             <button className="text-action" disabled={refreshing} onClick={refreshProfile}>Refresh profile</button>

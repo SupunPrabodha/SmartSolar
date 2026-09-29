@@ -259,7 +259,7 @@ test('malformed 401 still clears the current session through the existing client
 test('network and cancellation failures propagate without invented HTTP status', async () => {
   for (const failure of [new TypeError('Failed to fetch'), new DOMException('Cancelled', 'AbortError')]) {
     globalThis.fetch = async () => { throw failure; };
-    await assert.rejects(getReservation('id'), error => error === failure && error.status === undefined);
+    await assert.rejects(getReservation('id'), error => error.status === undefined && (failure.name === 'AbortError' ? error === failure : error.unavailable === true && /Service unavailable/.test(error.message)));
   }
   assert.equal(expired, 0);
 });

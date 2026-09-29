@@ -442,6 +442,7 @@ public sealed class ReservationService : IReservationService
 
         var schedule = await EligibleTransferAsync(reservation, _clock.GetUtcNow().UtcDateTime, ct);
 
+        await _reservations.RecordQrVerificationAsync(reservation, actorNic, _clock.GetUtcNow().UtcDateTime, ct);
         return new ReservationVerificationResponse(
             reservation.ReservationId,
             reservation.ProsumerNic,

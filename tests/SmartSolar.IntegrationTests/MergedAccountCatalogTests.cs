@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using SmartSolar.Application.Abstractions.Auth;
 using SmartSolar.Application.Abstractions.Persistence;
+using SmartSolar.Application.Abstractions.Users;
 using SmartSolar.Domain.Entities;
 using SmartSolar.Domain.Enums;
 using Xunit;
@@ -28,9 +29,11 @@ public sealed class MergedAccountCatalogTests
         var mongo = new MongoClient(connection);
         try
         {
+            var mail = new TestEmail();
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+                builder.ConfigureServices(services => services.AddSingleton<IVerificationEmailSender>(mail));
                 var settings = new Dictionary<string, string?> {
                     ["MongoDb:ConnectionString"] = connection, ["MongoDb:DatabaseName"] = database,
                     ["Jwt:Key"] = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
@@ -63,6 +66,9 @@ public sealed class MergedAccountCatalogTests
             Assert.Equal("PendingActivation", registered.GetProperty("status").GetString());
             await Send(client, HttpMethod.Post, "/api/v1/auth/login", login, 403);
             await Send(client, HttpMethod.Patch, "/api/v1/users/" + nic + "/activate", null, 204);
+            await Send(client, HttpMethod.Post, "/api/v1/auth/login", login, 403);
+            await Send(client, HttpMethod.Post, "/api/v1/auth/verify-email", new { nic, token = mail.Token }, 204);
+            await Send(client, HttpMethod.Post, "/api/v1/auth/verify-email", new { nic, token = mail.Token }, 400);
             var signedIn = await Send(client, HttpMethod.Post, "/api/v1/auth/login", login, 200);
             var prosumerToken = signedIn.GetProperty("accessToken").GetString()!;
             var original = (await users.GetByNicAsync(nic))!;
@@ -83,12 +89,12 @@ public sealed class MergedAccountCatalogTests
             // Profile edits from either client must retain identity, credentials and lifecycle state.
             client.DefaultRequestHeaders.Authorization = new("Bearer", prosumerToken);
             await Send(client, HttpMethod.Put, "/api/v1/users/me", new {
-                fullName = "Self Edited", email = "self@example.invalid", phoneNumber = "0770000002"
+                fullName = "Self Edited", email = "prosumer@example.invalid", phoneNumber = "0770000002"
             }, 200);
             await Send(client, HttpMethod.Get, "/api/v1/stations/" + stationId, null, 200);
             client.DefaultRequestHeaders.Authorization = new("Bearer", adminToken);
             await Send(client, HttpMethod.Put, "/api/v1/users/" + nic, new {
-                fullName = "Admin Edited", email = "edited@example.invalid", phoneNumber = "0770000003",
+                fullName = "Admin Edited", email = "prosumer@example.invalid", phoneNumber = "0770000003",
                 nic = "199999999999", role = "Backoffice", status = "Deactivated", password = "Ignored-test-value"
             }, 200);
             var edited = (await users.GetByNicAsync(nic))!;
@@ -109,6 +115,7 @@ public sealed class MergedAccountCatalogTests
             await Send(client, HttpMethod.Patch, "/api/v1/users/" + nic + "/activate", null, 403);
             client.DefaultRequestHeaders.Authorization = new("Bearer", adminToken);
             await Send(client, HttpMethod.Patch, "/api/v1/users/" + nic + "/activate", null, 204);
+            await Send(client, HttpMethod.Post, "/api/v1/auth/verify-email", new { nic, token = mail.Token }, 204);
             var restored = await Send(client, HttpMethod.Post, "/api/v1/auth/login", login, 200);
             client.DefaultRequestHeaders.Authorization = new("Bearer", restored.GetProperty("accessToken").GetString());
             var profile = await Send(client, HttpMethod.Get, "/api/v1/users/me", null, 200);
@@ -119,6 +126,21 @@ public sealed class MergedAccountCatalogTests
             Assert.Equal(slot.GetProperty("slotId").GetString(), Assert.Single(slots.EnumerateArray()).GetProperty("slotId").GetString());
         }
         finally { await mongo.DropDatabaseAsync(database); }
+    }
+
+    private sealed class TestEmail : IVerificationEmailSender
+    {
+        public string Token { get; private set; } = "";
+        public void EnsureConfigured()
+        {
+            // The isolated API test does not send real email.
+        }
+        public Task SendAsync(string email, string nic, string token, CancellationToken cancellationToken = default)
+        {
+            // Capture the verification proof for the test recipient.
+            Token = token;
+            return Task.CompletedTask;
+        }
     }
 
     private static async Task<JsonElement> Send(HttpClient client, HttpMethod method, string path, object? body, int status)

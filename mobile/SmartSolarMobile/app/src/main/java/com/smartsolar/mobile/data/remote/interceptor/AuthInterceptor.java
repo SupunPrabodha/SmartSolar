@@ -18,7 +18,7 @@ public final class AuthInterceptor implements Interceptor {
         Request original = chain.request();
         // Login is anonymous and must not send a previous account's token.
         String path = original.url().encodedPath();
-        String token = path.endsWith("/auth/login") || path.endsWith("/auth/register-prosumer") ? null : sessions.getAccessToken();
+        String token = path.contains("/auth/") ? null : sessions.getAccessToken();
         Request.Builder request = original.newBuilder().removeHeader("Authorization");
         if (token != null) request.header("Authorization", "Bearer " + token);
         Response response = chain.proceed(request.build());
