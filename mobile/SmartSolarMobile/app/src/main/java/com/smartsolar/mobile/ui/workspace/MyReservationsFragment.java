@@ -157,6 +157,8 @@ public final class MyReservationsFragment extends WorkspaceFragment {
         // Fetch current prosumer reservations from backend repository
         if (repository == null || busy) return;
         setBusy(true);
+        progress.setVisibility(View.GONE);
+        findViewById(R.id.reservationsSkeleton).setVisibility(View.VISIBLE);
         textError.setVisibility(View.GONE);
         textSuccess.setVisibility(View.GONE);
 
@@ -424,6 +426,7 @@ public final class MyReservationsFragment extends WorkspaceFragment {
     private void setBusy(boolean value) {
         // Update loading busy state and disable interactive buttons
         busy = value;
+        if (!value) findViewById(R.id.reservationsSkeleton).setVisibility(View.GONE);
         memory.loading = value;
         progress.setVisibility(value ? View.VISIBLE : View.GONE);
         buttonRefreshDetails.setEnabled(!value);

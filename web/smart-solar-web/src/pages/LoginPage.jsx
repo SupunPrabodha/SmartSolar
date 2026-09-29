@@ -1,3 +1,4 @@
+import { ActionLabel, BootScreen } from '../components/LoadingExperience';
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -25,7 +26,7 @@ export default function LoginPage() {
     finally { setLoading(false); }
   }
 
-  if (restoring) return <main className="container py-5" role="status">Checking your session...</main>;
+  if (restoring) return <BootScreen />;
   if (user) return <Navigate to="/" replace />;
   return <main className="login-page">
     <section className="login-story"><Brand />
@@ -44,7 +45,7 @@ export default function LoginPage() {
           <div className="password-control"><input id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="form-control form-control-lg"
             value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} />
           <button type="button" className="password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} disabled={loading} onClick={() => setShowPassword(v => !v)}>{showPassword ? 'Hide' : 'Show'}</button></div></div>
-        <button className="btn btn-primary btn-lg w-100" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
+        <button className="btn btn-primary btn-lg w-100" disabled={loading}><ActionLabel busy={loading} pending="Signing in…">Sign in</ActionLabel></button>
         <div className="visually-hidden" role="status">{loading ? 'Signing in, please wait.' : ''}</div>
       </form>
       <Link className="d-inline-block mt-3" to="/forgot-password">Forgot password?</Link>

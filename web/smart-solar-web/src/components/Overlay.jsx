@@ -1,3 +1,4 @@
+import { ActionLabel } from './LoadingExperience';
 import Icon from './Icon';
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -43,6 +44,6 @@ export function ConfirmDialog({ title, children, onConfirm, onClose, busy = fals
     <span className={'confirmation-symbol' + (danger ? ' destructive' : '')} aria-hidden="true">{danger ? '!' : '↗'}</span>
     <div className="mb-4">{children}</div>
     <div className="dialog-actions"><button type="button" autoFocus className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Go back</button>
-      <button type="button" className={danger ? 'btn btn-danger' : 'btn btn-primary'} disabled={busy} onClick={onConfirm}>{busy ? 'Please wait…' : action}</button></div>
+      <button type="button" className={danger ? 'btn btn-danger' : 'btn btn-primary'} disabled={busy} onClick={onConfirm}><ActionLabel busy={busy}>{action}</ActionLabel></button></div>
   </Overlay>;
 }

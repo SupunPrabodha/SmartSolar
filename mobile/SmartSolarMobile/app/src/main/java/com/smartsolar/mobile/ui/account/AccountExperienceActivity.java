@@ -51,6 +51,9 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     private final EnterpriseFeedback feedback = new EnterpriseFeedback();
     private LinearLayout content, section;
     private TextView status;
+    private View accountLoading;
+    private MaterialButton actionButton;
+    private CharSequence actionText;
     private ApiService api;
     private SessionManager sessions;
     private AuthRepository auth;
@@ -82,6 +85,8 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         if (!"recovery".equals(mode) && !"inbox".equals(mode)) mode = "profile";
         setContentView(R.layout.activity_account_experience);
         DeepScreenChrome.attach(this, "recovery".equals(mode) ? "Recover account" : "inbox".equals(mode) ? "Notifications" : "My Profile");
+        accountLoading = findViewById(R.id.accountLoading);
+        ((com.smartsolar.mobile.ui.common.LoadingSurface)accountLoading).setLabel("inbox".equals(mode)?R.string.visual_loading_notifications:R.string.visual_loading_profile);
         content = findViewById(R.id.experienceContent); status = findViewById(R.id.experienceStatus);
         sessions = new SessionManager(this);
         try { api = RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG); }
@@ -96,11 +101,11 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     @Override protected void onStart() {
         super.onStart(); active = true;
         if (auth == null || "recovery".equals(mode)) return;
-        verified = false; content.setVisibility(View.INVISIBLE);
+        verified = false; content.setVisibility(View.INVISIBLE); accountLoading.setVisibility(View.VISIBLE);
         final int request = ++generation;
         auth.restore((user, expiry, error) -> {
             if (!active || request != generation || isFinishing()) return;
-            content.setVisibility(View.VISIBLE);
+            content.setVisibility(View.VISIBLE); accountLoading.setVisibility(View.GONE);
             if (user == null) {
                 clear();
                 if (error == 0 || error == R.string.session_expired || error == R.string.mobile_role_not_supported) { login(); return; }
@@ -122,7 +127,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         view.setTextColor(getColor(R.color.solar_secondary)); view.setPadding(0,SurfaceUi.dp(this,8),0,SurfaceUi.dp(this,8)); section.addView(view); return view;
     }
     private MaterialButton button(String label, Runnable action) {
-        MaterialButton view = new MaterialButton(new androidx.appcompat.view.ContextThemeWrapper(this,R.style.Solar_Button_Outlined)); view.setText(label); view.setOnClickListener(v -> { if(!busy) action.run(); });
+        MaterialButton view = new MaterialButton(new androidx.appcompat.view.ContextThemeWrapper(this,R.style.Solar_Button_Outlined)); view.setText(label); view.setOnClickListener(v -> { if(!busy) { actionButton=view; actionText=view.getText(); action.run(); } });
         view.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_surface)));
         view.setTextColor(getColor(R.color.solar_primary));view.setStrokeWidth(SurfaceUi.dp(this,1));view.setStrokeColor(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_border)));
         view.setIconTint(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
@@ -145,7 +150,9 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         wrapper.addView(edit,new LinearLayout.LayoutParams(-1,-2)); LinearLayout.LayoutParams spacing=new LinearLayout.LayoutParams(-1,-2);spacing.topMargin=SurfaceUi.dp(this,12);spacing.bottomMargin=SurfaceUi.dp(this,4);section.addView(wrapper,spacing); return edit;
     }
     private void section(String title,int icon) {
-        section=SurfaceUi.card(content);SurfaceUi.heading(section,title,icon);
+        section=SurfaceUi.card(content);
+        SurfaceUi.tint(section, icon==R.drawable.ic_ui_shield?R.color.solar_surface_soft:R.color.solar_brand_surface);
+        SurfaceUi.heading(section,title,icon);
     }
     private MaterialButton primary(MaterialButton button) {
         button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
@@ -165,7 +172,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     }
     private void profile() {
         clear();
-        section=SurfaceUi.card(content);
+        section=SurfaceUi.card(content); SurfaceUi.tint(section,R.color.solar_brand_surface);
         FrameLayout avatarFrame=new FrameLayout(this);
         LinearLayout.LayoutParams avatarSpace=new LinearLayout.LayoutParams(SurfaceUi.dp(this,120),SurfaceUi.dp(this,120));
         avatarSpace.gravity=Gravity.CENTER_HORIZONTAL;avatarSpace.bottomMargin=SurfaceUi.dp(this,16);section.addView(avatarFrame,avatarSpace);
@@ -178,7 +185,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         TextView name=SurfaceUi.heading(section,profile.getFullName(),0);name.setTextSize(24);name.setGravity(Gravity.CENTER);
         TextView identity=text(profile.getNic()+" · "+profile.getRole());identity.setGravity(Gravity.CENTER);
         SurfaceUi.pill(section,profile.getStatus(),R.color.solar_status_approved,R.color.solar_approved_surface);
-        SurfaceUi.pill(section,getString(profile.isProfileComplete()?R.string.polish_complete:R.string.polish_incomplete),R.color.solar_secondary,R.color.solar_surface_soft);
+        SurfaceUi.pill(section,getString(profile.isProfileComplete()?R.string.polish_complete:R.string.polish_incomplete),profile.isProfileComplete()?R.color.solar_secondary:R.color.solar_status_pending,profile.isProfileComplete()?R.color.solar_surface_soft:R.color.solar_pending_surface);
         if(profile.getAvatarVersion()!=null) {
             final int request=generation;
             worker.execute(()->{
@@ -219,6 +226,11 @@ public final class AccountExperienceActivity extends AppCompatActivity {
             });
         });
         section(getString(R.string.polish_security),R.drawable.ic_ui_shield);
+        View securitySection = (View)section.getParent();
+        if(getIntent().getBooleanExtra("focusSecurity",false)) {
+            getIntent().removeExtra("focusSecurity");
+            securitySection.post(()->securitySection.requestRectangleOnScreen(new android.graphics.Rect(0,0,securitySection.getWidth(),securitySection.getHeight()),true));
+        }
         text("Use 8–100 characters. Changing your password signs out all your current sessions.");
         TextInputEditText current=field("Current password","",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD,100);
         TextInputEditText next=field("New password","",InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD,100);
@@ -253,6 +265,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         },result->{profileFeedback("Photo updated. Save your profile to finish.");recreate();});
     }
     private void loadInbox() {
+        if (!busy && inbox == null) accountLoading.setVisibility(View.VISIBLE);
         run(()->checked(api.notifications().execute()),result->{inbox=result;renderInbox();});
     }
     private void renderInbox() {
@@ -281,7 +294,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
                 SurfaceUi.pill(section,getString(R.string.polish_unread),R.color.solar_status_approved,R.color.solar_approved_surface);
             }
             int color="High".equals(item.priority)?R.color.solar_status_rejected:"Medium".equals(item.priority)?R.color.solar_status_pending:R.color.solar_secondary;
-            int surface="High".equals(item.priority)?R.color.solar_rejected_surface:"Medium".equals(item.priority)?R.color.solar_pending_surface:R.color.solar_cancelled_surface;
+            int surface="High".equals(item.priority)?R.color.solar_rejected_surface:"Medium".equals(item.priority)?R.color.solar_pending_surface:R.color.solar_completed_surface;
             SurfaceUi.pill(section,item.priority,color,surface);
             text(item.message);TextView time=text(ReservationUiUtils.formatTime(item.atUtc));time.setTextSize(12);
             button("Open",()->run(()->{checked(api.readNotification(item.id).execute());return true;},result->openItem(item)));
@@ -311,7 +324,8 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     private interface Result<T>{void accept(T value);}
     private <T> void run(Work<T> work,Result<T> result){
         if(busy || api==null || (!"recovery".equals(mode)&&!verified))return;
-        busy=true;status.setText("Working…");
+        busy=true;status.setText(R.string.visual_updating);
+        if(actionButton!=null){actionButton.setText(R.string.visual_updating);actionButton.setEnabled(false);}
         retryAction = () -> run(work,result);
         final int request=generation;
         worker.execute(()->{
@@ -324,7 +338,10 @@ public final class AccountExperienceActivity extends AppCompatActivity {
             catch(Exception e){error="Service unavailable. Check your connection, then retry.";}
             final T value=data;final String problem=error;
             main.post(()->{
-                busy=false;if(!active||request!=generation||isFinishing())return;
+                busy=false;
+                accountLoading.setVisibility(View.GONE);
+                if(actionButton!=null){actionButton.setText(actionText);actionButton.setEnabled(true);actionButton=null;}
+                if(!active||request!=generation||isFinishing())return;
                 if (!"recovery".equals(mode) && !java.util.Objects.equals(expectedToken,getSharedPreferences("smart_solar_session",MODE_PRIVATE).getString("access_token",null))) { login(); return; }
                 if(problem==null){status.setText("");retryAction=null;result.accept(value);}
                 else{status.setText(problem); if(!retryAvailable){retryAvailable=true;section=content;button("Retry last request",()->{if(retryAction!=null)retryAction.run();});}}

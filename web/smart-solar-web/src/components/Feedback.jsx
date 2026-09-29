@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SkeletonRegion } from './LoadingExperience';
 import Icon from './Icon';
 import { notify, dismiss, subscribeFeedback, durations } from '../util/feedback';
 
@@ -27,7 +28,7 @@ function FeedbackItem({ item }) {
   </div>;
 }
 export function LoadingState({ label = 'Loading your workspace…' }) {
-  return <div className="loading-state" role="status"><span className="loading-orbit" aria-hidden="true" /><span>{label}</span></div>;
+  return <SkeletonRegion label={label} />;
 }
 export function EmptyState({ title = 'Nothing here yet', children }) {
   return <div className="empty-state"><Icon name="station" /><h2>{title}</h2><p>{children}</p></div>;

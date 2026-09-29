@@ -45,9 +45,11 @@ public final class SearchBookingsFragment extends WorkspaceFragment {
         if (status.getSelectedItemPosition() > 0) filters.put("status", String.valueOf(status.getSelectedItem()));
         filters.put("page", "1"); filters.put("pageSize", "20");
         memory.loading = true; findViewById(R.id.searchProgress).setVisibility(View.VISIBLE);
+        ((TextView)findViewById(R.id.buttonSearch)).setText(R.string.visual_loading_results);
         repository.searchBookings(filters, (result, error, code) -> {
             if (!alive()) return;
             memory.loading = false; findViewById(R.id.searchProgress).setVisibility(View.GONE);
+            ((TextView)findViewById(R.id.buttonSearch)).setText(R.string.search_button);
             if (code == 401) { workspace().openLogin(); return; }
             if (result != null) { memory.data = result; render(result); }
             else ((TextView) findViewById(R.id.searchMessage)).setText(error == 0 ? R.string.load_failed : error);
@@ -55,7 +57,7 @@ public final class SearchBookingsFragment extends WorkspaceFragment {
     }
     private void render(ReservationPageResponse result) {
         adapter.setItems(result.getItems());
-        ((TextView) findViewById(R.id.searchMessage)).setCompoundDrawablesRelativeWithIntrinsicBounds(0,result.getItems()==null||result.getItems().isEmpty()?R.drawable.ic_nav_search:0,0,0);
+        ((TextView) findViewById(R.id.searchMessage)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_nav_search,0,0,0);
         ((TextView) findViewById(R.id.searchMessage)).setText(result.getItems() == null || result.getItems().isEmpty() ? getString(R.string.polish_search_empty) : getResources().getQuantityString(R.plurals.polish_results_count,result.getItems().size(),result.getItems().size()));
     }
     private static void put(Map<String,String> map, String key, EditText input) { String value = input.getText().toString().trim(); if (!value.isEmpty()) map.put(key,value); }

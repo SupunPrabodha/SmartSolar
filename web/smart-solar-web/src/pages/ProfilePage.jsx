@@ -1,3 +1,4 @@
+import { ActionLabel } from '../components/LoadingExperience';
 import Icon from '../components/Icon';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -53,12 +54,12 @@ export default function ProfilePage() {
       <form onSubmit={save}>{[['fullName','Full name',120],['email','Email',254],['phoneNumber','Phone number',20]].map(([key,label,max])=>
         <div key={key} className="mb-3"><label htmlFor={key} className="form-label">{label}</label><input id={key} className="form-control" value={form[key]} required maxLength={max}
           type={key==='email'?'email':'text'} onChange={e=>setForm({...form,[key]:e.target.value})} disabled={busy}/></div>)}
-        <button className="btn btn-primary" disabled={busy}>Save profile</button></form></section>
+        <button className="btn btn-primary" disabled={busy}><ActionLabel busy={busy}>Save profile</ActionLabel></button></form></section>
     <section id="account-security" className="surface-card p-4 mb-4"><h2 className="section-icon-title"><Icon name="shield"/>Change password</h2><p>Use 8–100 characters. Changing your password will sign you out of your current sessions.</p>
       <form onSubmit={change}><PasswordField label="Current password" name="current-password" current value={current} onChange={e=>setCurrent(e.target.value)} disabled={busy}/>
         <PasswordField label="New password" name="new-password" value={password} onChange={e=>setPassword(e.target.value)} disabled={busy}/>
         <PasswordField label="Confirm password" name="confirm-password" value={confirm} onChange={e=>setConfirm(e.target.value)} disabled={busy}/>
-        <button className="btn btn-primary" disabled={busy}>Change password</button></form></section>
+        <button className="btn btn-primary" disabled={busy}><ActionLabel busy={busy}>Change password</ActionLabel></button></form></section>
     </div><AuditHistory kind="users" id="me" />
   </HomePage>;
 }

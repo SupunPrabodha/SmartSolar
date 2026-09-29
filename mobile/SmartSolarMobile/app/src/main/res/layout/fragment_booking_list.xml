@@ -24,14 +24,7 @@
                 android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details" app:icon="@drawable/ic_ui_refresh" app:iconPadding="0dp" android:padding="12dp" android:minWidth="48dp" />
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/progress"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:contentDescription="@string/working"
-            android:visibility="gone" />
+        <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_bookings" android:visibility="gone"/>
 
         <LinearLayout
             android:id="@+id/errorContainer"
@@ -66,7 +59,7 @@
             android:layout_marginTop="24dp"
             android:padding="@dimen/solar_screen_padding"
             android:gravity="center"
-            android:background="@drawable/bg_solar_surface"
+            android:background="@drawable/bg_visual_brand"
             app:drawableTopCompat="@drawable/ic_nav_bookings" android:drawablePadding="16dp"
             android:text="@string/no_booking_history"
             android:textSize="14sp"

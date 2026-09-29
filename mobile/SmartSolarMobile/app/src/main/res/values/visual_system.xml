@@ -1,0 +1,25 @@
+<resources>
+    <color name="solar_brand_surface">#EAF3EE</color>
+    <color name="solar_nav_surface">#E3EFE9</color>
+    <color name="solar_skeleton">#E2E9E4</color>
+    <string name="visual_account_menu">Account options</string>
+    <string name="visual_security">Account security</string>
+    <string name="visual_restoring">Restoring your workspace</string>
+    <string name="visual_secure_operations">Secure energy operations</string>
+    <string name="visual_loading">Loading workspace content</string>
+    <string name="visual_loading_bookings">Loading bookings</string>
+    <string name="visual_loading_stations">Loading stations</string>
+    <string name="visual_loading_profile">Loading your account</string>
+    <string name="visual_loading_metrics">Loading dashboard</string>
+    <string name="visual_loading_activity">Loading recent activity</string>
+    <string name="visual_loading_notifications">Loading notifications</string>
+    <string name="visual_loading_results">Loading search results</string>
+    <string name="visual_updating">Updating…</string>
+    <string name="visual_account_security_hint">Profile photo, password and security history</string>
+    <string name="visual_open_security">Open profile &amp; security</string>
+    <string name="visual_reservation_details">Reservation details</string>
+    <string name="visual_identity">%1$s · %2$s</string>
+    <string name="visual_my_profile">My Profile</string>
+    <string name="visual_station_capacity">Capacity\n%1$.1f kWh</string>
+    <string name="visual_station_slots">Battery slots\n%1$d</string>
+</resources>
