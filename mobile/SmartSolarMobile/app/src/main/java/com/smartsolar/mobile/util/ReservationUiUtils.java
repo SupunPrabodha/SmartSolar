@@ -120,4 +120,25 @@ public final class ReservationUiUtils {
         shape.setColor(bgColor);
         view.setBackground(shape);
     }
+
+    public static void formatStatusAccent(android.view.View view, String status) {
+        if (view == null) return;
+        String key = status != null ? status.toLowerCase(Locale.ROOT) : "";
+        int colorRes;
+        switch (key) {
+            case "active":
+            case "approved": colorRes = com.smartsolar.mobile.R.color.solar_status_approved; break;
+            case "pending": colorRes = com.smartsolar.mobile.R.color.solar_status_pending; break;
+            case "rejected": colorRes = com.smartsolar.mobile.R.color.solar_status_rejected; break;
+            case "completed": colorRes = com.smartsolar.mobile.R.color.solar_status_completed; break;
+            default: colorRes = com.smartsolar.mobile.R.color.solar_status_cancelled;
+        }
+        int color = view.getContext().getColor(colorRes);
+        android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+        shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        float radius = view.getResources().getDisplayMetrics().density * 4;
+        shape.setCornerRadii(new float[]{radius, radius, 0, 0, 0, 0, radius, radius});
+        shape.setColor(color);
+        view.setBackground(shape);
+    }
 }

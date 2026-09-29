@@ -10,7 +10,8 @@
         <item name="cornerRadius">@dimen/solar_radius_small</item><item name="android:minHeight">@dimen/solar_control_height</item><item name="android:textSize">14sp</item>
     </style>
     <style name="Solar.Button.Danger" parent="Solar.Button.Outlined">
-        <item name="android:textColor">@color/solar_status_rejected</item><item name="strokeColor">@color/solar_status_rejected</item>
+        <item name="android:textColor">@color/btn_danger_text</item>
+        <item name="strokeColor">@color/btn_danger_stroke</item>
     </style>
     <style name="Solar.Input" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopStart">@dimen/solar_radius_small</item><item name="boxCornerRadiusTopEnd">@dimen/solar_radius_small</item>

@@ -21,7 +21,7 @@ public final class BookingWorkspaceFragment extends WorkspaceFragment {
     @Override protected void bind(Bundle saved) {
         boolean prosumer = requireArguments().getBoolean("prosumer");
         tabs = findViewById(R.id.bookingTabs);
-        Section[] sections = prosumer ? new Section[]{Section.MINE, Section.CURRENT, Section.PENDING, Section.SEARCH} : new Section[]{Section.CURRENT, Section.PENDING, Section.HISTORY};
+        Section[] sections = prosumer ? new Section[]{Section.MINE, Section.CURRENT, Section.PENDING, Section.SUMMARY, Section.SEARCH} : new Section[]{Section.CURRENT, Section.PENDING, Section.HISTORY};
         for (Section value : sections) tabs.addTab(tabs.newTab().setText(label(value)).setTag(value));
         String selected = saved == null ? memory.values.getString("section") : saved.getString("section");
         section = selected == null ? sections[0] : Section.valueOf(selected);
@@ -45,7 +45,7 @@ public final class BookingWorkspaceFragment extends WorkspaceFragment {
         FragmentTransaction tx = getChildFragmentManager().beginTransaction().setReorderingAllowed(true);
         for (Fragment old : getChildFragmentManager().getFragments()) if (old != next) tx.hide(old).setMaxLifecycle(old, Lifecycle.State.STARTED);
         if (next == null) {
-            next = section == Section.MINE ? new MyReservationsFragment() : section == Section.SEARCH ? new SearchBookingsFragment() : BookingListFragment.create(section);
+            next = section == Section.MINE ? new MyReservationsFragment() : section == Section.SUMMARY ? new ReservationSummaryAnalyticsFragment() : section == Section.SEARCH ? new SearchBookingsFragment() : BookingListFragment.create(section);
             tx.add(R.id.bookingSectionContent, next, tag);
         } else tx.show(next);
         tx.setMaxLifecycle(next, Lifecycle.State.RESUMED).setPrimaryNavigationFragment(next).commitNow();
@@ -57,6 +57,7 @@ public final class BookingWorkspaceFragment extends WorkspaceFragment {
             case MINE: return R.string.my_bookings_tab;
             case CURRENT: return R.string.nav_current;
             case PENDING: return R.string.nav_pending;
+            case SUMMARY: return R.string.nav_summary;
             case HISTORY: return R.string.nav_history;
             default: return R.string.nav_search;
         }
