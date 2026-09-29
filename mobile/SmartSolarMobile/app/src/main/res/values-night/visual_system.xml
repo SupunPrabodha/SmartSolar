@@ -1,5 +1,15 @@
 <resources>
-    <color name="solar_brand_surface">#20372B</color>
-    <color name="solar_nav_surface">#243D30</color>
-    <color name="solar_skeleton">#385044</color>
+    <color name="solar_brand_surface">#293F32</color>
+    <color name="solar_nav_surface">#2D4637</color>
+    <color name="solar_skeleton">#506B59</color>
+    <color name="solar_content_surface">#203429</color>
+    <color name="solar_surface_strong">#324B3D</color>
+    <color name="solar_surface_selected">#365540</color>
+    <color name="solar_header_surface">#253C2F</color>
+    <color name="solar_nav_selected">#365540</color>
+    <color name="solar_sheet_surface">#30493B</color>
+    <color name="solar_action_disabled_text">#B5C9BD</color>
+    <color name="solar_action_disabled_surface">#293B30</color>
+    <color name="solar_action_ripple">#0CA4D5B8</color>
+    <color name="solar_action_primary_ripple">#1812392C</color>
 </resources>

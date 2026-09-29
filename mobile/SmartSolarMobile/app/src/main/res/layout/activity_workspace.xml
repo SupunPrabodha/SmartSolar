@@ -1,7 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/workspaceRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/solar_background">
     <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/workspaceToolbar" android:background="@color/solar_brand_surface"
+        android:id="@+id/workspaceToolbar" android:background="@color/solar_header_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
@@ -47,6 +47,6 @@
         app:cardCornerRadius="@dimen/solar_radius_large" app:cardElevation="@dimen/solar_elevation_floating" app:cardBackgroundColor="@color/solar_nav_surface" app:strokeColor="@color/solar_border" app:strokeWidth="1dp" android:visibility="gone">
         <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/workspaceBottomNav" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/solar_nav_height"
             android:background="@android:color/transparent" app:elevation="0dp" app:itemIconTint="@color/solar_nav_item" app:itemTextColor="@color/solar_nav_item"
-            app:itemIconSize="22dp" app:itemActiveIndicatorStyle="@style/Solar.NavIndicator" app:itemTextAppearanceActive="@style/Solar.NavLabel" app:itemTextAppearanceInactive="@style/Solar.NavLabel" app:labelVisibilityMode="labeled" app:itemHorizontalTranslationEnabled="false"/>
+            app:itemIconSize="24dp" app:itemRippleColor="@color/solar_action_ripple" app:itemActiveIndicatorStyle="@style/Solar.NavIndicator" app:itemTextAppearanceActive="@style/Solar.NavLabel" app:itemTextAppearanceInactive="@style/Solar.NavLabel" app:labelVisibilityMode="labeled" app:itemHorizontalTranslationEnabled="false"/>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

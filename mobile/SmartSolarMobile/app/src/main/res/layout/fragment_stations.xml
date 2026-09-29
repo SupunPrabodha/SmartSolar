@@ -13,7 +13,9 @@
   <TextView android:id="@+id/mapStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/map_alternative" android:textSize="12sp"/>
   <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/solar_space_base">
    <TextView android:id="@+id/discoveryTitle" style="@style/Solar.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/station_results" android:textSize="18sp"/>
-   <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/catalog_retry"/>
+   <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/catalog_retry" android:tooltipText="@string/catalog_retry"/>
   </LinearLayout>
   <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/catalogProgress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_stations" android:visibility="gone"/>
   <TextView android:id="@+id/catalogMessage" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  android:accessibilityLiveRegion="polite"/>

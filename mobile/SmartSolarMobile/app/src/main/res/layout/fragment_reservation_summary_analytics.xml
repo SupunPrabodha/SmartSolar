@@ -30,15 +30,9 @@
                 android:text="@string/nav_summary"
                 android:textSize="20sp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRefreshSummary"
-                style="@style/Solar.Button.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="40dp"
-                android:paddingHorizontal="12dp"
-                android:textSize="13sp"
-                android:text="@string/btn_refresh_details" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefreshSummary" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details"/>
         </LinearLayout>
 
         <!-- Period Filter Chips (Horizontal Scroll bounded to screen padding) -->
@@ -439,11 +433,7 @@
                             android:text="@string/summary_carbon_offset_title"
                             android:textSize="16sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🌱"
-                            android:textSize="18sp" />
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
                     </LinearLayout>
 
                     <TextView
@@ -504,11 +494,7 @@
                             android:text="@string/summary_top_station_title"
                             android:textSize="16sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="⚡"
-                            android:textSize="18sp" />
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
                     </LinearLayout>
 
                     <TextView
