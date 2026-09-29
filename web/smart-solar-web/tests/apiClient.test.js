@@ -84,3 +84,35 @@ test('validation ProblemDetails preserves useful field messages and session', as
     error => error.status === 400 && error.message.includes('Name is required.') && error.message.includes('Latitude is invalid.'));
   assert.equal(expired, 0);
 });
+
+test('password recovery is anonymous even with a saved session', async () => {
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(options.headers.get('Authorization'), null);
+    return new Response('{"message":"Generic response"}', {headers:{'content-type':'application/json'}});
+  };
+  await apiFetch('/auth/forgot-password',{method:'POST',body:'{"identifier":"fixture"}'});
+  await apiFetch('/auth/reset-password',{method:'POST',body:'{}'});
+  assert.equal(expired,0);
+});
+test('multipart avatar leaves content type boundary to the browser', async () => {
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(options.headers.has('Content-Type'),false);
+    assert.equal(options.headers.get('Authorization'),'Bearer test-session');
+    return new Response(null,{status:204});
+  };
+  const data=new FormData();data.append('file',new Blob(['fixture'],{type:'image/png'}),'fixture.png');
+  await apiFetch('/users/me/avatar',{method:'PUT',body:data});
+});
+test('export returns binary data through the same authenticated client', async () => {
+  globalThis.fetch=async()=>new Response('id,name\r\n1,Fixture',{headers:{'content-type':'text/csv'}});
+  const data=await apiFetch('/exports/stations.csv',{responseType:'blob'});
+  assert.equal(await data.text(),'id,name\r\n1,Fixture');
+});
+test('safe server reference is preserved without trusting arbitrary header text', async () => {
+  globalThis.fetch=async()=>new Response('{"detail":"Unavailable","correlationId":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}',
+    {status:503,headers:{'content-type':'application/problem+json'}});
+  await assert.rejects(apiFetch('/users/me'),e=>e.correlationId==='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'&&e.message.includes('Reference:'));
+  globalThis.fetch=async()=>new Response('{"detail":"Unavailable","correlationId":"private filesystem path"}',
+    {status:503,headers:{'content-type':'application/problem+json'}});
+  await assert.rejects(apiFetch('/users/me'),e=>e.correlationId===undefined&&!e.message.includes('filesystem'));
+});

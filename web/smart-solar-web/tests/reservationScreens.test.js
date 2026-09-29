@@ -16,6 +16,9 @@ const { default: Details } = await server.ssrLoadModule('/src/pages/reservations
 const { ReservationLayout } = await server.ssrLoadModule('/src/pages/reservations/ReservationComponents.jsx');
 const { default: HomePage } = await server.ssrLoadModule('/src/pages/HomePage.jsx');
 const { AuthProvider } = await server.ssrLoadModule('/src/auth/AuthContext.jsx');
+const { ExperienceProvider } = await server.ssrLoadModule('/src/components/Experience.jsx');
+const { FeedbackHost } = await server.ssrLoadModule('/src/components/Feedback.jsx');
+const { clearFeedback } = await server.ssrLoadModule('/src/util/feedback.js');
 after(() => server.close());
 
 const originalFetch = globalThis.fetch;
@@ -49,12 +52,12 @@ async function settle() {
 async function mount(path) {
   await act(async () => {
     view = create(React.createElement(MemoryRouter, { initialEntries: [path] },
-      React.createElement(Routes, null,
+      React.createElement(React.Fragment, null, React.createElement(FeedbackHost), React.createElement(Routes, null,
         React.createElement(Route, { path: base, element: React.createElement(List) }),
         React.createElement(Route, { path: base + '/new', element: React.createElement(Form, { creating: true }) }),
         React.createElement(Route, { path: base + '/:reservationId/edit', element: React.createElement(Form) }),
         React.createElement(Route, { path: base + '/:reservationId', element: React.createElement(Details) })
-      )), { createNodeMock: element => element.type === 'dialog'
+      ))), { createNodeMock: element => element.type === 'dialog'
         ? { showModal() {}, close() {} } : { focus() {}, querySelector() { return { focus() {} }; } } });
   });
   await settle();
@@ -67,6 +70,7 @@ async function review() {
 }
 
 beforeEach(() => {
+  clearFeedback();
   calls = [];
   const store = new Map([
     ['accessToken', 'test-session'],
@@ -222,9 +226,9 @@ test('create server validation is preserved on returning to the form', async () 
 test('details cancellation requires confirmation and shows the cancelled summary', async () => {
   await mount(base + '/reservation-1');
   await click('Cancel reservation');
-  assert.equal(calls.length, 1);
+  assert.equal(calls.filter(c => !c.url.includes('/audit/')).length, 1);
   await click('Keep reservation');
-  assert.equal(calls.length, 1);
+  assert.equal(calls.filter(c => !c.url.includes('/audit/')).length, 1);
   await click('Cancel reservation');
   globalThis.fetch = async (url, options) => { calls.push({ url, options }); return response({ ...row, status: 'Cancelled' }); };
   await click('Confirm cancellation');
@@ -395,11 +399,11 @@ test('details rejection requires remark and shows rejected summary with released
 test('home page renders Manage Reservations in sidebar and quick actions for GridOperator', async () => {
   sessionStorage.setItem('accessToken', 'mock-token');
   sessionStorage.setItem('expiresAtUtc', new Date(Date.now() + 3600000).toISOString());
-  globalThis.fetch = async () => response({ fullName: 'Operator One', role: 'GridOperator', status: 'Active' });
+  globalThis.fetch = async url => response(url.includes('/notifications') ? {items:[],unreadCount:0} : { nic:'operator', profileComplete:true, fullName: 'Operator One', role: 'GridOperator', status: 'Active' });
   await act(async () => {
     view = create(React.createElement(MemoryRouter, { initialEntries: ['/'] },
       React.createElement(AuthProvider, null,
-        React.createElement(HomePage)
+        React.createElement(ExperienceProvider, null, React.createElement(HomePage))
       )
     ));
   });
@@ -420,11 +424,11 @@ test('reservation layout keeps aligned sidebar with Manage Reservations', async 
   await act(async () => {
     view = create(React.createElement(MemoryRouter, { initialEntries: ['/operator/reservations'] },
       React.createElement(AuthProvider, null,
-        React.createElement(Routes, null,
+        React.createElement(ExperienceProvider, null, React.createElement(Routes, null,
           React.createElement(Route, { path: '/operator/reservations', element: React.createElement(ReservationLayout) },
             React.createElement(Route, { index: true, element: React.createElement('div', null, 'Reservation content') })
           )
-        )
+        ))
       )
     ));
   });

@@ -30,6 +30,7 @@ public sealed class EnergyReservation
     public DateTime? CompletedAtUtc { get; set; }
     public string? CompletedByOperatorNic { get; set; }
     public string? RejectionRemark { get; set; }
+    public List<AuditEntry> AuditHistory { get; set; } = [];
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }

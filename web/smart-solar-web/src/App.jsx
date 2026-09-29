@@ -1,3 +1,8 @@
+import { ExperienceProvider } from './components/Experience';
+import { FeedbackHost } from './components/Feedback';
+import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
+import PasswordRecoveryPage from './pages/PasswordRecoveryPage';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 
@@ -22,8 +27,12 @@ import ProtectedRoute from './routes/ProtectedRoute';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <AuthProvider><ExperienceProvider><FeedbackHost />
         <Routes>
+          <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
+          <Route path="/reset-password" element={<PasswordRecoveryPage reset />} />
+          <Route path="/profile" element={<ProtectedRoute roles={['Backoffice','GridOperator']}><ProfilePage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute roles={['Backoffice','GridOperator']}><NotificationsPage /></ProtectedRoute>} />
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -87,7 +96,7 @@ export default function App() {
           {/* Unknown routes */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
+      </ExperienceProvider></AuthProvider>
     </BrowserRouter>
   );
 }

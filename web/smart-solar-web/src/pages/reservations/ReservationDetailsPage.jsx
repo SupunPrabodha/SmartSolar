@@ -1,3 +1,4 @@
+import { AuditHistory } from '../../components/Experience';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Toast } from '../../components/Feedback';
@@ -122,6 +123,7 @@ function Details({ reservationId }) {
         </div>
       </section>
 
+      <AuditHistory kind="reservations" id={reservationId} />
       {/* Cancel Dialog */}
       <dialog ref={cancelDialog} className="reservation-dialog" aria-labelledby="cancel-title"
         onCancel={event => { if (mutation.pending) event.preventDefault(); else setConfirmingCancel(false); }}>

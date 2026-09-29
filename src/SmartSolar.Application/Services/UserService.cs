@@ -116,6 +116,9 @@ public sealed class UserService : IUserService
         user.PhoneNumber = request.PhoneNumber.Trim();
         user.UpdatedAtUtc = DateTime.UtcNow;
 
+        user.ProfileCompletedAtUtc = user.AvatarVersion is not null &&
+            !string.IsNullOrWhiteSpace(user.FullName) && !string.IsNullOrWhiteSpace(user.Email) &&
+            !string.IsNullOrWhiteSpace(user.PhoneNumber) ? user.ProfileCompletedAtUtc ?? DateTime.UtcNow : null;
         await _users.ReplaceAsync(user, cancellationToken);
         return user.ToResponse();
     }

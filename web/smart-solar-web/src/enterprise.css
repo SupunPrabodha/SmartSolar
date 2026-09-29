@@ -1,0 +1,12 @@
+.feedback-stack{position:fixed;right:1rem;bottom:1rem;z-index:1200;display:grid;gap:.65rem;width:min(380px,calc(100vw - 2rem));pointer-events:none}
+.enterprise-toast{pointer-events:auto;background:#fff;border:1px solid #cadbd2;border-left:5px solid #188858;border-radius:12px;padding:1rem;box-shadow:0 8px 28px #12382722;display:grid;grid-template-columns:1fr auto;gap:.3rem;color:#19392d}
+.enterprise-toast strong{text-transform:capitalize}.enterprise-toast span{grid-row:2}.enterprise-toast button{grid-column:2;grid-row:1/3;border:0;background:none;font-size:1.5rem}.toast-error{border-left-color:#b42318}.toast-warning{border-left-color:#bd8000}.toast-info,.toast-loading{border-left-color:#176da7}
+.recovery-page{min-height:100vh;background:#eff5f1;padding:clamp(1rem,6vw,5rem);display:grid;align-content:center;justify-items:center;gap:2rem}.recovery-page .brand{color:#123b2e}.recovery-card{padding:clamp(1.5rem,4vw,3rem);max-width:540px;width:100%}
+.profile-summary{display:flex;gap:1.5rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap}.profile-avatar{width:96px;height:96px;border-radius:50%;object-fit:cover}.avatar-initials{background:#e0eee6;display:grid;place-items:center;font-size:2rem;color:#0b4733}
+.notification-badge{background:#b42318;color:white;border-radius:1rem;padding:.1rem .4rem}.notification-list,.activity-list,.command-results{list-style:none;padding:0}.activity-list li,.notification-list li{padding:1rem 0;border-bottom:1px solid #dce7e0}.activity-list small{display:block;color:#526b60}.notification-unread{border-left:3px solid #138658;padding-left:1rem!important}
+.priority-pill{border-radius:1rem;font-size:.75rem;padding:.2rem .6rem;margin-right:.75rem;background:#eef4f0}.priority-high{color:#a51e16;background:#fce9e6}.priority-medium{color:#835500;background:#fff0c5}.priority-low{color:#205d47}
+.command-results button{display:block;width:100%;text-align:left;background:none;border:0;padding:.8rem;border-radius:8px}.command-results button.active,.command-results button:hover{background:#e4f0e9}
+.service-banner{position:fixed;top:0;left:0;right:0;z-index:1100;padding:.65rem 1rem;background:#fff0ca;color:#604600;text-align:center;box-shadow:0 2px 8px #0002}.topbar-account{flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){.enterprise-toast{animation:none}}
+
+.shell-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;font-size:1rem}.enterprise-toast strong span{display:inline}
