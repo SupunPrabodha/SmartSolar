@@ -33,7 +33,7 @@
 
             <!-- Clickable Base Header -->
             <LinearLayout
-                android:id="@+id/cardHeader" android:background="@color/solar_surface_soft"
+                android:id="@+id/cardHeader" android:background="@color/solar_brand_surface"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"

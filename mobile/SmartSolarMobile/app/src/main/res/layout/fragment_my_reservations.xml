@@ -116,13 +116,9 @@
             android:orientation="vertical"
             android:layout_marginTop="24dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRefreshDetails"
-                style="@style/Solar.Button.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="52dp"
-                android:text="@string/btn_refresh_details" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefreshDetails" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackHome"

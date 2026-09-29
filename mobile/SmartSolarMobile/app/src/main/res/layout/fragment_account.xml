@@ -1,12 +1,12 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_screen_padding">
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/bg_solar_hero" android:padding="@dimen/solar_space_lg">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/bg_visual_strong" android:padding="@dimen/solar_space_lg">
   <TextView android:id="@+id/accountInitials" android:layout_width="56dp" android:layout_height="56dp" android:gravity="center" android:textColor="@color/solar_primary" android:textSize="28sp" android:background="@drawable/bg_visual_brand" android:importantForAccessibility="no"/>
-  <TextView android:id="@+id/profileName" android:textColor="@color/solar_hero_text" android:layout_marginTop="@dimen/solar_space_md" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content"  />
-  <TextView  style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/accountIdentity" android:textColor="@color/solar_hero_text" android:layout_marginTop="@dimen/solar_space_xs"/>
-  <TextView android:id="@+id/profileNic" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  android:textColor="@color/solar_hero_text" />
+  <TextView android:id="@+id/profileName" android:textColor="@color/solar_text" android:layout_marginTop="@dimen/solar_space_md" style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content"  />
+  <TextView  style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/accountIdentity" android:textColor="@color/solar_text" android:layout_marginTop="@dimen/solar_space_xs"/>
+  <TextView android:id="@+id/profileNic" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  android:textColor="@color/solar_text" />
   </LinearLayout>
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginTop="16dp" android:background="@drawable/bg_visual_brand">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginTop="16dp" android:background="@drawable/bg_visual_content">
   <TextView  style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/personal_information" android:layout_marginTop="@dimen/solar_space_lg" android:textSize="18sp"/>
 
 

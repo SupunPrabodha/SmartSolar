@@ -44,7 +44,7 @@
 
         <!-- Form Step -->
         <LinearLayout
-            android:id="@+id/layoutForm" android:background="@drawable/bg_visual_brand" android:padding="16dp"
+            android:id="@+id/layoutForm" android:background="@drawable/bg_visual_content" android:padding="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -140,7 +140,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/bg_solar_surface" android:padding="16dp" app:drawableStartCompat="@drawable/ic_ui_info" android:drawablePadding="10dp" android:text="@string/reservation_notice_guidance"
+                android:background="@drawable/bg_visual_brand" android:padding="16dp" app:drawableStartCompat="@drawable/ic_ui_info" android:drawablePadding="10dp" android:text="@string/reservation_notice_guidance"
                 android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton

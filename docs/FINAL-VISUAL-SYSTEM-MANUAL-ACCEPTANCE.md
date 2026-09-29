@@ -56,3 +56,23 @@ Use disposable accounts and real test records. Keep passwords, tokens, QR payloa
 ## Evidence
 
 Record results and redacted screenshots only after execution. No browser, emulator, physical-device, camera, Maps, SQLite Inspector or hosted CI execution is claimed by this pass.
+
+## Enterprise contrast refinement: priority Android checks
+
+These checks apply to the follow-up Android contrast pass and remain unexecuted.
+
+- [ ] **Account sheet:** all four action labels and icons are immediately readable. Normal rows have light/tonal backgrounds; Sign out has a warm danger background, red icon/text and separating divider. Check enabled, pressed and disabled appearance in both themes.
+- [ ] Confirm My Profile, Account security, Refresh profile and Sign out call the same actions as before. Verify cancel/confirm sign-out behavior, Back and dismissal.
+- [ ] Verify rounded sheet corners, distinct modal surface, spacing and landscape scrolling. Increase system text size; keep all labels and actions reachable above system navigation.
+- [ ] Compare canvas, standard cards, grouped panels, strong surfaces and navigation side-by-side. They should be visibly distinct without heavy shadows.
+- [ ] Home: forest hero, solar/emerald metric accents, stronger Recent activity and lighter quick-action rows inside a mint container.
+- [ ] Bookings: separate canvas/card/header/inner-tile tones, unchanged semantic status strip and vector chevron rotation.
+- [ ] Stations: distinct segments/map wrapper/station cards/metrics. Verify the existing marker, permission and location behavior.
+- [ ] Search: darker filter group, lighter fields, stronger result summary, readable Search/Clear Filters states.
+- [ ] Notifications: visible priority/unread text, distinct normal/unread cards, filters and empty state. Read behavior is unchanged.
+- [ ] Profile/Account: strong summary hero, normal personal card, grouped security section, separate danger zone and readable incomplete-profile chip.
+- [ ] New Reservation: intro, form and rule-information surfaces remain distinct; Review/Confirm actions are readable in every state.
+- [ ] Refresh icons: Bookings, History, My Reservations, Summary and Stations use the existing refresh vector, at least 48dp targets and meaningful spoken descriptions. Refresh profile stays an icon plus text row.
+- [ ] Floating navigation: labels/icons remain readable on selected and unselected surfaces, including dark pressed states; existing destinations remain unchanged.
+- [ ] TalkBack announces action names, not just “button”. Verify icon descriptions for profile, bell, refresh, Back, camera and QR actions.
+- [ ] Repeat on a physical device in light/dark themes, large fonts, portrait/landscape, with keyboard and gesture navigation. Compare pressed/disabled states and contrast against the calculated resource pairs in the report.

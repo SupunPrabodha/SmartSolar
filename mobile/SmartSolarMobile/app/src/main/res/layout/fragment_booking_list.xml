@@ -15,13 +15,9 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
           <TextView style="@style/Solar.Title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:id="@+id/polishBookingHeading" android:text="@string/polish_bookings" android:textSize="20sp"/>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRefreshDetails"
-                style="@style/Solar.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="52dp"
-                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details" app:icon="@drawable/ic_ui_refresh" app:iconPadding="0dp" android:padding="12dp" android:minWidth="48dp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefreshDetails" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details"/>
         </LinearLayout>
 
         <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_bookings" android:visibility="gone"/>

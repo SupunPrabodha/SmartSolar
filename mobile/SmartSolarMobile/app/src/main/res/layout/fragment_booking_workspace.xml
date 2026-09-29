@@ -17,7 +17,7 @@
         app:tabIndicator="@drawable/bg_solar_segment"
         app:tabIndicatorGravity="stretch"
         app:tabIndicatorFullWidth="true"
-        app:tabIndicatorColor="@color/solar_approved_surface"
+        app:tabIndicatorColor="@color/solar_surface_selected"
 
         app:tabMode="scrollable"
         app:tabGravity="start"

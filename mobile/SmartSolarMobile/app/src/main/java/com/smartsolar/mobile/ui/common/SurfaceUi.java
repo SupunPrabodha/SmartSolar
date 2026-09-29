@@ -23,7 +23,7 @@ public final class SurfaceUi {
         Context context = parent.getContext();
         MaterialCardView card = new MaterialCardView(context);
         card.setRadius(dp(context,20)); card.setCardElevation(dp(context,1));
-        card.setCardBackgroundColor(ContextCompat.getColor(context,R.color.solar_surface));
+        card.setCardBackgroundColor(ContextCompat.getColor(context,R.color.solar_content_surface));
         card.setStrokeColor(ContextCompat.getColor(context,R.color.solar_border));card.setStrokeWidth(dp(context,1));
         LinearLayout.LayoutParams space = new LinearLayout.LayoutParams(-1,-2);space.bottomMargin=dp(context,16);
         parent.addView(card,space);

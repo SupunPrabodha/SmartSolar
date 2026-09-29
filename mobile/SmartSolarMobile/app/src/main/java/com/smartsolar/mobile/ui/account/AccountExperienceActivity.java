@@ -15,6 +15,7 @@ import android.view.Gravity;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.smartsolar.mobile.ui.common.SurfaceUi;
+import com.smartsolar.mobile.ui.common.ButtonAppearance;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
@@ -127,10 +128,8 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         view.setTextColor(getColor(R.color.solar_secondary)); view.setPadding(0,SurfaceUi.dp(this,8),0,SurfaceUi.dp(this,8)); section.addView(view); return view;
     }
     private MaterialButton button(String label, Runnable action) {
-        MaterialButton view = new MaterialButton(new androidx.appcompat.view.ContextThemeWrapper(this,R.style.Solar_Button_Outlined)); view.setText(label); view.setOnClickListener(v -> { if(!busy) { actionButton=view; actionText=view.getText(); action.run(); } });
-        view.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_surface)));
-        view.setTextColor(getColor(R.color.solar_primary));view.setStrokeWidth(SurfaceUi.dp(this,1));view.setStrokeColor(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_border)));
-        view.setIconTint(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
+        MaterialButton view = new MaterialButton(this); view.setText(label); view.setOnClickListener(v -> { if(!busy) { actionButton=view; actionText=view.getText(); action.run(); } });
+        ButtonAppearance.outlined(view);
         if(label.equals("Save profile")||label.equals("Send reset instructions"))primary(view);
         if(label.equals(getString(R.string.polish_change_photo)))view.setIconResource(R.drawable.ic_ui_camera);
         if(label.equals("Change password"))view.setIconResource(R.drawable.ic_ui_shield);
@@ -151,12 +150,11 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     }
     private void section(String title,int icon) {
         section=SurfaceUi.card(content);
-        SurfaceUi.tint(section, icon==R.drawable.ic_ui_shield?R.color.solar_surface_soft:R.color.solar_brand_surface);
+        SurfaceUi.tint(section, icon==R.drawable.ic_ui_shield||icon==R.drawable.ic_ui_filter?R.color.solar_brand_surface:R.color.solar_content_surface);
         SurfaceUi.heading(section,title,icon);
     }
     private MaterialButton primary(MaterialButton button) {
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
-        button.setTextColor(getColor(R.color.solar_on_primary));return button;
+        ButtonAppearance.primary(button);return button;
     }
     private void recovery() {
         clear(); section("Recover account",R.drawable.ic_ui_shield); text("Enter the email or NIC for your account. Reset your password using the link sent by email.");
@@ -172,7 +170,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
     }
     private void profile() {
         clear();
-        section=SurfaceUi.card(content); SurfaceUi.tint(section,R.color.solar_brand_surface);
+        section=SurfaceUi.card(content); SurfaceUi.tint(section,R.color.solar_surface_strong);
         FrameLayout avatarFrame=new FrameLayout(this);
         LinearLayout.LayoutParams avatarSpace=new LinearLayout.LayoutParams(SurfaceUi.dp(this,120),SurfaceUi.dp(this,120));
         avatarSpace.gravity=Gravity.CENTER_HORIZONTAL;avatarSpace.bottomMargin=SurfaceUi.dp(this,16);section.addView(avatarFrame,avatarSpace);
@@ -202,7 +200,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
         text(getString(R.string.polish_photo_hint));
         MaterialButton changePhoto=button(getString(R.string.polish_change_photo),()->{saveDraft();picker.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());});
         section.removeView(changePhoto);changePhoto.setText("");changePhoto.setContentDescription(getString(R.string.polish_change_photo));changePhoto.setTooltipText(getString(R.string.polish_change_photo));
-        changePhoto.setIconPadding(0);changePhoto.setPadding(0,0,0,0);changePhoto.setInsetTop(0);changePhoto.setInsetBottom(0);primary(changePhoto);changePhoto.setIconTint(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_on_primary)));
+        changePhoto.setIconPadding(0);changePhoto.setPadding(0,0,0,0);changePhoto.setInsetTop(0);changePhoto.setInsetBottom(0);primary(changePhoto);
         FrameLayout.LayoutParams cameraPosition=new FrameLayout.LayoutParams(SurfaceUi.dp(this,48),SurfaceUi.dp(this,48),Gravity.BOTTOM|Gravity.END);avatarFrame.addView(changePhoto,cameraPosition);
         if(profile.getAvatarVersion()!=null)button("Remove photo",()->run(()->{checked(api.removeAvatar().execute());return true;},result->{profileFeedback("Photo removed.");recreate();}));
         section(getString(R.string.polish_personal),R.drawable.ic_nav_account);
@@ -290,7 +288,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
             shown++;
             section(item.category,"Security".equals(item.category)?R.drawable.ic_ui_shield:R.drawable.ic_ui_bell);
             if(item.readAtUtc==null){
-                ((com.google.android.material.card.MaterialCardView)section.getParent()).setCardBackgroundColor(getColor(R.color.solar_surface_soft));
+                ((com.google.android.material.card.MaterialCardView)section.getParent()).setCardBackgroundColor(getColor(R.color.solar_surface_strong));
                 SurfaceUi.pill(section,getString(R.string.polish_unread),R.color.solar_status_approved,R.color.solar_approved_surface);
             }
             int color="High".equals(item.priority)?R.color.solar_status_rejected:"Medium".equals(item.priority)?R.color.solar_status_pending:R.color.solar_secondary;
