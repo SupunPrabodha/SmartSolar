@@ -26,6 +26,7 @@ import com.smartsolar.mobile.BuildConfig;
 import com.smartsolar.mobile.R;
 import com.smartsolar.mobile.data.remote.RetrofitClient;
 import com.smartsolar.mobile.data.remote.dto.ReservationResponse;
+import com.smartsolar.mobile.data.remote.dto.StationResponse;
 import com.smartsolar.mobile.data.repository.ReservationError;
 import com.smartsolar.mobile.data.repository.ReservationRepository;
 import com.smartsolar.mobile.util.ReservationUiUtils;
@@ -236,7 +237,9 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             TextView textRejectionRemark = card.findViewById(R.id.textRejectionRemark);
             Button buttonCardModify = card.findViewById(R.id.buttonCardModify);
             Button buttonCardCancel = card.findViewById(R.id.buttonCardCancel);
+            View layoutCardApprovedActions = card.findViewById(R.id.layoutCardApprovedActions);
             Button buttonCardViewQr = card.findViewById(R.id.buttonCardViewQr);
+            Button buttonCardGetDirections = card.findViewById(R.id.buttonCardGetDirections);
 
             // Bind Essential Preview Info
             textCardIdSnippet.setText("Reservation #" + ReservationUiUtils.shortReference(res.getReservationId()));
@@ -284,6 +287,9 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             }
 
             boolean approved = "Approved".equalsIgnoreCase(res.getStatus());
+            if (layoutCardApprovedActions != null) {
+                layoutCardApprovedActions.setVisibility(approved ? View.VISIBLE : View.GONE);
+            }
             buttonCardViewQr.setVisibility(approved ? View.VISIBLE : View.GONE);
             buttonCardViewQr.setOnClickListener(v -> {
                 Intent intent = new Intent(requireContext(), com.smartsolar.mobile.ui.reservations.ReservationQrActivity.class);
@@ -297,6 +303,9 @@ public final class MyReservationsFragment extends WorkspaceFragment {
                 intent.putExtra(com.smartsolar.mobile.ui.reservations.ReservationQrActivity.EXTRA_STATUS, res.getStatus());
                 startActivity(intent);
             });
+
+            buttonCardGetDirections.setVisibility(approved ? View.VISIBLE : View.GONE);
+            buttonCardGetDirections.setOnClickListener(v -> openDirectionsForStation(res.getStationId()));
 
             // Expand/Collapse Chevron interaction
             View.OnClickListener toggleListener = v -> {
@@ -371,6 +380,48 @@ public final class MyReservationsFragment extends WorkspaceFragment {
                 }
                 textError.setText(error.getMessage());
                 textError.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void openDirectionsForStation(String stationId) {
+        // Query station coordinates and launch Google Maps / Navigation intent
+        if (stationId == null || stationId.trim().isEmpty()) {
+            return;
+        }
+        com.smartsolar.mobile.data.remote.api.ApiService api = RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
+        api.getStation(stationId).enqueue(new retrofit2.Callback<StationResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<StationResponse> call, retrofit2.Response<StationResponse> response) {
+                if (!alive()) return;
+                StationResponse station = response.body();
+                android.net.Uri uri;
+                if (station != null && (station.latitude != 0 || station.longitude != 0)) {
+                    String label = station.name != null && !station.name.isEmpty() ? station.name : "Solar Station " + stationId;
+                    uri = android.net.Uri.parse("geo:" + station.latitude + "," + station.longitude + "?q=" + station.latitude + "," + station.longitude + "(" + android.net.Uri.encode(label) + ")");
+                } else if (station != null && station.address != null && !station.address.isEmpty()) {
+                    uri = android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode(station.address));
+                } else {
+                    uri = android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode("Solar Station " + stationId));
+                }
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
+                try {
+                    startActivity(mapIntent);
+                } catch (android.content.ActivityNotFoundException e) {
+                    String webUrl = "https://www.google.com/maps/search/?api=1&query=" + (station != null && (station.latitude != 0 || station.longitude != 0) ? (station.latitude + "," + station.longitude) : android.net.Uri.encode(station != null && station.address != null && !station.address.isEmpty() ? station.address : "Solar Station " + stationId));
+                    startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(webUrl)));
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<StationResponse> call, Throwable t) {
+                if (!alive()) return;
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=" + android.net.Uri.encode("Solar Station " + stationId)));
+                try {
+                    startActivity(mapIntent);
+                } catch (android.content.ActivityNotFoundException e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/maps/search/?api=1&query=" + android.net.Uri.encode("Solar Station " + stationId))));
+                }
             }
         });
     }

@@ -55,7 +55,8 @@ public sealed class DevelopmentDataSeeder
         var request = new CreateStaffRequest { Nic = nic, Password = password, Email = email, FullName = fullName, PhoneNumber = phone, Role = UserRole.Backoffice };
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
 
-        if (await _users.GetByNicAsync(nic, cancellationToken) is not null)
+        if (await _users.GetByNicAsync(nic, cancellationToken) is not null ||
+            await _users.GetByEmailAsync(email, cancellationToken) is not null)
         {
             return;
         }

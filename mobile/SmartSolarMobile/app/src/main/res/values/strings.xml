@@ -71,6 +71,7 @@
     <string name="btn_cancel_reservation">Cancel reservation</string>
     <string name="btn_view_details">View details</string>
     <string name="btn_back_to_workspace">Back to workspace</string>
+    <string name="btn_get_directions">Get directions</string>
 
     <string name="review_heading">Review your request</string>
     <string name="review_note">Review your energy amount and slot. Availability is confirmed when you book.</string>

@@ -35,6 +35,7 @@ public final class WorkspaceActivity extends AppCompatActivity {
     private AuthRepository auth;
     private BottomNavigationView navigation;
     private MaterialToolbar toolbar;
+    private TextView toolbarTitle;
     private View content, navSurface, gate;
     private Destination selected = Destination.HOME;
     private SharedPreferences preferences;
@@ -65,6 +66,7 @@ public final class WorkspaceActivity extends AppCompatActivity {
             catch (IllegalArgumentException ignored) { selected = Destination.HOME; }
         }
         toolbar = findViewById(R.id.workspaceToolbar);
+        toolbarTitle = findViewById(R.id.workspaceToolbarTitle);
         navigation = findViewById(R.id.workspaceBottomNav);
         content = findViewById(R.id.workspaceContent);
         navSurface = findViewById(R.id.workspaceNavSurface);
@@ -160,7 +162,8 @@ public final class WorkspaceActivity extends AppCompatActivity {
             next = create(destination); tx.add(R.id.workspaceContent, next, tag);
         } else tx.show(next);
         tx.setMaxLifecycle(next, Lifecycle.State.RESUMED).setPrimaryNavigationFragment(next).commitNow();
-        toolbar.setTitle(title(destination));
+        if (toolbarTitle != null) toolbarTitle.setText(title(destination));
+        else toolbar.setTitle(title(destination));
         if (navigation.getSelectedItemId() != destination.ordinal()+1) navigation.setSelectedItemId(destination.ordinal()+1);
     }
     private Fragment create(Destination d) {
