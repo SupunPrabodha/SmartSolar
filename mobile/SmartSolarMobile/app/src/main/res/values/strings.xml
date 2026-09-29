@@ -13,7 +13,7 @@
     <string name="create_account">Create Prosumer account</string>
     <string name="registration_title">Create your Prosumer account</string>
     <string name="registration_description">Register for approval, then sign in after Backoffice activation.</string>
-    <string name="registration_pending">Registration submitted\nYour account is awaiting Backoffice activation.</string>
+    <string name="registration_pending">Registration submitted\nBackoffice will review your account and email you a verification link. Verify your email before signing in.</string>
     <string name="registration_failed">Unable to create your account.</string>
     <string name="nic_hint">NIC</string>
     <string name="password_hint">Password</string>
@@ -23,7 +23,7 @@
     <string name="working">Please wait&#8230;</string>
     <string name="credentials_required">NIC and password are required.</string>
     <string name="session_expired">Your session has expired. Please sign in again.</string>
-    <string name="login_failed">Login failed. Check your credentials and account status.</string>
+    <string name="login_failed">Login failed. Check your NIC and password. New Prosumers need Backoffice approval and email verification before signing in.</string>
     <string name="connection_failed">Unable to connect. Check your connection and try again.</string>
     <string name="session_failed">Unable to save or restore the session. Please sign in again.</string>
     <string name="api_not_configured">This app is not connected to a service. Contact your administrator.</string>

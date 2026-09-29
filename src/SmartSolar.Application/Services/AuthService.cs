@@ -88,7 +88,9 @@ public sealed class AuthService : IAuthService
 
         if (user.Status == UserStatus.PendingActivation)
         {
-            throw new ForbiddenException("This account is pending Backoffice activation.");
+            throw new ForbiddenException(user.ApprovedAtUtc is null
+                ? "This account is waiting for Backoffice approval."
+                : "Your account is approved. Verify your email before signing in; ask Backoffice to resend an expired link.");
         }
 
         if (user.Status == UserStatus.Deactivated)
