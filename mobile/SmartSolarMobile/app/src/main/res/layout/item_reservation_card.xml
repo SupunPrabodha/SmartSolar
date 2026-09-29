@@ -29,7 +29,7 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Clickable Header with Hero Information & Chevron -->
+            <!-- Clickable Base Header with Hero Information, Station, Timestamps, & Chevron -->
             <LinearLayout
                 android:id="@+id/cardHeader"
                 android:layout_width="match_parent"
@@ -65,13 +65,13 @@
                         android:layout_height="wrap_content" />
                 </LinearLayout>
 
-                <!-- Bottom Row: Station Name & Chevron -->
+                <!-- Station Name & Expand/Collapse Chevron Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="6dp">
 
                     <TextView
                         android:id="@+id/textCardStation"
@@ -96,38 +96,20 @@
                         android:importantForAccessibility="no" />
                 </LinearLayout>
 
-            </LinearLayout>
-
-            <!-- Expanded Details & Actions Container -->
-            <LinearLayout
-                android:id="@+id/layoutExpandedDetails"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="@dimen/solar_space_base"
-                android:paddingEnd="@dimen/solar_space_base"
-                android:paddingBottom="@dimen/solar_space_base"
-                android:visibility="gone">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginBottom="@dimen/solar_space_md"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <!-- 2-Column Dashboard Grid: Timestamps & Metadata -->
+                <!-- 2-Column Dashboard Grid: Timestamps & Cutoff in Base Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:orientation="vertical">
 
-                    <!-- Grid Row 1: Start & End Times -->
+                    <!-- Grid Row 1: Scheduled Start & End Times -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <!-- Tile 1: Accepted Start -->
+                        <!-- Tile 1: Scheduled Start -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -157,7 +139,7 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
 
-                        <!-- Tile 2: Accepted End -->
+                        <!-- Tile 2: Scheduled End -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -189,8 +171,7 @@
 
                     </LinearLayout>
 
-                    <!-- Grid Row 2: Modification Cutoff & Prosumer NIC -->
-                    <!-- Grid Row 2: Modification Cutoff -->
+                    <!-- Grid Row 2: Change Possible Until Cutoff -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -221,12 +202,30 @@
 
                 </LinearLayout>
 
+            </LinearLayout>
+
+            <!-- Expanded Details & Actions Container -->
+            <LinearLayout
+                android:id="@+id/layoutExpandedDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/solar_space_base"
+                android:paddingEnd="@dimen/solar_space_base"
+                android:paddingBottom="@dimen/solar_space_base"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="@dimen/solar_space_md"
+                    android:background="?attr/colorOutlineVariant" />
+
                 <!-- Rejection Notice Banner -->
                 <LinearLayout
                     android:id="@+id/layoutRejectionNotice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_md"
                     android:padding="@dimen/solar_space_md"
                     android:background="@drawable/bg_rejection_notice"
                     android:orientation="vertical"
@@ -255,7 +254,7 @@
                     style="@style/Solar.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_md"
+                    android:layout_marginTop="@dimen/solar_space_sm"
                     android:padding="10dp"
                     android:background="@drawable/bg_restriction_banner"
                     android:textColor="@color/solar_secondary"
