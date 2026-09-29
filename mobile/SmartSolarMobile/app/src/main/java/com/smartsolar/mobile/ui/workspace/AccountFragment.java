@@ -63,7 +63,10 @@ public final class AccountFragment extends WorkspaceFragment {
                 Response<UserResponse> response = api.updateMyProfile(new UpdateProfileRequest(fullName,emailValue,phoneValue)).execute();
                 if (response.code() == 401) { sessions.clearIfMatches(token); expired = true; }
                 else if (response.isSuccessful() && response.body() != null && token != null && token.equals(sessions.getAccessToken())) {
-                    updated = response.body(); sessions.cacheProfile(updated); message = R.string.profile_saved;
+                    updated = response.body();
+                    if ("Active".equals(updated.getStatus())) sessions.cacheProfile(updated);
+                    else sessions.clearIfMatches(token);
+                    message = R.string.profile_saved;
                 }
                 if (response.errorBody() != null) response.errorBody().close();
             } catch (Exception failure) { message = R.string.connection_failed; }
@@ -73,6 +76,12 @@ public final class AccountFragment extends WorkspaceFragment {
                 busy(false);
                 if (invalid) { workspace().openLogin(); return; }
                 if (user != null) {
+                    if (!"Active".equals(user.getStatus())) {
+                        new MaterialAlertDialogBuilder(requireContext()).setTitle("Email changed")
+                            .setMessage("Your new email needs Backoffice approval and verification before you can sign in again.")
+                            .setCancelable(false).setPositiveButton("Return to sign in", (dialog, which) -> workspace().openLogin()).show();
+                        return;
+                    }
                     workspace().state().profile = user;
                     memory.values.remove("draft"); memory.hierarchy = null;
                     populate();

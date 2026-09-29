@@ -22,6 +22,12 @@ public sealed class User
 
     public UserStatus Status { get; set; }
 
+    public long AccountVersion { get; set; }
+    public DateTime? ApprovedAtUtc { get; set; }
+    public DateTime? EmailVerifiedAtUtc { get; set; }
+    public string? EmailVerificationHash { get; set; }
+    public DateTime? EmailVerificationExpiresAtUtc { get; set; }
+
     // Internal non-expiring reservation mutex; abandoned writes require reconciliation.
     public string? ReservationWriteLock { get; set; }
 

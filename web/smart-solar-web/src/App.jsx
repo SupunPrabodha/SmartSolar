@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import StationsPage from './pages/StationsPage';
 import UserManagementPage from './pages/UserManagementPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 import { ReservationLayout } from './pages/reservations/ReservationComponents';
 import OperationsDashboardPage from './pages/reservations/OperationsDashboardPage';
@@ -25,6 +26,7 @@ export default function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Shared staff workspace */}

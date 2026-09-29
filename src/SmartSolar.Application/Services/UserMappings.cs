@@ -23,6 +23,8 @@ internal static class UserMappings
             user.Role,
             user.Status,
             user.CreatedAtUtc,
-            user.UpdatedAtUtc);
+            user.UpdatedAtUtc,
+            user.ApprovedAtUtc,
+            user.EmailVerifiedAtUtc);
     }
 }

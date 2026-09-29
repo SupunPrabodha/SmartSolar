@@ -5,6 +5,7 @@
  */
 using SmartSolar.Application.Abstractions.Auth;
 using SmartSolar.Application.Abstractions.Persistence;
+using SmartSolar.Application.Abstractions.Users;
 using SmartSolar.Application.DTOs.Auth;
 using SmartSolar.Application.DTOs.Users;
 using SmartSolar.Application.Exceptions;
@@ -47,11 +48,16 @@ public sealed class AuthFoundationTests
         var user = new User { Nic = "200012345678", Role = UserRole.Prosumer, Status = UserStatus.PendingActivation };
         user.PasswordHash = passwords.HashPassword(user, "test-only-password");
         users.Items.Add(user);
-        var service = new UserService(users, passwords);
+        var mail = new TestEmail();
+        var service = new UserService(users, passwords, mail);
         var tokens = new TestTokens();
         var auth = new AuthService(users, passwords, tokens);
         var request = new LoginRequest { Nic = user.Nic, Password = "test-only-password" };
         await service.ActivateAsync(user.Nic);
+        await Assert.ThrowsAsync<ForbiddenException>(() => auth.LoginAsync(request));
+        Assert.NotEqual(mail.Token, user.EmailVerificationHash);
+        await service.VerifyEmailAsync(user.Nic, mail.Token);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, mail.Token));
         Assert.Equal(UserStatus.Active, (await auth.LoginAsync(request)).User.Status);
         await service.RequestOwnDeactivationAsync(user.Nic);
         await Assert.ThrowsAsync<ForbiddenException>(() => auth.LoginAsync(request));
@@ -93,11 +99,95 @@ public sealed class AuthFoundationTests
         var otherProsumer = new User { Nic = "200012345677", Email = "taken@example.com", Role = UserRole.Prosumer, Status = UserStatus.Active };
         var operatorUser = new User { Nic = "200012345679", Role = UserRole.GridOperator, Status = UserStatus.Active };
         users.Items.Add(prosumer); users.Items.Add(otherProsumer); users.Items.Add(operatorUser);
-        var service = new UserService(users, new PasswordService());
+        var service = new UserService(users, new PasswordService(), new TestEmail());
         var updated = await service.UpdateProsumerAsync(prosumer.Nic, new UpdateProsumerRequest { FullName = "After Name", Email = "after@example.com", PhoneNumber = "0712345678" });
-        Assert.Equal("200012345678", updated.Nic); Assert.Equal(UserRole.Prosumer, updated.Role); Assert.Equal(UserStatus.Active, updated.Status);
+        Assert.Equal("200012345678", updated.Nic); Assert.Equal(UserRole.Prosumer, updated.Role); Assert.Equal(UserStatus.PendingActivation, updated.Status);
         await Assert.ThrowsAsync<ConflictException>(() => service.UpdateProsumerAsync(prosumer.Nic, new UpdateProsumerRequest { FullName = "Duplicate", Email = "taken@example.com", PhoneNumber = "0712345678" }));
         await Assert.ThrowsAsync<BadRequestException>(() => service.UpdateProsumerAsync(operatorUser.Nic, new UpdateProsumerRequest { FullName = "Operator", Email = "operator@example.com", PhoneNumber = "0712345678" }));
+    }
+
+    [Fact]
+    public async Task VerificationRejectsWrongExpiredAndRevokedLinks()
+    {
+        // Approval alone never permits login, and failed/revoked proofs cannot activate an account.
+        var users = new MemoryUsers();
+        var user = new User { Nic = "200012345678", Email = "test@example.invalid", Role = UserRole.Prosumer, Status = UserStatus.PendingActivation };
+        users.Items.Add(user);
+        var mail = new TestEmail();
+        var service = new UserService(users, new PasswordService(), mail);
+        await service.ActivateAsync(user.Nic);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, new string('0', 64)));
+        user.EmailVerificationExpiresAtUtc = DateTime.UtcNow.AddSeconds(-1);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, mail.Token));
+        user.EmailVerificationExpiresAtUtc = DateTime.UtcNow.AddHours(1);
+        await service.DeactivateAsync(user.Nic);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, mail.Token));
+        Assert.Equal(UserStatus.Deactivated, user.Status);
+    }
+
+    [Fact]
+    public async Task ResendAndEmailChangeInvalidateOlderProofs()
+    {
+        // A fresh email or delivery must never leave a previous bearer proof usable.
+        var users = new MemoryUsers();
+        var user = new User { Nic = "200012345678", Email = "old@example.invalid", Role = UserRole.Prosumer, Status = UserStatus.PendingActivation };
+        users.Items.Add(user);
+        var mail = new TestEmail();
+        var service = new UserService(users, new PasswordService(), mail);
+        await service.ActivateAsync(user.Nic);
+        var oldToken = mail.Token;
+        await Assert.ThrowsAsync<ConflictException>(() => service.ActivateAsync(user.Nic));
+        user.ApprovedAtUtc = DateTime.UtcNow.AddMinutes(-2);
+        await service.ActivateAsync(user.Nic);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, oldToken));
+        await service.VerifyEmailAsync(user.Nic, mail.Token);
+        await service.UpdateOwnProfileAsync(user.Nic, new UpdateOwnProfileRequest {
+            FullName = "Changed User", Email = "new@example.invalid", PhoneNumber = "0771234567"
+        });
+        Assert.Equal(UserStatus.PendingActivation, user.Status);
+        Assert.Null(user.ApprovedAtUtc);
+        Assert.Null(user.EmailVerifiedAtUtc);
+        await Assert.ThrowsAsync<BadRequestException>(() => service.VerifyEmailAsync(user.Nic, mail.Token));
+    }
+
+    [Fact]
+    public async Task MissingMailConfigurationDoesNotApproveAndDeliveryFailureDoesNotActivate()
+    {
+        // Infrastructure errors cannot accidentally grant access or report a successful delivery.
+        var users = new MemoryUsers();
+        var user = new User { Nic = "200012345678", Role = UserRole.Prosumer, Status = UserStatus.PendingActivation };
+        users.Items.Add(user);
+        var mail = new TestEmail { Configured = false };
+        var service = new UserService(users, new PasswordService(), mail);
+        await Assert.ThrowsAsync<ConflictException>(() => service.ActivateAsync(user.Nic));
+        Assert.Null(user.ApprovedAtUtc);
+        mail.Configured = true;
+        mail.FailDelivery = true;
+        await Assert.ThrowsAsync<ConflictException>(() => service.ActivateAsync(user.Nic));
+        Assert.Equal(UserStatus.PendingActivation, user.Status);
+        Assert.Null(user.EmailVerifiedAtUtc);
+        user.Role = UserRole.GridOperator;
+        await service.ActivateAsync(user.Nic);
+        Assert.Equal(UserStatus.Active, user.Status);
+    }
+
+    private sealed class TestEmail : IVerificationEmailSender
+    {
+        public bool Configured { get; set; } = true;
+        public bool FailDelivery { get; set; }
+        public string Token { get; private set; } = "";
+        public void EnsureConfigured()
+        {
+            // Tests capture deliveries locally and never contact a mail provider.
+            if (!Configured) throw new ConflictException("Not configured");
+        }
+        public Task SendAsync(string email, string nic, string token, CancellationToken cancellationToken = default)
+        {
+            // Retain the token only in test memory to exercise the recipient confirmation step.
+            if (FailDelivery) throw new ConflictException("Delivery failed");
+            Token = token;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class TestTokens : IJwtTokenService
