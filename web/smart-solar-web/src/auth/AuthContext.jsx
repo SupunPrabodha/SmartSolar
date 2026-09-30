@@ -1,3 +1,4 @@
+import { clearFeedback } from '../util/feedback';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../api/apiClient';
 
@@ -5,6 +6,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [sessionRevision, setSessionRevision] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [sessionError, setSessionError] = useState('');
@@ -13,7 +15,10 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     generation.current += 1;
+    clearFeedback();
+    setSessionRevision(value => value + 1);
     ['accessToken', 'currentUser', 'expiresAtUtc'].forEach(key => sessionStorage.removeItem(key));
+    Object.keys(sessionStorage).filter(key => key.startsWith('profile-prompt:')).forEach(key => sessionStorage.removeItem(key));
     setUser(null);
     setSessionError('');
     setLastVerifiedAt(null);
@@ -81,7 +86,7 @@ export function AuthProvider({ children }) {
   }
 
   return <AuthContext.Provider value={{
-    user, loading, refreshing, sessionError, lastVerifiedAt, login, logout, refreshProfile
+    user, loading, refreshing, sessionError, lastVerifiedAt, sessionRevision, login, logout, refreshProfile
   }}>{children}</AuthContext.Provider>;
 }
 

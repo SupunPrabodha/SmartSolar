@@ -24,9 +24,11 @@ public final class SearchBookingsFragment extends WorkspaceFragment {
     private Spinner status;
     @Override protected int layout() { return R.layout.fragment_search_bookings; }
     @Override protected void bind(Bundle saved) {
+        androidx.core.view.ViewCompat.setAccessibilityHeading(findViewById(R.id.polishFilterHeading),true);
+        androidx.core.view.ViewCompat.setAccessibilityHeading(findViewById(R.id.polishResultHeading),true);
         reservationId = findViewById(R.id.searchReservationId); nic = findViewById(R.id.searchProsumerNic); station = findViewById(R.id.searchStationId);
         status = findViewById(R.id.searchStatus);
-        status.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, new String[]{"All statuses", "Pending", "Approved", "Rejected", "Cancelled", "Completed"}));
+        status.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.item_filter_choice, new String[]{"All statuses", "Pending", "Approved", "Rejected", "Cancelled", "Completed"}));
         adapter = new ReservationAdapter(null); adapter.restoreExpanded(memory.values.getStringArrayList("expanded"));
         RecyclerView list = findViewById(R.id.searchResults); list.setLayoutManager(new LinearLayoutManager(requireContext())); list.setAdapter(adapter);
         repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));
@@ -43,9 +45,11 @@ public final class SearchBookingsFragment extends WorkspaceFragment {
         if (status.getSelectedItemPosition() > 0) filters.put("status", String.valueOf(status.getSelectedItem()));
         filters.put("page", "1"); filters.put("pageSize", "20");
         memory.loading = true; findViewById(R.id.searchProgress).setVisibility(View.VISIBLE);
+        ((TextView)findViewById(R.id.buttonSearch)).setText(R.string.visual_loading_results);
         repository.searchBookings(filters, (result, error, code) -> {
             if (!alive()) return;
             memory.loading = false; findViewById(R.id.searchProgress).setVisibility(View.GONE);
+            ((TextView)findViewById(R.id.buttonSearch)).setText(R.string.search_button);
             if (code == 401) { workspace().openLogin(); return; }
             if (result != null) { memory.data = result; render(result); }
             else ((TextView) findViewById(R.id.searchMessage)).setText(error == 0 ? R.string.load_failed : error);
@@ -53,7 +57,8 @@ public final class SearchBookingsFragment extends WorkspaceFragment {
     }
     private void render(ReservationPageResponse result) {
         adapter.setItems(result.getItems());
-        ((TextView) findViewById(R.id.searchMessage)).setText(result.getItems() == null || result.getItems().isEmpty() ? getString(R.string.no_matching_bookings) : "");
+        ((TextView) findViewById(R.id.searchMessage)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_nav_search,0,0,0);
+        ((TextView) findViewById(R.id.searchMessage)).setText(result.getItems() == null || result.getItems().isEmpty() ? getString(R.string.polish_search_empty) : getResources().getQuantityString(R.plurals.polish_results_count,result.getItems().size(),result.getItems().size()));
     }
     private static void put(Map<String,String> map, String key, EditText input) { String value = input.getText().toString().trim(); if (!value.isEmpty()) map.put(key,value); }
     @Override public void onDestroyView() {

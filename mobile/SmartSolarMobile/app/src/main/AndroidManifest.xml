@@ -65,6 +65,7 @@
             android:name=".ui.reservations.QrVerificationResultActivity"
             android:exported="false" />
 
+        <activity android:name=".ui.account.AccountExperienceActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <!-- Launcher / authentication -->
         <activity
             android:name=".ui.auth.LoginActivity"

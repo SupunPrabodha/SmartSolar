@@ -31,6 +31,25 @@ import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface ApiService {
+    @POST("auth/forgot-password")
+    Call<com.google.gson.JsonObject> forgotPassword(@Body Map<String,String> request);
+    @POST("users/me/change-password")
+    Call<com.google.gson.JsonObject> changePassword(@Body Map<String,String> request);
+    @GET("notifications")
+    Call<com.smartsolar.mobile.data.remote.dto.NotificationInbox> notifications();
+    @POST("notifications/{id}/read")
+    Call<Void> readNotification(@Path("id") String id);
+    @POST("notifications/read-all")
+    Call<Void> readNotifications();
+    @GET("users/me/avatar")
+    Call<okhttp3.ResponseBody> avatar();
+    @retrofit2.http.Multipart @PUT("users/me/avatar")
+    Call<Void> uploadAvatar(@retrofit2.http.Part okhttp3.MultipartBody.Part file);
+    @retrofit2.http.DELETE("users/me/avatar")
+    Call<Void> removeAvatar();
+    @GET("audit/users/me")
+    Call<java.util.List<com.google.gson.JsonObject>> profileAudit();
+
 
     // Member 1 - Station discovery and nearby station access
 

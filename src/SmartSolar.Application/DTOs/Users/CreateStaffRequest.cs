@@ -25,7 +25,7 @@ public sealed class CreateStaffRequest
     [Required, StringLength(20, MinimumLength = 7)]
     public string PhoneNumber { get; init; } = string.Empty;
 
-    [Required, StringLength(100, MinimumLength = 8)]
+    [Required, SmartSolar.Application.DTOs.Auth.PasswordPolicy]
     public string Password { get; init; } = string.Empty;
 
     [Required]

@@ -1,9 +1,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/catalogRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_screen_padding">
   <View android:id="@+id/catalogBack" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone"/>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-   <com.google.android.material.button.MaterialButton android:id="@+id/findNearby" style="@style/Solar.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/find_nearby"/>
-   <com.google.android.material.button.MaterialButton android:id="@+id/showAllStations" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_stations"/>
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/bg_visual_brand" android:padding="4dp">
+   <com.google.android.material.button.MaterialButton android:id="@+id/findNearby" style="@style/Solar.Button.Text" android:layout_width="0dp" android:layout_weight="1" android:checkable="true" app:backgroundTint="@color/visual_segment" android:layout_height="wrap_content" android:text="@string/find_nearby"/>
+   <com.google.android.material.button.MaterialButton android:id="@+id/showAllStations" style="@style/Solar.Button.Text" android:layout_width="0dp" android:layout_weight="1" android:checkable="true" app:backgroundTint="@color/visual_segment" android:layout_height="wrap_content" android:text="@string/all_stations"/>
   </LinearLayout>
   <com.google.android.material.button.MaterialButton android:id="@+id/toggleStationMap" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_station_map"/>
   <TextView android:id="@+id/locationStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/location_explanation" android:accessibilityLiveRegion="polite" android:layout_marginVertical="@dimen/solar_space_sm"/>
@@ -13,9 +13,11 @@
   <TextView android:id="@+id/mapStatus" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/map_alternative" android:textSize="12sp"/>
   <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/solar_space_base">
    <TextView android:id="@+id/discoveryTitle" style="@style/Solar.Title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/station_results" android:textSize="18sp"/>
-   <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/catalog_retry"/>
+   <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/catalog_retry" android:tooltipText="@string/catalog_retry"/>
   </LinearLayout>
-  <ProgressBar android:id="@+id/catalogProgress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:visibility="gone"/>
+  <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/catalogProgress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_stations" android:visibility="gone"/>
   <TextView android:id="@+id/catalogMessage" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content"  android:accessibilityLiveRegion="polite"/>
   <LinearLayout android:id="@+id/stationList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
  </LinearLayout>

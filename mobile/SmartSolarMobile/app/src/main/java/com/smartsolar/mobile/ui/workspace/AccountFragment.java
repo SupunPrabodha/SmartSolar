@@ -19,6 +19,7 @@ import retrofit2.Response;
 
 /** Unsaved fields live in the retained view; hierarchy state also survives configuration recreation. */
 public final class AccountFragment extends WorkspaceFragment {
+    private final com.smartsolar.mobile.util.EnterpriseFeedback feedback = new com.smartsolar.mobile.util.EnterpriseFeedback();
     private EditText name, email, phone;
     private SessionManager sessions;
     private ApiService api;
@@ -31,6 +32,7 @@ public final class AccountFragment extends WorkspaceFragment {
         worker = Executors.newSingleThreadExecutor();
         sessions = new SessionManager(requireContext()); api = RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG);
         name = findViewById(R.id.inputName); email = findViewById(R.id.inputEmail); phone = findViewById(R.id.inputPhone);
+        findViewById(R.id.buttonPhotoSecurity).setOnClickListener(v -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(requireActivity(), "profile"));
         populate();
         if (saved != null && saved.containsKey("draftName")) {
             name.setText(saved.getString("draftName")); email.setText(saved.getString("draftEmail")); phone.setText(saved.getString("draftPhone"));
@@ -46,7 +48,9 @@ public final class AccountFragment extends WorkspaceFragment {
         if (user == null) return;
         name.setText(user.getFullName()); email.setText(user.getEmail()); phone.setText(user.getPhoneNumber());
         ((TextView) findViewById(R.id.profileName)).setText(user.getFullName());
+        ((TextView) findViewById(R.id.accountInitials)).setText(user.getFullName().isEmpty()?"?":user.getFullName().substring(0,1));
         ((TextView) findViewById(R.id.profileNic)).setText(user.getNic());
+        ((TextView) findViewById(R.id.accountIdentity)).setText(getString(R.string.visual_identity,user.getRole(),user.getStatus()));
     }
     @Override protected void load() {
         if (memory.hierarchy == null && !memory.values.getBoolean("draft")) populate();
@@ -87,7 +91,7 @@ public final class AccountFragment extends WorkspaceFragment {
                     populate();
                 }
                 ((TextView)findViewById(R.id.textResult)).setText(user == null ? getString(result) : "");
-                if (user != null) com.google.android.material.snackbar.Snackbar.make(root, result, com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show();
+                if (user != null) feedback.show(root, getString(result), false);
             });
         });
     }
@@ -120,5 +124,5 @@ public final class AccountFragment extends WorkspaceFragment {
         if (root != null) { out.putString("draftName", name.getText().toString()); out.putString("draftEmail", email.getText().toString()); out.putString("draftPhone", phone.getText().toString()); }
         super.onSaveInstanceState(out);
     }
-    @Override public void onDestroyView() { generation++; if (worker != null) worker.shutdownNow(); main.removeCallbacksAndMessages(null); super.onDestroyView(); }
+    @Override public void onDestroyView() { feedback.dismiss(); generation++; if (worker != null) worker.shutdownNow(); main.removeCallbacksAndMessages(null); super.onDestroyView(); }
 }

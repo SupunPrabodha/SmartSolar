@@ -24,7 +24,9 @@
 <TextView android:id="@+id/textError" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:textColor="?attr/colorError" android:accessibilityLiveRegion="polite" android:visibility="gone" />
 <ProgressBar android:id="@+id/progress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:layout_marginTop="@dimen/solar_space_base" android:contentDescription="@string/working" android:visibility="gone" />
 <com.google.android.material.button.MaterialButton android:id="@+id/buttonLogin" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp" android:text="@string/sign_in" android:layout_marginTop="20dp" />
-<com.google.android.material.button.MaterialButton android:id="@+id/buttonCreateAccount" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/create_account" />
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonForgotPassword"
+ android:layout_width="match_parent" android:layout_height="wrap_content" style="@style/Solar.Button" android:text="@string/forgot_password" />
+ <com.google.android.material.button.MaterialButton android:id="@+id/buttonCreateAccount" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/create_account" />
 <TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_roles" android:layout_marginTop="20dp" android:textSize="12sp" />
 </LinearLayout>
 <TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/foundation_footer" android:layout_marginTop="40dp" android:textSize="12sp" android:gravity="center" />

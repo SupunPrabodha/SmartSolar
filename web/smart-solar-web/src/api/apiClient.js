@@ -6,13 +6,13 @@ if (!API_BASE_URL) {
 
 export async function apiFetch(path, options = {}) {
   const token =
-    path === '/auth/login'
+    path.startsWith('/auth/')
       ? null
       : sessionStorage.getItem('accessToken');
 
   const headers = new Headers(options.headers ?? {});
 
-  if (!headers.has('Content-Type') && options.body) {
+  if (!headers.has('Content-Type') && options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -24,10 +24,20 @@ export async function apiFetch(path, options = {}) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  let response;
+  try { response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers
-  });
+  }); } catch (cause) {
+    if (cause.name === 'AbortError') throw cause;
+    const error = new Error('Service unavailable. Check your connection and retry.');
+    error.unavailable = true;
+    window.dispatchEvent(new Event('service-unavailable'));
+    throw error;
+  }
+  if (response.status >= 500) window.dispatchEvent(new Event('service-unavailable'));
+  else if (response.ok) window.dispatchEvent(new Event('service-restored'));
+  if (response.ok && options.responseType === 'blob') return response.blob();
 
   /*
    * Clear/expire the current session before parsing the response body.
@@ -110,6 +120,11 @@ export async function apiFetch(path, options = {}) {
 
     error.status = response.status;
     error.errors = errors;
+    error.unavailable = response.status >= 500;
+    const reference = problem.correlationId ?? response.headers.get('X-Correlation-ID');
+    if (typeof reference === 'string' && /^[a-f0-9]{32}$/i.test(reference)) {
+      error.correlationId = reference; error.message += ' Reference: ' + reference;
+    }
 
     if (typeof problem.traceId === 'string') {
       error.traceId = problem.traceId;

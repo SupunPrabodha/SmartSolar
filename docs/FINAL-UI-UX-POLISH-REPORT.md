@@ -1,255 +1,177 @@
 # Final UI/UX polish report
 
-Date: 27 September 2026. This report covers the interrupted redesign and its continuation, from the existing working tree. It supersedes earlier UI descriptions only where the presentation changed.
+**READY FOR FINAL UI/UX MANUAL ACCEPTANCE**
 
-## Repository and inherited work
+Date: 2026-09-29. Scope: the focused presentation-only pass following enterprise experience hardening. This report supersedes the earlier polish report for the screens changed here; older reports remain historical evidence.
 
-- Branch: `Merge-M1-M4`.
-- HEAD: `5dea421c208813d2f6a4d63a7d4fd7c0248ff60b`.
-- Continuation began with 95 short-status entries: 68 modified tracked files and 27 untracked entries (some entries are directories). Nothing was staged.
-- Initial tracked diff: 68 files, 979 insertions, 2,304 deletions. Initial `git diff --check` passed.
-- This was already a dirty integration worktree. Registration, Android Search, API/session remediation, local-time input conversion, and earlier acceptance documents included changes predating this UI pass. They were preserved, not recreated.
-- No reset, checkout, stash, commit, push, merge or deployment. No backend production/test file changes; no dependency, API, schema, UTC storage, reservation lifecycle or QR authorization changes in this UI pass.
+## Summary and scope
 
-Inherited UI work was verified in the actual source: web route selection, compact dashboards, shared tables/statuses and local display; Android themes, shared toolbar, floating navigation, compact Home/cards, profile danger area, local times and fixed QR error messages.
+The pass began with a clean working tree on `IT23187450`, HEAD `c335da5`. It refines existing React and native Java/XML screens, with the largest changes in Android Notifications and My Profile.
 
-## Continuation findings and fixes
+**No backend/business logic, API contracts, Mongo models/queries, auth/session logic, password/reset rules, notification generation, reservation/QR rules, Maps behavior, SQLite behavior, routing contracts or role authorization were changed.** No dependency, manifest, Gradle, navigation-contract or API-client change. No commit, push, merge or deployment.
 
-The continuation found hardcoded toolbar/layout copy, unused imports and Home-era resources, an unused reservation-reference local variable, a Bookings-to-Search shortcut bypassing the new navigation helper, and a duplicated summary heading with a full-width status background.
+## Visual decisions and reusable components
 
-Toolbar/layout labels now reuse string resources; 38 unused string resources were removed. The shortcut uses the common navigation helper. Expandable shared reservation cards announce their expanded state. The summary uses its toolbar heading and compact status badge. The ambiguous QR timing error now says: "This reservation is outside its accepted transfer window. Check the scheduled time and try again."
+The established forest (#0B3D2E), emerald (#168B63), solar (#F6C344), neutral and semantic palette remains. Existing light/dark Android color tokens are reused. Cards have restrained borders/elevation, 20dp corners, 16dp internal spacing and 16dp gaps. Headings, body and metadata use a clear size hierarchy.
 
-All Activity attachments and 23 layouts were reviewed, including the slot picker rows. Registration, create/review/edit/summary, QR issuance, scanner and verification/completion remain deep screens. Changed XML parses and builds; no partial JSX/CSS edits or duplicate imports were found. Remaining lint notices are documented below rather than hidden with suppressions.
+Web extends the existing reusable Icon component and shared enterprise stylesheet. Native `SurfaceUi` groups card surfaces, section headings, semantic pills, wrapping filter chips and empty states; it contains no API, session or persistence behavior. Existing Solar.Card, Solar.Input and button styles remain the design base.
 
-## Web presentation
+## Icon system
 
-- Forest-green navigation, restrained solar-yellow accents, neutral surfaces, shared spacing, typography, focus states, button hierarchy, cards, tables and status badges.
-- Login has product-oriented copy. Backoffice Home shows account/pending-activation/station counts from existing API reads. GridOperator Home shows the existing pending and approved-future metrics with relevant actions. Loading/failure states never invent counts.
-- `activeWorkspaceRoute` returns one canonical key, including query-based Pending Queue and Pending Activations. Detail/create routes select Manage Reservations; Current, Dashboard, History and Search retain distinct selection. Links use a single matching `aria-current="page"`.
-- Users use persistent form labels and a compact creation section. Station cards foreground name/address/capacity; station management and slot controls retain their existing behavior.
-- Reservation lists show abbreviated references, local date/time and common status badges. Full references remain in accessible title/detail content. Record details separate overview, schedule and full references.
-- No visible Phase 0, Common foundation, Integrated team workspace or member-development labels remain. Ownership comments in source are not user interface text.
-- No new web dependency or fake production data was added.
+Web utility controls now use reusable inline SVG paths for bell, profile, refresh, download, history, edit, power, shield, camera, check-all, arrows, close, warning and information. Decorative Unicode arrows/chevrons and toast/dialog dismiss symbols in the changed flows were replaced with SVG.
 
-## Android presentation and navigation
+Android adds 11 small VectorDrawables (bell, camera, check-all, chevron, filter, info, logout, mail, phone, refresh, shield), reusing existing navigation/brand vectors. No bitmap interface icons or new icon framework. Reservation expansion still uses the same state/handlers; only its visual chevron changed to a rotated vector.
 
-Native Java/XML and the existing Material Components dependency remain. Shared light/dark colors, dimensions, button/input/card styles, vector icons and the solar brand mark unify the screens. Home now prioritizes greeting, live counts and compact actions; Account separates profile editing from deactivation. Station discovery keeps map and list available. Reservation cards foreground energy, status and local schedule; technical references are secondary and full values remain in expanded details. Empty/loading/error messages remain connected to the existing repositories.
+## Web toolbar and Home
 
-`WorkspaceChrome` wraps each existing Activity view with a Material toolbar, a weighted content area and an elevated rounded bottom-navigation surface. It does not replace Activities with fragments, Compose or a new routing framework. Navigation occupies measured layout space below the content, rather than overlaying scrollable rows. The outer shell owns system-bar/keyboard insets, clears the original root's duplicate inset listener and hides navigation while the keyboard is visible.
+Search/Ctrl+K remains available. A bell with unread badge links to the same notification route; its accessible name includes the real count. A native account disclosure shows the existing avatar/initials, name and role, and exposes My Profile, a security-card anchor and the existing Sign out confirmation. Escape closes the disclosure and restores focus.
 
-| Role | Five top-level destinations |
+Long names wrap; compact widths hide the name block while retaining the account trigger. Home quick actions retain their destinations and real metrics/activity; SVG arrows and refresh actions align with the shared icon system.
+
+## Web Profile and User Management
+
+Profile is split into a photo/identity hero, Personal information, Change password and Audit history. Completion/status chips use existing session data; desktop personal/security cards form two columns and stack below 1024px. The file control stays explicitly labelled and retains the original validation/upload handlers.
+
+User Management History/Edit/Deactivate retain labels with matching SVGs. Rows have consistent spacing/hover treatment. Shared CSV buttons gain a download SVG; existing filters, request and download behavior are unchanged.
+
+## Web Notifications, feedback and search
+
+Filters sit in a bounded surface. Notifications have individually bordered cards, category icons, priority chips, explicit unread labels and subtle unread tint. Empty notification/audit states have purposeful imagery and text. Audit retains existing filters/data; shared activity receives timeline styling.
+
+Feedback/dismiss controls use SVGs without changing queue/timing behavior. The command palette's data flow, debounce and keyboard handlers are unchanged; its toolbar entry and icons are polished.
+
+## Android global shell/header
+
+The existing WorkspaceActivity, retained Fragments and five-item bottom navigation are preserved. Bell is a 56dp action view with an actual unread badge and count-aware contentDescription. The previous literal notification text action is removed from visual presentation. The existing profile icon remains the toolbar fallback.
+
+The Workspace does not currently have an avatar image feed; this UI-only pass did not introduce another API request/cache to add one. My Profile continues using its existing avatar request and now presents the actual photo prominently. No new Activity or navigation destination was added.
+
+## Android Home
+
+The original hero and real metrics stay intact. Recent activity and quick actions are grouped into outlined cards. Refresh profile and Sign out occupy a quieter Account surface instead of floating below operational content. Primary scanning/reservation actions keep their existing role visibility and handlers.
+
+## Android Notifications
+
+The focused screen keeps existing DeepScreenChrome Back behavior. Refresh and Mark all read move into toolbar icons, with unread count as subtitle. Status and priority become compact, wrapping single-selection chips.
+
+Each notification is a meaningful surface with category icon, priority chip, message, timestamp and contextual outlined actions. Unread state uses both tint and text; priorities use existing semantic foreground/background pairs. Empty filters display a bell/caught-up card. The API calls, ownership, read behavior and filter predicates are unchanged.
+
+## Android Search
+
+One Material card now contains all existing fields and Status spinner. Outlined inputs have appropriate leading icons and consistent spacing. Search is filled, Clear secondary, and the actions stack to allow narrow screens/large fonts. The dropdown uses a dedicated TextView row compatible with ArrayAdapter.
+
+Results have an accessible section heading, actual displayed-item count (not an invented total) and an empty-state surface. Request filters, role-specific NIC visibility, fetch/paging limit and Clear behavior are preserved.
+
+## Android Bookings
+
+Existing section tabs use a light semantic selected surface and balanced minimum widths; scrollable behavior accommodates the Prosumer sections and larger text. Refresh moves to a compact heading icon. Empty bookings are grouped with a calendar icon. Existing energy/status/schedule cards retain their content, with vector expansion affordances and existing expanded-state accessibility.
+
+## Android My Profile
+
+The hero shows a circular 120dp photo/initials with an emerald ring, 48dp camera overlay, name, NIC/role, status and completion. The overlay invokes the same Photo Picker handler.
+
+Personal information, Account security and Security history have separate cards. Identity guidance becomes a compact information row; Prosumer email-reapproval guidance is shown only for that role. Inputs retain existing types, validation, maximum lengths and password toggles. Save remains primary; utilities are outlined. Audit and its empty state are grouped; no extra history request was added.
+
+## Filters, status and empty surfaces
+
+Filter ChipGroups are single-select and wrap naturally; touched chips preserve the existing in-memory selected values. High/Medium/Low and Unread are text-labelled semantic pills. Existing reservation status formatting is unchanged. Notification, Search, Bookings and account-history empty states now have surface grouping and appropriate vector imagery.
+
+## Accessibility and responsive behavior
+
+- Web icon actions have accessible labels/title where needed. Account disclosure uses native keyboard semantics with Escape restoration. Visible focus and 180ms restrained transitions respect reduced motion.
+- Android icon actions are at least 48dp; filter chips enforce minimum touch targets. Badge text is 12sp, decorative vectors are ignored by accessibility, and section headings use ViewCompat for API 26 support.
+- Plural resources provide unread/result count copy. Status and priority have text, not color alone.
+- Profile columns collapse at 1024px; toolbar controls compact at 480px. Android content scrolls in the existing containers; filters wrap and Search actions stack.
+- Bottom navigation/insets code is unchanged; runtime tests still need to confirm no clipping/overlap with landscape, keyboard and large fonts.
+
+Browser widths, actual 200% zoom, physical/emulated Android, TalkBack and screenshot acceptance were **not executed**. These are implementation provisions, not claimed visual runtime results.
+
+## Exact automated results
+
+| Validation | Final result |
 | --- | --- |
-| Prosumer | Home, Stations, Reservations, History, Account |
-| GridOperator | Home, Stations, Scan, Bookings, Search |
+| Web `npm.cmd test` | **88 passed**, 0 failed, 0 cancelled, 0 skipped; 4,898.65ms |
+| Web `npm.cmd run build` | Success; Vite 7.3.6; 72 modules; 3.36s |
+| Android required clean/build/test/lint/release-manifest command | **BUILD SUCCESSFUL in 38s**, all 51 actionable tasks executed |
+| Android JVM tests | **71 passed**, 0 failures, 0 errors, 0 skipped |
+| Android lint | **0 errors, 90 warnings** |
+| Release manifest inspection | usesCleartextTraffic=false; no debug networkSecurityConfig |
+| `git diff --check` | Passed |
+| Scoped repository scan | No suspect credential patterns/conflict markers; no duplicate value resources or IDs within layouts |
+| Scope guard | No backend/protected-contract changes; no API/repository/session method-call additions/removals in edited Java screens |
 
-The role is obtained through the existing verified-profile restoration. Unsupported roles get no destination list. Prosumer Current/Pending/Search map to the Reservations selection; GridOperator History maps to Bookings. Profile verification failure keeps navigation hidden; invalid/expired sessions return to Login with the task cleared.
+Two Web tests were added for accessible toolbar destinations and separate labelled profile/security forms. Existing functional assertions were retained. No backend suite was rerun because no backend files changed.
 
-Reselecting the current destination does not relaunch its Activity. Other top-level switches use CLEAR_TOP, finish the outgoing non-Home Activity and retain Home as the Back anchor. Scan deliberately retains its caller as a deep camera workflow. Shared secondary shortcuts use this helper where appropriate.
+Android lint warning inventory: 42 SetTextI18n, 21 GradleDependency, 7 Overdraw, 7 UnusedResources, 3 AndroidGradlePluginVersion, 3 UseCompoundDrawables, 2 DisableBaselineAlignment, 2 UselessLeaf, and one each NotifyDataSetChanged, MergeRootFrame, UselessParent. The previous enterprise pass reported 84 warnings; this pass reports 90, including layout/resource notices introduced or exposed by surface grouping. No suppressions were added. The existing StationsFragment deprecated-API compiler note remains.
 
-**No bottom navigation** appears on Login, Registration, Station Detail, Reservation Create/Review, Reservation Edit/Review, Reservation Summary, Transaction QR, QR Scanner, QR Verification or Completion. Scan is a GridOperator navigation entry that opens a deep screen; it does not carry the bar into the camera. Review lives inside Create/Edit; completion lives inside Verification. Deep-screen toolbar Back uses the existing Back dispatcher. Redundant prototype Back controls are hidden; meaningful confirm/cancel/Done actions remain.
+An initial Android resource build identified a missing bell label, which was fixed before final validation. Source review also replaced a rich slot-layout row with a dedicated simple TextView status row before final validation; this avoids an ArrayAdapter root-type mismatch.
 
-Source structure supports non-overlapping content, bounded navigation and role-specific selection. These are source/build findings, not a claim that gesture/three-button navigation or Activity stacks have been exercised on a device.
-
-## Time and QR presentation
-
-- Backend/API/Mongo remain UTC.
-- Android reservation schedule, cutoff, dashboard update, QR-issued and completion times use the current device timezone. Day rollover is covered by a JVM test.
-- Web reservation/current/history/search display browser-local time with timezone guidance. Existing datetime-local to UTC request conversion is retained.
-- Recurring station OperatingSchedule remains explicitly UTC in its web editor. Android renders dated local intervals for the upcoming week without altering the recurrence contract.
-- No raw ISO timestamp was found in the reviewed major user-facing time bindings. UTC identifiers/comments and wire-format conversion code remain intentionally.
-- QR payloads still go only to barcode generation/verification/completion. They are not displayed as raw text, logged or added to SQLite.
-- Fixed client copy distinguishes server-identified completion/cancellation/rejection/account/reference failures. Unknown details are not echoed. Too-early and expired requests share a server category, so the UI reports only an outside-window condition. QR rules and exactly-once completion remain unchanged.
-
-## Exact production files touched by the combined UI pass
-
-These 77 paths distinguish this UI work from unrelated pre-existing dirty files. A path listed here may already have had integration edits before the UI pass; listing it does not claim authorship of the entire Git diff.
-
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/data/repository/ReservationRepository.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/account/AccountActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/auth/RegisterActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/common/WorkspaceChrome.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/home/HomeActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/CreateReservationActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ModifyReservationActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ReservationDetailsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ReservationSummaryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/SlotSpinnerAdapter.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/BookingHistoryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/CurrentBookingsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/QrScannerActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/QrVerificationResultActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/ReservationAdapter.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/ReservationQrActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/SearchBookingsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/stations/StationDetailActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/stations/StationDiscoveryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/util/MobileNavigation.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/util/QrErrorPresentation.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/util/ReservationUiUtils.java`
-- `mobile/SmartSolarMobile/app/src/main/res/color/solar_nav_item.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_account.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_back.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_bookings.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_history.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_home.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_scan.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_search.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_nav_stations.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_solar_brand.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_account.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_booking_history.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_create_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_current_bookings.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_home.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_login.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_modify_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_qr_scanner.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_qr_verification_result.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_register.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_reservation_details.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_reservation_qr.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_reservation_summary.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_search_bookings.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_station_detail.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_station_discovery.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation_card.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/item_station.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/view_workspace_shell.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values-night/colors.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values-night/themes.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/colors.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/dimens.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/stations.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/strings.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/styles.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/themes.xml`
-- `web/smart-solar-web/src/components/Icon.jsx`
-- `web/smart-solar-web/src/pages/HomePage.jsx`
-- `web/smart-solar-web/src/pages/LoginPage.jsx`
-- `web/smart-solar-web/src/pages/StationsPage.jsx`
-- `web/smart-solar-web/src/pages/UserManagementPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/BookingHistoryPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/CurrentBookingsPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/OperationsDashboardPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/ReservationComponents.jsx`
-- `web/smart-solar-web/src/pages/reservations/ReservationDetailsPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/ReservationFormPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/ReservationListPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/SearchBookingsPage.jsx`
-- `web/smart-solar-web/src/pages/reservations/reservationUi.js`
-- `web/smart-solar-web/src/styles.css`
-- `web/smart-solar-web/src/util/catalog.js`
-- `web/smart-solar-web/src/util/navigation.js`
-
-## Exact tests changed or added
-
-- `mobile/SmartSolarMobile/app/src/test/java/com/smartsolar/mobile/MobileNavigationTest.java`
-- `mobile/SmartSolarMobile/app/src/test/java/com/smartsolar/mobile/QrErrorPresentationTest.java`
-- `mobile/SmartSolarMobile/app/src/test/java/com/smartsolar/mobile/ReservationUiUtilsTest.java`
-- `web/smart-solar-web/tests/member4Operations.test.js`
-- `web/smart-solar-web/tests/mergedNavigation.test.js`
-- `web/smart-solar-web/tests/reservationScreens.test.js`
-
-New tests: three role/selection cases in MobileNavigationTest and two QR error-presentation cases. ReservationUiUtilsTest adds timezone/day-rollover coverage and adjusts existing presentation expectations. Web navigation adds one exclusive-selection regression; reservation screen/operation tests retain behavior checks while following the new labels and abbreviated display/full-reference availability. No test count was reduced.
-
-Continuation itself changed these 23 production files; the test changes above were inherited and rerun:
-
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/account/AccountActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/auth/RegisterActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/common/WorkspaceChrome.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/home/HomeActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/CreateReservationActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ModifyReservationActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ReservationDetailsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservation/ReservationSummaryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/BookingHistoryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/CurrentBookingsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/QrVerificationResultActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/ReservationAdapter.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/ReservationQrActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/SearchBookingsActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/stations/StationDetailActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/stations/StationDiscoveryActivity.java`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_create_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_home.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_modify_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_reservation_summary.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation_card.xml`
-- `mobile/SmartSolarMobile/app/src/main/res/values/strings.xml`
-
-Documents created:
-- `docs/FINAL-UI-UX-POLISH-REPORT.md`
-- `docs/FINAL-UI-SCREENSHOT-CHECKLIST.md`
-
-Earlier README, architecture/onboarding, manifest, API/session and prior acceptance-report edits remain outside this UI pass's ownership.
-
-## Final command evidence
-
-Run from the repository root:
+Commands:
 
 ```powershell
-docker compose up -d --wait
-$env:SMARTSOLAR_TEST_MONGO = 'mongodb://127.0.0.1:27017'
-try {
-    dotnet restore SmartSolarMicrogrid.sln
-    dotnet build SmartSolarMicrogrid.sln --configuration Release
-    dotnet test SmartSolarMicrogrid.sln --configuration Release
-} finally {
-    Remove-Item Env:SMARTSOLAR_TEST_MONGO -ErrorAction SilentlyContinue
-}
-```
-
-Every step was checked before continuing. MongoDB healthy; restore passed; Release build passed in 2.69 seconds with **zero warnings/errors**. **202 unit + 77 integration tests passed, zero failed/skipped**, with Mongo integration enabled. The temporary environment variable was removed.
-
-From `web/smart-solar-web`:
-
-```powershell
+# web/smart-solar-web
 npm.cmd test
 npm.cmd run build
+
+# mobile/SmartSolarMobile (JDK 17)
+.\gradlew.bat clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:processReleaseMainManifest
+
+# repository root
+git diff --check
 ```
 
-**73 tests passed, zero failed/skipped**. Vite production build passed in **2.11 seconds**, 63 modules.
+Command-local TEMP/TMP used the existing ignored `TestResults/enterprise-temp` on F: because C: has limited space. Local ignored evidence: `TestResults/ui-polish-web-tests.log`, `TestResults/ui-polish-android.log`, Android `app/build/test-results/testDebugUnitTest/TEST-*.xml` and `app/build/reports/lint-results-debug.xml`.
 
-From `mobile/SmartSolarMobile`:
+## Manual checks and limitations
 
-```powershell
-.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:processReleaseMainManifest
+Use [FINAL-UI-UX-POLISH-MANUAL-ACCEPTANCE.md](FINAL-UI-UX-POLISH-MANUAL-ACCEPTANCE.md) for Web widths 1920/1440/1024/768/390, 200% zoom, keyboard/reduced motion, and Android normal/small phones, portrait/landscape, large fonts, light/dark, TalkBack and physical device.
+
+Verify bell/badge, account disclosure, avatar/photo picker, all filters/actions, empty/error states, bottom-nav insets and unchanged business workflows. Toolbar avatar remains the existing profile-icon fallback on Android; loading a new shell avatar would require extending its data flow, outside the frozen scope. No actual browser/device screenshots or real credential-bearing workflow execution is claimed.
+
+## Exact files changed
+
+M = modified; A = added. No files removed. This inventory includes both handoff documents.
+
+```text
+A docs/FINAL-UI-UX-POLISH-MANUAL-ACCEPTANCE.md
+M docs/FINAL-UI-UX-POLISH-REPORT.md
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/account/AccountExperienceActivity.java
+A mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/common/SurfaceUi.java
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/reservations/ReservationAdapter.java
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/workspace/BookingListFragment.java
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/workspace/MyReservationsFragment.java
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/workspace/SearchBookingsFragment.java
+M mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/workspace/WorkspaceActivity.java
+A mobile/SmartSolarMobile/app/src/main/res/drawable/bg_unread_badge.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_bell.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_camera.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_check_all.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_chevron.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_filter.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_info.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_logout.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_mail.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_phone.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_refresh.xml
+A mobile/SmartSolarMobile/app/src/main/res/drawable/ic_ui_shield.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/activity_account_experience.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/fragment_booking_list.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/fragment_booking_workspace.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/fragment_home.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/fragment_search_bookings.xml
+A mobile/SmartSolarMobile/app/src/main/res/layout/item_filter_choice.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation_card.xml
+M mobile/SmartSolarMobile/app/src/main/res/layout/item_reservation.xml
+A mobile/SmartSolarMobile/app/src/main/res/layout/view_notification_action.xml
+A mobile/SmartSolarMobile/app/src/main/res/values/polish_strings.xml
+M web/smart-solar-web/src/components/Experience.jsx
+M web/smart-solar-web/src/components/Feedback.jsx
+M web/smart-solar-web/src/components/Icon.jsx
+M web/smart-solar-web/src/components/Overlay.jsx
+M web/smart-solar-web/src/enterprise.css
+M web/smart-solar-web/src/pages/HomePage.jsx
+M web/smart-solar-web/src/pages/ProfilePage.jsx
+M web/smart-solar-web/src/pages/reservations/OperationsDashboardPage.jsx
+M web/smart-solar-web/src/pages/UserManagementPage.jsx
+M web/smart-solar-web/tests/mergedNavigation.test.js
 ```
-
-Final result: **BUILD SUCCESSFUL in 12 seconds**, 50 actionable tasks: 21 executed, 29 up-to-date. **59 JVM tests, zero failures/errors/skips** in the XML reports; the final unit-test task executed. Release-manifest processing was up-to-date. Debug APK assembled. Lint: **zero errors, 78 warnings**, down from 132 at continuation inspection. Remaining warnings include 37 string-concatenation/localization notices, 24 dependency/AGP version notices, four unused resources and 13 layout/adapter notices. They are not runtime failures, and no blanket lint suppression or dependency upgrade was introduced.
-
-Reports: `app/build/reports/tests/testDebugUnitTest/index.html` and `app/build/reports/lint-results-debug.html`.
-
-## Git, conflict and secret checks
-
-`git diff --check` passes. Tracked and nonignored untracked text scan found no merge-conflict markers, duplicate imports, obvious Maps/GitHub/JWT/private-key values or credential-bearing URLs. Sensitive-looking assignment locations were known examples/placeholders. No secret value was printed.
-
-Local Maps properties, Android local.properties and web .env.local remain ignored/untracked. No private signing file is tracked. These scans do not erase the historical Maps-key exposure in commit `f7f879b`; revocation/rotation remains unconfirmed from the earlier user answer. No key/account operation was performed in this UI pass.
-
-## Browser rendering evidence and limitations
-
-The interrupted run used hidden headless Microsoft Edge through local CDP, rendering the actual React components/CSS with in-memory disposable authentication/API fixtures. No live account or API mutation was involved; fixture data was never added to production source. The continuation reviewed the saved measurements and representative captures.
-
-All cases used a 900-pixel viewport height and Asia/Colombo timezone:
-- **1440 wide:** Login, GridOperator Home, Backoffice Home, Users, Stations, Manage Reservations, Pending Queue, Reservation Detail, assisted reservation form, History and Search.
-- **1920, 1024, 768 and 390 wide:** GridOperator Home.
-- **390 wide:** Search and History table.
-- **720 wide:** Home reflow, equivalent CSS width only; **not an actual 200% browser-zoom test**.
-
-All 18 cases had rendered content, no detected application-error state and no page-level horizontal overflow. Authenticated pages had exactly one active sidebar item; Login had none. Internal reservation tables deliberately scroll horizontally at narrow widths. Captures were temporary local artifacts, not live-data acceptance screenshots.
-
-This proves fixture rendering at those widths only. It does not prove live API behavior, all interactive states, keyboard/screen-reader usability or every route at every viewport. Station Detail/Slots and a dedicated Current/Dashboard capture remain in the manual screenshot list.
-
-No Android app installation, bottom-navigation interaction, camera scan, Maps/location permission flow, SQLite Inspector session, rotation/large-font test, IIS runtime or hosted CI execution is claimed for this pass. Connected devices were only queried read-only earlier.
-
-## Manual handoff and known limitations
-
-Use [the screenshot checklist](FINAL-UI-SCREENSHOT-CHECKLIST.md) alongside [functional acceptance](FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md). Exercise role changes, expiry/401, navigation reselection/switching/Back, keyboard, both system-navigation modes, rotation, dark mode, large fonts, TalkBack and real API failure/retry paths.
-
-Reservation DTOs do not supply station names everywhere; those views deliberately show a shortened station reference rather than inventing a name or changing the API. API timing errors cannot identify early versus expired separately. Full localization and the remaining lint notices are outside this focused polish. Android five-item label fit at large font sizes requires device review.
-
-This is readiness for professional manual UI review, not final runtime acceptance or a claim that the historical credential action has been resolved.
-
-READY FOR PROFESSIONAL UI MANUAL REVIEW

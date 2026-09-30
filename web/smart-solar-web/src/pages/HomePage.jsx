@@ -1,3 +1,5 @@
+import { MetricSkeleton } from '../components/LoadingExperience';
+import { ExperienceTools, RecentActivity } from '../components/Experience';
 import { Fragment, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -50,10 +52,11 @@ export default function HomePage({ children }) {
       <div className="sidebar-footer"><span className="status-dot" />Community energy<small>Shared energy. Local impact.</small></div>
     </aside>
     <div className="workspace-body">
-      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><span className="account-name">{user.fullName}</span><span className="role-pill">{user.role === 'GridOperator' ? 'Grid Operator' : 'Backoffice'}</span><button className="btn btn-outline-secondary btn-sm" onClick={() => setSigningOut(true)}>Sign out</button></div></header>
+      <header className="workspace-topbar"><span className="topbar-context">{context}</span><div className="topbar-account"><ExperienceTools onSignOut={() => setSigningOut(true)} /></div></header>
       <main id="main" className="workspace-main" tabIndex="-1">
         {children || <>
           {user.role === 'GridOperator' ? <OperationsDashboardPage greeting={greeting} /> : <BackofficeOverview greeting={greeting} />}
+          <RecentActivity />
           <div className="session-note">
             <span>{refreshing ? 'Checking profile…' : lastVerifiedAt ? `Profile updated ${lastVerifiedAt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` : user.status}</span>
             <button className="text-action" disabled={refreshing} onClick={refreshProfile}>Refresh profile</button>
@@ -72,16 +75,17 @@ function BackofficeOverview({ greeting }) {
   }, []);
   const {data, error, loading, reload} = useReservationData(load);
   return <>
-    <div className="page-heading"><div><p className="eyebrow">NETWORK ADMINISTRATION</p><h1>{greeting}</h1><p className="text-secondary mb-0">Manage community access and your microgrid station network.</p></div><button className="btn btn-outline-secondary" onClick={reload} disabled={loading}>Refresh</button></div>
+    <div className="page-heading"><div><p className="eyebrow">NETWORK ADMINISTRATION</p><h1>{greeting}</h1><p className="text-secondary mb-0">Manage community access and your microgrid station network.</p></div><button className="btn btn-outline-secondary" onClick={reload} disabled={loading}><Icon name="refresh"/>Refresh</button></div>
     {error && <div className="alert alert-danger" role="alert">Unable to load the overview. Try refreshing.</div>}
-    <section className="metrics-grid" aria-label="Network overview">
+    <section className="metrics-grid" aria-label="Network overview" aria-busy={loading}>
+      {loading && <span className="visually-hidden" role="status">Loading dashboard</span>}
       {[['Community accounts', data?.users], ['Pending activations', data?.pending], ['Microgrid stations', data?.stations]].map(([label,value]) =>
-        <article className="surface-card metric-card" key={label}><p className="card-label">{label}</p><strong className="metric-value">{loading ? '…' : error ? '—' : value ?? '—'}</strong></article>)}
+        <article className="surface-card metric-card" key={label}><p className="card-label">{label}</p>{loading ? <MetricSkeleton /> : <strong className="metric-value">{error ? '—' : value ?? '—'}</strong>}</article>)}
     </section>
     <h2 className="section-title">Administration</h2>
     <div className="quick-actions">
       {[['/users','User Management','Manage accounts and staff access.','users'],['/users?status=PendingActivation','Pending Activations','Review Prosumer access requests.','pending'],['/stations','Microgrid Stations','Maintain your energy network.','station']].map(([path,title,description,icon]) =>
-        <Link className="quick-action" to={path} key={path}><Icon name={icon}/><span><strong>{title}</strong><small>{description}</small></span><span aria-hidden="true">→</span></Link>)}
+        <Link className="quick-action" to={path} key={path}><Icon name={icon}/><span><strong>{title}</strong><small>{description}</small></span><Icon name="arrow"/></Link>)}
     </div>
   </>;
 }

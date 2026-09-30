@@ -7,7 +7,7 @@ import java.util.List;
 /** Pure presentation policy. The API remains the authorization authority. */
 public final class MobileNavigation {
     public enum Destination { HOME, STATIONS, RESERVATIONS, HISTORY, ACCOUNT, SCAN, BOOKINGS, SEARCH }
-    public enum Section { MINE, CURRENT, PENDING, HISTORY, SEARCH }
+    public enum Section { MINE, CURRENT, PENDING, SUMMARY, HISTORY, SEARCH }
     private MobileNavigation() { }
     public static List<Destination> destinations(String role) {
         if ("Prosumer".equals(role)) return Arrays.asList(Destination.HOME, Destination.STATIONS, Destination.RESERVATIONS, Destination.HISTORY, Destination.ACCOUNT);

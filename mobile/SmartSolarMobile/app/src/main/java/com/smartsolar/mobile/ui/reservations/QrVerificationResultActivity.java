@@ -198,7 +198,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
         }
 
         buttonCompleteTransfer.setVisibility(View.GONE);
-        Toast.makeText(this, R.string.transaction_completed_subtitle, Toast.LENGTH_LONG).show();
+        // The confirmed completion summary already communicates success; no duplicate transient Toast.
     }
 
     private void setBusy(boolean busy) {

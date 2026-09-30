@@ -20,10 +20,6 @@ public final class HomeFragment extends WorkspaceFragment {
     @Override protected void bind(Bundle saved) {
         repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));
         findViewById(R.id.profileContent).setVisibility(View.VISIBLE);
-        findViewById(R.id.buttonLogout).setOnClickListener(v -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-            .setIcon(R.drawable.ic_solar_brand).setTitle(R.string.sign_out).setMessage(R.string.sign_out_confirmation)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.sign_out, (dialog, which) -> workspace().logout()).show());
-        findViewById(R.id.buttonRefresh).setOnClickListener(v -> { retry(); workspace().verify(); });
         findViewById(R.id.buttonCurrentBookings).setOnClickListener(v -> workspace().openSection(Section.CURRENT));
         findViewById(R.id.buttonPendingBookings).setOnClickListener(v -> workspace().openSection(Section.PENDING));
         findViewById(R.id.buttonScanTransaction).setOnClickListener(v -> workspace().openScanner());
@@ -34,6 +30,7 @@ public final class HomeFragment extends WorkspaceFragment {
         profile();
         if (memory.data != null) render((ReservationDashboardSummaryResponse) memory.data);
     }
+    void updateActivityLoading() { if (alive()) profile(); }
     private void profile() {
         if (workspace().state().profile == null) return;
         com.smartsolar.mobile.data.remote.dto.UserResponse user = workspace().state().profile;
@@ -44,17 +41,34 @@ public final class HomeFragment extends WorkspaceFragment {
         findViewById(R.id.buttonScanTransaction).setVisibility(operator ? View.VISIBLE : View.GONE);
         findViewById(R.id.buttonModuleTwo).setVisibility(operator ? View.GONE : View.VISIBLE);
         ((TextView) findViewById(R.id.textSession)).setText(R.string.workspace_verified);
+        StringBuilder recent = new StringBuilder();
+        if (workspace().inbox != null) {
+            for (int i = 0; i < Math.min(3, workspace().inbox.items.size()); i++) {
+                com.smartsolar.mobile.data.remote.dto.NotificationInbox.Item item = workspace().inbox.items.get(i);
+                recent.append(item.message).append("\n").append(ReservationUiUtils.formatTime(item.atUtc)).append("\n\n");
+            }
+        }
+        TextView activity = findViewById(R.id.textRecentActivity);
+        boolean loadingActivity = workspace().inboxLoading && workspace().inbox == null;
+        findViewById(R.id.activitySkeleton).setVisibility(loadingActivity ? View.VISIBLE : View.GONE);
+        activity.setVisibility(loadingActivity ? View.GONE : View.VISIBLE);
+        activity.setText(recent.length() == 0 ? "Open Notifications for your latest business and security updates." : recent.toString());
+        activity.setOnClickListener(v -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(requireActivity(), "inbox"));
     }
     @Override protected void onWorkspaceReady() { profile(); }
     @Override protected void load() {
-        memory.loading = true; findViewById(R.id.progress).setVisibility(View.VISIBLE);
+        memory.loading = true; metricsLoading(true);
         repository.getDashboardSummary((summary, error, code) -> {
             if (!alive()) return;
-            memory.loading = false; findViewById(R.id.progress).setVisibility(View.GONE);
+            memory.loading = false; metricsLoading(false);
             if (code == 401) { workspace().openLogin(); return; }
             if (summary != null) { memory.data = summary; render(summary); }
             else ((TextView) findViewById(R.id.textMetricsStatus)).setText(error == 0 ? R.string.load_failed : error);
         });
+    }
+    private void metricsLoading(boolean loading) {
+        findViewById(R.id.progress).setVisibility(loading ? View.VISIBLE : View.GONE);
+        findViewById(R.id.homeMetrics).setVisibility(loading ? View.GONE : View.VISIBLE);
     }
     private void render(ReservationDashboardSummaryResponse value) {
         ((TextView) findViewById(R.id.textPendingCount)).setText(String.valueOf(value.getPendingReservations()));

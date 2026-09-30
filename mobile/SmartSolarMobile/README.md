@@ -47,7 +47,9 @@ dotnet run --project ..\..\src\SmartSolar.Api\SmartSolar.Api.csproj --launch-pro
 
 A relative `src/SmartSolar.Api` path from here does not exist; the IDE's active file does not determine the shell directory.
 
-Verify `http://localhost:5000/health` on the host and `http://10.0.2.2:5000/health` in emulator Chrome. Keep the API and MongoDB running. Development omits HTTPS redirection; non-Development retains it. Restart the API after backend changes.
+Verify `http://localhost:5000/health` on the host. Keep the API and MongoDB running. Development omits HTTPS redirection; non-Development retains it. Restart the API after backend changes.
+
+For Android Studio emulators and USB-connected physical Android devices, connect and authorize the device with USB debugging enabled, then run `scripts\setup-adb-reverse.cmd` from the repository root. It forwards ports 5000 and 7001 to every connected device. Keep the device connected and forwarding active while using the app.
 
 ## API URL and transport
 
@@ -55,13 +57,13 @@ Verify `http://localhost:5000/health` on the host and `http://10.0.2.2:5000/heal
 
 | Variant/client | URL |
 | --- | --- |
-| Android DEBUG | `http://10.0.2.2:5000/api/v1/` |
+| Android DEBUG | `http://localhost:5000/api/v1/` |
 | Local web | `https://localhost:7001/api/v1` |
 | Android release | HTTPS endpoint supplied by `smartSolarApiBaseUrl`; empty by default |
 
-The trailing slash is required by Retrofit. `10.0.2.2` reaches the Windows host from Android Emulator; emulator `localhost` reaches itself. This default is not a physical-phone network setup.
+The trailing slash is required by Retrofit. Android debug uses `localhost` with ADB reverse forwarding, which works for both the emulator and a USB-connected physical device. Without forwarding, Android `localhost` points to the device itself and API requests fail.
 
-The main manifest requests INTERNET and ACCESS_COARSE_LOCATION and disables cleartext. Location is requested only when Find near me is tapped. LoginActivity is the exported launcher; HomeActivity and both station activities are internal. Only `app/src/debug/AndroidManifest.xml` adds the debug network-security config allowing HTTP to `10.0.2.2`. Release has no such exception. Approximate foreground location is the only requested dangerous permission; there is no fine/background location or camera permission. Maps adds normal ACCESS_NETWORK_STATE through manifest merging. There are no trust-all certificates or hostname-validation bypasses.
+The main manifest requests INTERNET and ACCESS_COARSE_LOCATION and disables cleartext. Location is requested only when Find near me is tapped. LoginActivity is the exported launcher; HomeActivity and both station activities are internal. Only `app/src/debug/AndroidManifest.xml` adds the debug network-security config allowing HTTP to local API addresses. Release has no such exception. Approximate foreground location is the only requested dangerous permission; there is no fine/background location or camera permission. Maps adds normal ACCESS_NETWORK_STATE through manifest merging. There are no trust-all certificates or hostname-validation bypasses.
 
 For future release configuration, replace the placeholder with the actual public HTTPS host:
 

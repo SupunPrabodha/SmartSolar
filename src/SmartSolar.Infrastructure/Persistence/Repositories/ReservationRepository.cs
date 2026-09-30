@@ -4,6 +4,7 @@
  * Purpose: Implements conditional Mongo reservation writes without multi-document transactions.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
+using SmartSolar.Application.Abstractions.Security;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SmartSolar.Application.Abstractions.Persistence;
@@ -16,14 +17,16 @@ namespace SmartSolar.Infrastructure.Persistence.Repositories;
 
 public sealed class ReservationRepository : IReservationRepository
 {
+    private readonly IRequestIdentity? _identity;
     private readonly IMongoCollection<EnergyReservation> _reservations;
     private readonly IMongoCollection<EnergyBookingSlot> _slots;
     private readonly IMongoCollection<SolarStation> _stations;
     private readonly IMongoCollection<User> _users;
 
-    public ReservationRepository(IMongoDatabase database)
+    public ReservationRepository(IMongoDatabase database, IRequestIdentity? identity = null)
     {
         // Acknowledged standalone writes are essential to distinguish confirmed CAS misses.
+        _identity = identity;
         _reservations = database.GetCollection<EnergyReservation>(CollectionNames.Reservations).WithWriteConcern(WriteConcern.WMajority);
         _slots = database.GetCollection<EnergyBookingSlot>(CollectionNames.BookingSlots).WithWriteConcern(WriteConcern.WMajority);
         _stations = database.GetCollection<SolarStation>(CollectionNames.Stations);
@@ -147,6 +150,8 @@ public sealed class ReservationRepository : IReservationRepository
     public async Task InsertAsync(EnergyReservation reservation, CancellationToken ct = default)
     {
         // The caller treats any exception as ambiguous and keeps acquired capacity plus the user lock.
+        reservation.AuditHistory.Add(AuditTrail.Create(_identity, "ReservationCreated", "Reservation", reservation.ReservationId,
+            reservation.ProsumerNic, "GridOperator"));
         await _reservations.InsertOneAsync(reservation, cancellationToken: ct);
     }
 
@@ -186,7 +191,11 @@ public sealed class ReservationRepository : IReservationRepository
             .Set(x => x.RejectionRemark, replacement.RejectionRemark)
             .Set(x => x.ScheduledStartAtUtc, replacement.ScheduledStartAtUtc)
             .Set(x => x.ScheduledEndAtUtc, replacement.ScheduledEndAtUtc)
-            .Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc);
+            .Set(x => x.UpdatedAtUtc, replacement.UpdatedAtUtc)
+            .PushEach(x => x.AuditHistory, [AuditTrail.Create(_identity,
+                replacement.Status == expected.Status ? "ReservationUpdated" : "Reservation" + replacement.Status,
+                "Reservation", replacement.ReservationId, replacement.ProsumerNic,
+                replacement.Status == ReservationStatus.Pending ? "GridOperator" : null)], slice: -100);
 
         var result = await _reservations.UpdateOneAsync(
             filter,
@@ -213,9 +222,20 @@ public sealed class ReservationRepository : IReservationRepository
         var update = Builders<EnergyReservation>.Update
             .Set(x => x.QrTokenHash, newHash)
             .Set(x => x.QrIssuedAtUtc, issuedAtUtc)
-            .Set(x => x.UpdatedAtUtc, updatedAtUtc);
+            .Set(x => x.UpdatedAtUtc, updatedAtUtc)
+            .PushEach(x => x.AuditHistory, [AuditTrail.Create(_identity, "QrIssued", "Reservation", reservationId)], slice: -100);
         var result = await _reservations.UpdateOneAsync(filter, update, cancellationToken: ct);
         return result.MatchedCount == 1;
+    }
+
+    public async Task RecordQrVerificationAsync(EnergyReservation expected, string actorNic, DateTime now, CancellationToken ct = default)
+    {
+        var entry = AuditTrail.Create(_identity, "QrVerified", "Reservation", expected.ReservationId);
+        entry.ActorNic = actorNic; entry.AtUtc = now;
+        var result = await _reservations.UpdateOneAsync(x => x.ReservationId == expected.ReservationId &&
+            x.Status == ReservationStatus.Approved && x.QrTokenHash == expected.QrTokenHash && x.UpdatedAtUtc == expected.UpdatedAtUtc,
+            Builders<EnergyReservation>.Update.PushEach(x => x.AuditHistory, [entry], slice: -100), cancellationToken: ct);
+        if (result.MatchedCount != 1) throw new ConflictException("Reservation changed. Verify the QR again.");
     }
 
     public async Task<bool> TryCompleteReservationAsync(

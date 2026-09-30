@@ -16,6 +16,8 @@ public static class MongoMappings
     private static readonly Lazy<bool> Registration = new(() =>
     {
         // Register once before any repository serializes a domain entity.
+        BsonClassMap.RegisterClassMap<AuditEntry>(map => { map.AutoMap(); map.SetIgnoreExtraElements(true); map.MapIdMember(x => x.Id).SetElementName("Id"); });
+        BsonClassMap.RegisterClassMap<InboxNotification>(map => { map.AutoMap(); map.SetIgnoreExtraElements(true); map.MapIdMember(x => x.Id).SetElementName("Id"); });
         BsonClassMap.RegisterClassMap<User>(map =>
         {
             map.AutoMap();

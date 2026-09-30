@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "ADB="
 
@@ -40,16 +40,46 @@ exit /b 1
 
 :found_adb
 echo Finding all connected Android devices...
+set "DEVICE_COUNT=0"
+set "FAILED=0"
 
 for /f "skip=1 tokens=1,2" %%a in ('%ADB% devices') do (
     if "%%b"=="device" (
-        echo Forwarding ports 5000 and 7001 to device %%a...
-        %ADB% -s %%a reverse tcp:5000 tcp:5000 >nul 2>&1
-        %ADB% -s %%a reverse tcp:7001 tcp:7001 >nul 2>&1
+        set /a DEVICE_COUNT+=1
+        call :forward_device "%%a"
+    ) else if "%%b"=="unauthorized" (
+        echo [WAIT] Device %%a is unauthorized. Unlock it and accept the USB debugging prompt.
     )
+)
+
+if %DEVICE_COUNT% equ 0 (
+    echo [ERROR] No authorized Android devices found. Connect/start a device and accept its USB debugging prompt, then retry.
+    exit /b 1
+)
+
+if %FAILED% neq 0 (
+    echo [ERROR] Port forwarding failed for one or more devices.
+    exit /b 1
 )
 
 echo.
 echo [SUCCESS] Reverse port forwarding applied to connected devices:
 %ADB% devices -l
 endlocal
+exit /b 0
+
+:forward_device
+echo Forwarding ports 5000 and 7001 to device %~1...
+%ADB% -s %~1 reverse tcp:5000 tcp:5000
+if errorlevel 1 (
+    echo [ERROR] Could not forward port 5000 to %~1.
+    set "FAILED=1"
+    exit /b 0
+)
+%ADB% -s %~1 reverse tcp:7001 tcp:7001
+if errorlevel 1 (
+    echo [ERROR] Could not forward port 7001 to %~1.
+    set "FAILED=1"
+)
+%ADB% -s %~1 reverse --list
+exit /b 0

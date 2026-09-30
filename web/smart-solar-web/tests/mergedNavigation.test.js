@@ -4,14 +4,16 @@ import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { StaticRouter } from 'react-router-dom';
+import { StaticRouter, Routes } from 'react-router-dom';
 import { createRoutesFromElements, matchRoutes } from 'react-router-dom';
 
 // Compile real JSX without a browser; only the session provider is substituted.
 const bundle = await build({
   stdin: { contents: `export { default as Home } from './src/pages/HomePage';
+    export { default as Profile } from './src/pages/ProfilePage';
     export { default as Users } from './src/pages/UserManagementPage';
     export { ReservationLayout } from './src/pages/reservations/ReservationComponents';
+    export { ExperienceProvider } from './src/components/Experience';
     export { default as App } from './src/App';`,
     resolveDir: process.cwd(), loader: 'jsx' },
   bundle: true, write: false, platform: 'node', format: 'cjs', packages: 'external', jsx: 'automatic',
@@ -25,13 +27,17 @@ const bundle = await build({
 });
 const compiled = { exports: {} };
 new Function('module', 'exports', 'require', bundle.outputFiles[0].text)(compiled, compiled.exports, createRequire(import.meta.url));
-const { Home, Users, App, ReservationLayout } = compiled.exports;
+const { Home, Users, Profile, App, ReservationLayout, ExperienceProvider } = compiled.exports;
 function session(role) {
-  globalThis.integrationSession = { user: { fullName: 'Integration User', role, status: 'Active' },
+  globalThis.integrationSession = { user: { nic: 'test-account', profileComplete: true, fullName: 'Integration User', role, status: 'Active' },
     loading: false, refreshing: false, lastVerifiedAt: null, logout() {}, refreshProfile() {} };
 }
 function render(Component) {
-  return renderToStaticMarkup(React.createElement(StaticRouter, { location: '/' }, React.createElement(Component)));
+  return renderToStaticMarkup(React.createElement(StaticRouter, { location: '/' }, React.createElement(ExperienceProvider, null, React.createElement(Component))));
+}
+function findRoutes(node) {
+  if (node?.type === Routes) return node;
+  for (const child of React.Children.toArray(node?.props?.children)) { const found = findRoutes(child); if (found) return found; }
 }
 function navigation(html) { return html.match(/<nav\b[^>]*>[\s\S]*?<\/nav>/)[0]; }
 
@@ -69,7 +75,7 @@ test('User Management retains its forms inside the common navigation and session
 });
 
 test('merged routes are unique and enforce both members role boundaries', () => {
-  const routesElement = App().props.children.props.children;
+  const routesElement = findRoutes(App());
   const routes = createRoutesFromElements(routesElement.props.children);
   assert.equal(new Set(routes.map(route => route.path)).size, routes.length);
   for (const [path, allowed] of [['/users', ['Backoffice']], ['/stations', ['Backoffice', 'GridOperator']]]) {
@@ -95,7 +101,7 @@ test('reservation workspace preserves station access and all operational links',
 });
 
 test('all reservation routes inherit GridOperator-only access', () => {
-  const routes = createRoutesFromElements(App().props.children.props.children.props.children);
+  const routes = createRoutesFromElements(findRoutes(App()).props.children);
   for (const suffix of ['', '/dashboard', '/current', '/history', '/search', '/new', '/fixture-id', '/fixture-id/edit']) {
     const matches = matchRoutes(routes, '/operator/reservations' + suffix);
     assert.ok(matches);
@@ -119,8 +125,30 @@ test('only one sidebar item is selected for each queue, view and nested transact
     ['Backoffice', ['/', '/users', '/users?status=PendingActivation', '/stations']]
   ]) for (const location of paths) {
     session(role);
-    const html = renderToStaticMarkup(React.createElement(StaticRouter, { location }, React.createElement(Home)));
+    const html = renderToStaticMarkup(React.createElement(StaticRouter, { location }, React.createElement(ExperienceProvider, null, React.createElement(Home))));
     assert.equal((navigation(html).match(/aria-current="page"/g) ?? []).length, 1, location);
     assert.doesNotMatch(html, /Phase 0|Common foundation|Integrated team|Server Calculated|Development/);
   }
+});
+
+test('icon toolbar retains accessible notification and account destinations', () => {
+  session('GridOperator');
+  const html = render(Home);
+  assert.match(html, /aria-label="Notifications, 0 unread"/);
+  assert.match(html, /<summary[^>]*aria-label="Account options"/);
+  assert.match(html, /href="\/profile#account-security"/);
+  assert.match(html, /<button[^>]*>[\s\S]*Sign out<\/button>/);
+  assert.match(html, /title="Search workspace \(Ctrl or Command \+ K\)"/);
+});
+
+test('profile separates personal and security forms with labelled controls', () => {
+  session('Backoffice');
+  const html = render(Profile);
+  assert.equal((html.match(/<form\b/g) || []).length, 2);
+  for (const id of ['fullName', 'email', 'phoneNumber', 'current-password', 'new-password', 'confirm-password'])
+    assert.ok(html.includes('for="' + id + '"'), id + ' has a persistent label');
+  assert.match(html, /id="account-security"/);
+  assert.match(html, /Personal information/);
+  assert.match(html, /Profile complete/);
+  assert.doesNotMatch(html, /<input[^>]*id="nic"/);
 });

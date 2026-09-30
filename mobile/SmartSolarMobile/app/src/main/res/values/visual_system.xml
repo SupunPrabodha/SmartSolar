@@ -1,0 +1,35 @@
+<resources>
+    <color name="solar_brand_surface">#DEEAE3</color>
+    <color name="solar_nav_surface">#DCEAE3</color>
+    <color name="solar_skeleton">#BDCFC2</color>
+    <string name="visual_account_menu">Account options</string>
+    <string name="visual_security">Account security</string>
+    <string name="visual_restoring">Restoring your workspace</string>
+    <string name="visual_secure_operations">Secure energy operations</string>
+    <string name="visual_loading">Loading workspace content</string>
+    <string name="visual_loading_bookings">Loading bookings</string>
+    <string name="visual_loading_stations">Loading stations</string>
+    <string name="visual_loading_profile">Loading your account</string>
+    <string name="visual_loading_metrics">Loading dashboard</string>
+    <string name="visual_loading_activity">Loading recent activity</string>
+    <string name="visual_loading_notifications">Loading notifications</string>
+    <string name="visual_loading_results">Loading search results</string>
+    <string name="visual_updating">Updating…</string>
+    <string name="visual_account_security_hint">Profile photo, password and security history</string>
+    <string name="visual_open_security">Open profile &amp; security</string>
+    <string name="visual_reservation_details">Reservation details</string>
+    <string name="visual_identity">%1$s · %2$s</string>
+    <string name="visual_my_profile">My Profile</string>
+    <string name="visual_station_capacity">Capacity\n%1$.1f kWh</string>
+    <string name="visual_station_slots">Battery slots\n%1$d</string>
+    <color name="solar_content_surface">#E4EFE9</color>
+    <color name="solar_surface_strong">#D8E6DE</color>
+    <color name="solar_surface_selected">#D3E3DA</color>
+    <color name="solar_header_surface">#E2EEE8</color>
+    <color name="solar_nav_selected">#CCE3D6</color>
+    <color name="solar_sheet_surface">#EDF4EF</color>
+    <color name="solar_action_disabled_text">#52685D</color>
+    <color name="solar_action_disabled_surface">#DEE4DF</color>
+    <color name="solar_action_ripple">#180B3D2E</color>
+    <color name="solar_action_primary_ripple">#24FFFFFF</color>
+</resources>

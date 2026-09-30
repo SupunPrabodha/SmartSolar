@@ -43,8 +43,14 @@ public final class LoginActivity extends AppCompatActivity {
         editPassword = findViewById(R.id.editPassword);
         buttonLogin = findViewById(R.id.buttonLogin);
         textError = findViewById(R.id.textError);
+        if (getIntent().getBooleanExtra("passwordChanged", false)) {
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this).setTitle("Password changed")
+                .setMessage("Your previous sessions are signed out. Sign in with your new password.").setPositiveButton("OK",null).show();
+            getIntent().removeExtra("passwordChanged");
+        }
         progress = findViewById(R.id.progress);
         findViewById(R.id.buttonCreateAccount).setOnClickListener(view -> startActivity(new Intent(this, RegisterActivity.class)));
+        findViewById(R.id.buttonForgotPassword).setOnClickListener(view -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this, "recovery"));
         try {
             repository = new AuthRepository(
                     RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG),
