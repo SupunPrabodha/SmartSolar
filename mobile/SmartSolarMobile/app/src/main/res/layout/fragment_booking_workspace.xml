@@ -10,28 +10,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/solar_screen_padding"
-        android:minHeight="56dp"
-        android:padding="4dp"
-        android:background="@drawable/bg_visual_brand"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:minHeight="48dp"
+        android:padding="3dp"
+        android:background="@drawable/bg_filter_bar_capsule"
 
-        app:tabIndicator="@drawable/bg_solar_segment"
+        app:tabIndicator="@drawable/bg_filter_tab_indicator"
         app:tabIndicatorGravity="stretch"
         app:tabIndicatorFullWidth="true"
-        app:tabIndicatorColor="@color/solar_surface_selected"
+        app:tabIndicatorColor="@color/solar_primary"
+        app:tabIndicatorAnimationMode="elastic"
 
         app:tabMode="scrollable"
         app:tabGravity="start"
 
         app:tabTextColor="@color/solar_secondary"
-        app:tabSelectedTextColor="@color/solar_primary"
+        app:tabSelectedTextColor="@color/solar_on_primary"
 
-        app:tabRippleColor="@color/solar_border"
+        app:tabRippleColor="@android:color/transparent"
 
-        app:tabMinWidth="88dp"
+        app:tabMinWidth="0dp"
         app:tabPaddingStart="16dp"
         app:tabPaddingEnd="16dp"
 
-        app:tabTextAppearance="@style/TextAppearance.Material3.LabelLarge" />
+        app:tabTextAppearance="@style/Solar.FilterTabTextAppearance" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/bookingSectionContent"

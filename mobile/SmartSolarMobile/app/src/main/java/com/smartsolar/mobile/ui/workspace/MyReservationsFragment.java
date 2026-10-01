@@ -225,7 +225,6 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             TextView textCardStatus = card.findViewById(R.id.textCardStatus);
             TextView textCardStation = card.findViewById(R.id.textCardStation);
             TextView textCardEnergy = card.findViewById(R.id.textCardEnergy);
-            TextView textCardStartPreview = card.findViewById(R.id.textCardStartPreview);
             ImageView textChevron = card.findViewById(R.id.textChevron);
             View cardHeader = card.findViewById(R.id.cardHeader);
             View layoutExpandedDetails = card.findViewById(R.id.layoutExpandedDetails);

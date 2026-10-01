@@ -11,33 +11,27 @@
     app:strokeWidth="1dp"
     app:strokeColor="@color/solar_border">
 
-    <!--
-        Outer card container.
-        The status accent is retained from Merge-M1-M4.
-    -->
+    <!-- Outer Container with Left Status Accent Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <!-- Reservation status accent -->
+        <!-- Left Status Color Accent Strip -->
         <View
             android:id="@+id/viewStatusAccent"
             android:layout_width="5dp"
             android:layout_height="match_parent"
             android:background="@drawable/bg_status_accent_bar" />
 
-        <!-- Main reservation content -->
+        <!-- Main Card Contents -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- ========================================================= -->
-            <!-- COLLAPSED / SUMMARY HEADER                               -->
-            <!-- ========================================================= -->
-
+            <!-- Clickable Base Header -->
             <LinearLayout
                 android:id="@+id/cardHeader" android:background="@color/solar_brand_surface"
                 android:layout_width="match_parent"
@@ -49,7 +43,7 @@
                 android:focusable="true"
                 android:minHeight="48dp">
 
-                <!-- Energy amount + reservation status -->
+                <!-- Top Row: Energy Amount + Status -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -74,58 +68,25 @@
 
                 </LinearLayout>
 
-                <!--
-                    Compact schedule preview retained from the polished
-                    IT23187450 reservation card.
-                -->
-                <TextView
-                    android:id="@+id/textCardStartPreview"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_sm"
-                    android:textColor="@color/solar_text"
-                    android:textSize="14sp" />
-
-                <!-- Station -->
-                <TextView
-                    android:id="@+id/textCardStation"
-                    style="@style/Solar.Body"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_sm"
-                    android:textColor="@color/solar_secondary"
-                    android:textSize="13sp"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
-
-                <!-- Reservation reference + vector expand chevron -->
+                <!-- Station Name + Vector Chevron -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp">
 
-                    <!--
-                        Kept for compatibility with the polished Prosumer
-                        reservation renderer. It consumes zero meaningful
-                        space when no value is bound.
-                    -->
                     <TextView
-                        android:id="@+id/textCardIdSnippet"
+                        android:id="@+id/textCardStation"
                         style="@style/Solar.Body"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:textSize="13sp"
                         android:textColor="@color/solar_secondary"
-                        android:textSize="12sp" />
+                        android:maxLines="1"
+                        android:ellipsize="end" />
 
-                    <!--
-                        Vector chevron.
-                        Java rotates this ImageView instead of replacing
-                        Unicode arrow characters.
-                    -->
                     <ImageView
                         android:id="@+id/textChevron"
                         android:layout_width="24dp"
@@ -136,12 +97,118 @@
 
                 </LinearLayout>
 
+                <!-- Timestamp / Cutoff Grid -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical">
+
+                    <!-- Start + End Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Scheduled Start -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/bg_detail_tile"
+                            android:orientation="vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_accepted_start"
+                                android:textColor="@color/solar_secondary"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/textExpandedStart"
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/solar_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <!-- Scheduled End -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_detail_tile"
+                            android:orientation="vertical"
+                            android:padding="10dp">
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_accepted_end"
+                                android:textColor="@color/solar_secondary"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/textExpandedEnd"
+                                style="@style/Solar.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/solar_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Change Cutoff -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_detail_tile"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <TextView
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_change_cutoff"
+                            android:textColor="@color/solar_secondary"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textExpandedCutoff"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/solar_text"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- ========================================================= -->
-            <!-- EXPANDED DETAILS                                         -->
-            <!-- ========================================================= -->
-
+            <!-- Expanded Details and Actions -->
             <LinearLayout
                 android:id="@+id/layoutExpandedDetails"
                 android:layout_width="match_parent"
@@ -152,126 +219,18 @@
                 android:paddingBottom="@dimen/solar_space_base"
                 android:visibility="gone">
 
-                <!-- Separator -->
+                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginBottom="@dimen/solar_space_md"
                     android:background="?attr/colorOutlineVariant" />
 
-                <!-- ===================================================== -->
-                <!-- SCHEDULE DETAILS                                      -->
-                <!-- ===================================================== -->
-
-                <!-- Start + End -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <!-- Accepted / scheduled start -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:background="@drawable/bg_detail_tile"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <TextView
-                            style="@style/Solar.Body"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_accepted_start"
-                            android:textColor="@color/solar_secondary"
-                            android:textSize="10sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/textExpandedStart"
-                            style="@style/Solar.Body"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:textColor="@color/solar_text"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                    <!-- Accepted / scheduled end -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_detail_tile"
-                        android:orientation="vertical"
-                        android:padding="10dp">
-
-                        <TextView
-                            style="@style/Solar.Body"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/label_accepted_end"
-                            android:textColor="@color/solar_secondary"
-                            android:textSize="10sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/textExpandedEnd"
-                            style="@style/Solar.Body"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:textColor="@color/solar_text"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Change / cancellation cutoff -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_detail_tile"
-                    android:orientation="vertical"
-                    android:padding="10dp">
-
-                    <TextView
-                        style="@style/Solar.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_change_cutoff"
-                        android:textColor="@color/solar_secondary"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/textExpandedCutoff"
-                        style="@style/Solar.Body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/solar_text"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-                <!-- ===================================================== -->
-                <!-- REJECTION MESSAGE                                     -->
-                <!-- ===================================================== -->
-
+                <!-- Rejection Notice -->
                 <LinearLayout
                     android:id="@+id/layoutRejectionNotice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/solar_space_md"
                     android:padding="@dimen/solar_space_md"
                     android:background="@drawable/bg_rejection_notice"
                     android:orientation="vertical"
@@ -281,24 +240,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/rejection_reason_formatted"
-                        android:textColor="@color/solar_status_rejected"
                         android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/solar_status_rejected" />
 
                     <TextView
                         android:id="@+id/textRejectionRemark"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/solar_space_xs"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:textColor="?attr/colorOnSurface" />
 
                 </LinearLayout>
 
-                <!-- ===================================================== -->
-                <!-- RESERVATION RESTRICTION MESSAGE                       -->
-                <!-- ===================================================== -->
-
+                <!-- Restriction Notice -->
                 <TextView
                     android:id="@+id/textExpandedRestriction"
                     style="@style/Solar.Body"
@@ -311,10 +267,7 @@
                     android:textSize="12sp"
                     android:visibility="gone" />
 
-                <!-- ===================================================== -->
-                <!-- ACTION BUTTONS                                        -->
-                <!-- ===================================================== -->
-
+                <!-- Action Buttons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -335,8 +288,8 @@
                             android:layout_marginEnd="@dimen/solar_space_xs"
                             android:minHeight="48dp"
                             android:paddingHorizontal="4dp"
-                            android:text="@string/btn_modify_reservation"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:text="@string/btn_modify_reservation" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCardCancel"
@@ -347,12 +300,12 @@
                             android:layout_marginStart="@dimen/solar_space_xs"
                             android:minHeight="48dp"
                             android:paddingHorizontal="4dp"
-                            android:text="@string/btn_cancel_reservation"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:text="@string/btn_cancel_reservation" />
 
                     </LinearLayout>
 
-                    <!-- Approved reservation actions -->
+                    <!-- Approved Actions -->
                     <LinearLayout
                         android:id="@+id/layoutCardApprovedActions"
                         android:layout_width="match_parent"
@@ -370,8 +323,8 @@
                             android:layout_marginEnd="@dimen/solar_space_xs"
                             android:minHeight="48dp"
                             android:paddingHorizontal="4dp"
-                            android:text="@string/view_qr_code"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:text="@string/view_qr_code" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCardGetDirections"
@@ -382,8 +335,8 @@
                             android:layout_marginStart="@dimen/solar_space_xs"
                             android:minHeight="48dp"
                             android:paddingHorizontal="4dp"
-                            android:text="@string/btn_get_directions"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:text="@string/btn_get_directions" />
 
                     </LinearLayout>
 
