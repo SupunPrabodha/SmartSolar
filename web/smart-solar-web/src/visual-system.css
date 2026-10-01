@@ -48,3 +48,53 @@ form.surface-card.d-flex { background:var(--visual-mint); }
 .profile-card-grid > section:first-child { background:#edf5f1; }
 .profile-card-grid > #account-security { background:#f1f5f2; }
 .table > thead { --bs-table-bg:var(--visual-mint); }
+
+/* Focused authentication refinement; workspace layout is unchanged. */
+.login-page { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); background:#f4f7f3; }
+.login-story { background:#0b3d2e; gap:32px; }
+.login-story::after { display:none; }
+.login-story-title { font-size:clamp(2.2rem,3.8vw,4.4rem); line-height:1.13; font-weight:550; letter-spacing:-.045em; margin:20px 0; }
+.login-panel { min-width:0; padding:24px; }
+.login-form { width:100%; max-width:480px; padding:36px; border-radius:24px; box-shadow:0 8px 24px #0b3d2e09; }
+.login-form h1 { font-size:clamp(1.65rem,2.2vw,2rem); line-height:1.2; letter-spacing:-.03em; }
+.login-form .form-control { min-height:48px; background:#f8faf8; }
+.login-form .form-control:hover:not(:disabled) { border-color:#52685d; }
+.login-form .form-control:focus { background:white; border-color:#168b63; box-shadow:0 0 0 3px #168b6326; }
+.login-form .form-control:disabled { background:#e4eae5; }
+.login-form .password-control input { padding-right:56px; }
+.login-form .password-toggle { min-width:48px; border-radius:10px; display:grid; place-items:center; }
+.auth-recovery-link { display:block; width:fit-content; margin:-8px 0 20px auto; padding:10px 0; min-height:44px; }
+.auth-session-note { font-size:.875rem; color:#52685d; padding:12px; background:#e4efe9; border-radius:12px; }
+@media(max-width:850px) {
+  .login-page { grid-template-columns:minmax(0,1fr); }
+  .login-story { padding:24px; gap:16px; }
+  .login-story-title { font-size:1.6rem; margin:8px 0; }
+  .login-story .eyebrow, .login-story > small { display:none; }
+  .login-story p:not(.eyebrow) { margin-bottom:0; max-width:100%; font-size:.9rem; }
+  .login-panel { padding:16px; }
+  .login-form { padding:24px; }
+}
+
+/* Original authentication artwork and bounded tonal composition. */
+.login-story { background:radial-gradient(ellipse at 100% 100%,#185940 0,transparent 65%),#0b3d2e; }
+.login-grid-motif { display:block; width:min(100%,440px); height:auto; margin-top:28px; color:#93bda4; pointer-events:none; }
+.login-panel { position:relative; isolation:isolate; border-radius:28px; background:#eaf1eb; }
+.login-panel::before { content:""; position:absolute; z-index:-1; inset:clamp(12px,2vw,28px); border:1px solid #d4e3d7; border-radius:24px; pointer-events:none; }
+.login-form { position:relative; border-color:#cbded1; box-shadow:0 16px 40px #0b3d2e0d; }
+.login-form::before { content:""; display:block; width:36px; height:4px; border-radius:4px; background:#f6c344; margin-bottom:24px; }
+.login-form .form-label { font-weight:600; color:#172f27; }
+.login-form .password-toggle:hover:not(:disabled) { background:#e4efe9; }
+.login-form .password-toggle:focus-visible { outline:2px solid #168b63; outline-offset:-3px; }
+.login-form .password-toggle:disabled { color:#52685d; cursor:default; }
+.login-form .btn-primary:hover:not(:disabled) { background:#124d39; border-color:#124d39; }
+.login-form .btn-primary:active:not(:disabled) { background:#082e23; border-color:#082e23; }
+.login-form .btn-primary:disabled { opacity:1; background:#dee4df; border-color:#cbd7ce; color:#52685d; }
+@media(max-width:850px) {
+  .login-grid-motif { width:220px; max-width:100%; margin-top:12px; }
+  .login-panel { border-radius:20px; }
+  .login-panel::before { inset:8px; border-radius:16px; }
+}
+@media(max-width:600px) {
+  .login-panel { border-radius:0; }
+  .login-panel::before { display:none; }
+}
