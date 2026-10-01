@@ -38,20 +38,20 @@ export default function LoginPage() {
 
   if (restoring) return <BootScreen />;
   if (user) return <Navigate to="/" replace />;
-  return <main className="login-page">
-    <section className="login-story"><Brand />
-      <div><p className="eyebrow">SMART SOLAR MICROGRID</p><h2 className="login-story-title">Powering local<br />energy exchange.</h2>
+  return <main className="login-page login-photo-page">
+    <section className="login-story">
+      <span className="login-photo-kicker">SMART SOLAR MICROGRID</span>
+      <div className="login-story-copy">
+        <p className="eyebrow">CONNECTED ENERGY · LOCAL IMPACT</p>
+        <h2 className="login-story-title">Powering local<br />energy exchange.</h2>
         <p>Secure access to community energy operations, reservations and grid coordination.</p>
-        <svg className="login-grid-motif" viewBox="0 0 440 120" fill="none" aria-hidden="true" focusable="false">
-          <path d="M12 90H88L132 46H216L260 90H342L396 36H428M88 90V110M216 46V12M342 90V110" stroke="currentColor" strokeWidth="1.5"/>
-          <circle cx="216" cy="46" r="29" stroke="currentColor" strokeOpacity=".35"/>
-          <circle cx="216" cy="46" r="17" stroke="#F6C344" strokeWidth="2"/>
-          <path d="M216 21V17M216 75V71M191 46H187M245 46H241" stroke="#F6C344" strokeWidth="2" strokeLinecap="round"/>
-          <g fill="currentColor"><circle cx="88" cy="90" r="4"/><circle cx="132" cy="46" r="4"/><circle cx="260" cy="90" r="4"/><circle cx="342" cy="90" r="4"/><circle cx="396" cy="36" r="4"/></g>
-        </svg>
-      </div><small>CONNECTED ENERGY · LOCAL IMPACT</small>
+      </div>
+      <svg className="login-photo-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M100 0H42C100 28 0 64 42 100H100Z" fill="currentColor"/>
+      </svg>
     </section>
     <section className="login-panel" aria-labelledby="login-title"><div className="login-form">
+      <div className="login-form-brand"><Brand /></div>
       <p className="eyebrow">WELCOME BACK</p><h1 id="login-title">Sign in to your workspace</h1>
       <p className="text-secondary mb-4">For Backoffice and Grid Operator accounts. Prosumers use the Android app.</p>
       {sessionError && <p className="auth-session-note" role="status">We couldn’t restore your session. Check your connection and sign in again.</p>}
