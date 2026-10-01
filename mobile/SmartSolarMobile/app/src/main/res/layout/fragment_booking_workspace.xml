@@ -1,4 +1,42 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
-<com.google.android.material.tabs.TabLayout android:id="@+id/bookingTabs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/solar_screen_padding" android:background="@drawable/bg_solar_surface" app:tabIndicator="@drawable/bg_solar_segment" app:tabIndicatorGravity="stretch" app:tabIndicatorFullWidth="true" app:tabRippleColor="@color/solar_border" app:tabMode="scrollable" app:tabGravity="start" app:tabTextColor="@color/solar_secondary" app:tabSelectedTextColor="@color/solar_on_primary" app:tabIndicatorColor="@color/solar_primary"/>
-<androidx.fragment.app.FragmentContainerView android:id="@+id/bookingSectionContent" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/bookingTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/solar_screen_padding"
+        android:minHeight="56dp"
+        android:padding="4dp"
+        android:background="@drawable/bg_visual_brand"
+
+        app:tabIndicator="@drawable/bg_solar_segment"
+        app:tabIndicatorGravity="stretch"
+        app:tabIndicatorFullWidth="true"
+        app:tabIndicatorColor="@color/solar_surface_selected"
+
+        app:tabMode="scrollable"
+        app:tabGravity="start"
+
+        app:tabTextColor="@color/solar_secondary"
+        app:tabSelectedTextColor="@color/solar_primary"
+
+        app:tabRippleColor="@color/solar_border"
+
+        app:tabMinWidth="88dp"
+        app:tabPaddingStart="16dp"
+        app:tabPaddingEnd="16dp"
+
+        app:tabTextAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/bookingSectionContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
 </LinearLayout>

@@ -4,7 +4,7 @@
     android:id="@+id/createRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true" android:background="@color/solar_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="@string/reservation_create_description" />
+            android:padding="20dp" android:background="@drawable/bg_visual_brand" app:drawableStartCompat="@drawable/ic_ui_info" android:drawablePadding="12dp" android:text="@string/reservation_create_description" />
 
         <TextView
             android:id="@+id/textError"
@@ -44,12 +44,13 @@
 
         <!-- Form Step -->
         <LinearLayout
-            android:id="@+id/layoutForm"
+            android:id="@+id/layoutForm" android:background="@drawable/bg_visual_content" android:padding="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginTop="20dp">
 
+            <TextView style="@style/Solar.Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/visual_reservation_details" android:textSize="20sp" android:layout_marginBottom="16dp"/>
             <!-- Slot Selection Header with Manual Input Toggle -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -75,7 +76,7 @@
                     android:paddingStart="4dp"
                     android:paddingEnd="4dp"
                     android:text="@string/btn_type_custom_slot"
-                    android:textSize="12sp" />
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <!-- Slot Dropdown Container (Default) -->
@@ -118,7 +119,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/reservation_slot_guidance"
-                android:textSize="12sp" />
+                android:textSize="14sp" />
 
             <!-- Energy Amount Input -->
             <com.google.android.material.textfield.TextInputLayout
@@ -139,8 +140,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/reservation_notice_guidance"
-                android:textSize="12sp" />
+                android:background="@drawable/bg_visual_brand" android:padding="16dp" app:drawableStartCompat="@drawable/ic_ui_info" android:drawablePadding="10dp" android:text="@string/reservation_notice_guidance"
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonReview"
@@ -196,7 +197,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/label_slot_id"
-                        android:textSize="12sp" />
+                        android:textSize="14sp" />
                     <TextView
                         android:id="@+id/textReviewSlotId"
                         style="@style/Solar.Title"
@@ -210,7 +211,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="@string/label_energy_amount"
-                        android:textSize="12sp" />
+                        android:textSize="14sp" />
                     <TextView
                         android:id="@+id/textReviewEnergy"
                         style="@style/Solar.Title"

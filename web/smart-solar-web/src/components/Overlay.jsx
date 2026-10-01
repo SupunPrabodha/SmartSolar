@@ -1,3 +1,5 @@
+import { ActionLabel } from './LoadingExperience';
+import Icon from './Icon';
 import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -31,7 +33,7 @@ export default function Overlay({ title, children, onClose, busy = false, wide =
     onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
     <header className="dialog-heading"><div><p className="eyebrow">SMART SOLAR</p>
       <h2 id={titleId} ref={heading} tabIndex="-1">{title}</h2></div>
-      <button type="button" className="btn btn-outline-secondary icon-button" aria-label="Close dialog" disabled={busy} onClick={onClose}>×</button>
+      <button type="button" className="btn btn-outline-secondary icon-button" aria-label="Close dialog" disabled={busy} onClick={onClose}><Icon name="close"/></button>
     </header>
     <div className="dialog-content">{children}</div>
   </dialog>, document.body);
@@ -42,6 +44,6 @@ export function ConfirmDialog({ title, children, onConfirm, onClose, busy = fals
     <span className={'confirmation-symbol' + (danger ? ' destructive' : '')} aria-hidden="true">{danger ? '!' : '↗'}</span>
     <div className="mb-4">{children}</div>
     <div className="dialog-actions"><button type="button" autoFocus className="btn btn-outline-secondary" disabled={busy} onClick={onClose}>Go back</button>
-      <button type="button" className={danger ? 'btn btn-danger' : 'btn btn-primary'} disabled={busy} onClick={onConfirm}>{busy ? 'Please wait…' : action}</button></div>
+      <button type="button" className={danger ? 'btn btn-danger' : 'btn btn-primary'} disabled={busy} onClick={onConfirm}><ActionLabel busy={busy}>{action}</ActionLabel></button></div>
   </Overlay>;
 }

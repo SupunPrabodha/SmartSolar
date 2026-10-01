@@ -10,3 +10,36 @@
 @media(prefers-reduced-motion:reduce){.enterprise-toast{animation:none}}
 
 .shell-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;font-size:1rem}.enterprise-toast strong span{display:inline}
+
+/* Shared enterprise presentation. No data or routing behavior. */
+.experience-toolbar{display:flex;align-items:center;gap:12px;min-width:0}
+.toolbar-icon,.toolbar-search,.account-disclosure summary{min-height:48px;border:1px solid #d7e3da;border-radius:14px;background:#fff;color:#0b3d2e;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;text-decoration:none;cursor:pointer;transition:background .18s,border-color .18s}
+.toolbar-icon{min-width:48px}.toolbar-search kbd{background:#edf3ee;color:#52685d;border:1px solid #d7e3da;font-size:.7rem}
+.toolbar-icon:hover,.toolbar-search:hover,.account-disclosure summary:hover{background:#edf3ee;border-color:#168b63}
+.notification-trigger{position:relative}.notification-trigger .notification-badge{position:absolute;top:-4px;right:-5px;font-size:.65rem;line-height:1.4;border:2px solid #fff}
+.account-disclosure{position:relative}.account-disclosure summary{list-style:none;justify-content:flex-start}.account-disclosure summary::-webkit-details-marker{display:none}
+.toolbar-identity{display:grid;text-align:left;max-width:180px;overflow-wrap:anywhere;line-height:1.35}.toolbar-identity strong{font-size:.85rem}.toolbar-identity small{font-size:.72rem;color:#52685d}
+.account-popover{position:absolute;right:0;top:calc(100% + 8px);width:240px;max-width:calc(100vw - 32px);z-index:1050;background:#fff;border:1px solid #d7e3da;border-radius:16px;box-shadow:0 12px 32px #0b3d2e1a;padding:8px}
+.account-popover a,.account-popover button{display:flex;gap:12px;align-items:center;width:100%;padding:12px;border:0;background:none;border-radius:10px;text-decoration:none;color:#0b3d2e;min-height:48px;text-align:left}
+.account-popover a:hover,.account-popover button:hover{background:#edf3ee}.account-popover button{border-top:1px solid #edf3ee}
+.section-icon-title{display:flex;align-items:center;gap:10px;font-size:1.2rem}.section-icon-title .ui-icon{color:#168b63}
+.profile-hero{border-top:3px solid #168b63;background:linear-gradient(120deg,#fff,#f0f6f1)}
+.profile-avatar{width:112px;height:112px;box-shadow:0 0 0 5px #e1f2e8,0 0 0 6px #168b6340;flex-shrink:0}
+.profile-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.completion-chip{display:inline-flex;align-items:center;gap:6px;background:#edf3ee;border-radius:24px;padding:8px 12px;font-size:.78rem;color:#0b3d2e}
+.profile-reference{color:#52685d}.profile-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}.profile-card-grid>section{min-width:0}
+.profile-info{display:flex;gap:8px;align-items:flex-start;font-size:.85rem;background:#edf3ee;border-radius:12px;padding:12px;color:#52685d}
+.profile-card-grid form{margin-top:24px}.profile-card-grid .form-control{min-height:48px}#account-security{scroll-margin-top:120px}
+.inbox-filters{display:flex;flex-wrap:wrap;align-items:center;gap:20px;padding:16px 20px;margin-bottom:24px}
+.inbox-filters label{display:flex;align-items:center;gap:10px}.inbox-filters .form-select{width:auto;min-height:48px}
+.notification-list{display:grid;gap:12px;margin:0}.notification-list li{padding:20px;border:1px solid #d7e3da;border-radius:16px;background:#fff}
+.notification-list li.notification-unread{background:#f1f7f3;border-left:3px solid #168b63;padding-left:20px!important}
+.notification-category{display:flex;align-items:center;gap:8px;margin:8px 0}.unread-label{font-size:.7rem;color:#176444;background:#e1f2e8;border-radius:20px;padding:3px 8px}
+.polished-empty{text-align:center;padding:32px 16px;color:#52685d}.polished-empty>.ui-icon{width:40px;height:40px;margin-bottom:16px;color:#168b63}.polished-empty h2{font-size:1.15rem;color:#0b3d2e}
+.polished-user-table td{padding-top:16px;padding-bottom:16px}.polished-user-table tbody tr:hover{background:#f4f8f5}.btn .ui-icon{width:18px;height:18px;margin-right:6px;vertical-align:-3px}.toolbar-icon .ui-icon{margin:0}
+.activity-list li{position:relative;padding-left:20px;border-left:2px solid #d7e3da;margin-left:5px}.activity-list li:before{content:"";position:absolute;left:-5px;top:22px;width:8px;height:8px;background:#168b63;border-radius:50%}
+:where(.toolbar-icon,.toolbar-search,.account-disclosure summary,.account-popover a,.account-popover button):focus-visible{outline:3px solid #168b63;outline-offset:3px}
+@media(max-width:1024px){.toolbar-identity{display:none}.profile-card-grid{grid-template-columns:1fr}.workspace-topbar{flex-wrap:wrap;gap:12px}}
+@media(max-width:480px){.experience-toolbar{gap:8px}.toolbar-search kbd{display:none}.toolbar-search{padding:10px}.account-disclosure summary{padding:8px}.workspace-topbar{align-items:flex-start}.profile-summary{gap:20px}.profile-chips .role-pill{padding:6px 10px}.inbox-filters{padding:16px}.notification-list li{padding:16px}}
+@media(prefers-reduced-motion:reduce){.toolbar-icon,.toolbar-search,.account-disclosure summary{transition:none}}
+
+.enterprise-toast strong{display:flex;align-items:center;gap:8px}.enterprise-toast button{min-width:44px;min-height:44px;display:grid;place-items:center}.enterprise-toast strong .ui-icon{width:20px;height:20px}.toolbar-search .ui-icon,.profile-info .ui-icon{flex-shrink:0}

@@ -1,19 +1,36 @@
 <resources>
     <style name="Solar.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/solar_action_fill</item>
+        <item name="rippleColor">@color/solar_action_primary_ripple</item>
+        <item name="android:textColor">@color/solar_action_on_primary</item>
+        <item name="iconTint">@color/solar_action_on_primary</item>
+
         <item name="cornerRadius">@dimen/solar_radius_small</item><item name="android:minHeight">@dimen/solar_control_height</item>
         <item name="android:textSize">14sp</item><item name="android:insetTop">4dp</item><item name="android:insetBottom">4dp</item>
     </style>
     <style name="Solar.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/solar_action_text</item>
+        <item name="iconTint">@color/solar_action_text</item>
+        <item name="rippleColor">@color/solar_action_ripple</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+
         <item name="cornerRadius">@dimen/solar_radius_small</item><item name="android:minHeight">@dimen/solar_control_height</item><item name="android:textSize">14sp</item>
     </style>
     <style name="Solar.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/solar_action_text</item>
+        <item name="iconTint">@color/solar_action_text</item>
+        <item name="rippleColor">@color/solar_action_ripple</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+
         <item name="cornerRadius">@dimen/solar_radius_small</item><item name="android:minHeight">@dimen/solar_control_height</item><item name="android:textSize">14sp</item>
     </style>
     <style name="Solar.Button.Danger" parent="Solar.Button.Outlined">
-        <item name="android:textColor">@color/btn_danger_text</item>
-        <item name="strokeColor">@color/btn_danger_stroke</item>
+        <item name="iconTint">@color/solar_action_danger_text</item>
+        <item name="android:textColor">@color/solar_action_danger_text</item>
+        <item name="strokeColor">@color/solar_action_danger_text</item>
     </style>
     <style name="Solar.Input" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/solar_surface</item>
         <item name="boxCornerRadiusTopStart">@dimen/solar_radius_small</item><item name="boxCornerRadiusTopEnd">@dimen/solar_radius_small</item>
         <item name="boxCornerRadiusBottomStart">@dimen/solar_radius_small</item><item name="boxCornerRadiusBottomEnd">@dimen/solar_radius_small</item>
     </style>
@@ -32,6 +49,31 @@
         <item name="cornerSize">@dimen/solar_radius_large</item>
     </style>
     <style name="Solar.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/solar_approved_surface</item>
+        <item name="android:color">@color/solar_nav_selected</item>
+    </style>
+    <style name="Solar.Button.Tonal" parent="Solar.Button.Outlined">
+        <item name="backgroundTint">@color/solar_action_tonal</item>
+    </style>
+    <style name="Solar.Button.Refresh" parent="Solar.Button.Text">
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="icon">@drawable/ic_ui_refresh</item>
+        <item name="iconSize">24dp</item>
+        <item name="iconPadding">0dp</item>
+    </style>
+    <style name="Solar.AccountSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Solar.AccountSheet.Surface</item>
+    </style>
+    <style name="Solar.AccountSheet.Surface" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/solar_sheet_surface</item>
+        <item name="shapeAppearanceOverlay">@style/Solar.AccountSheet.Shape</item>
+    </style>
+    <style name="Solar.AccountSheet.Shape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
     </style>
 </resources>

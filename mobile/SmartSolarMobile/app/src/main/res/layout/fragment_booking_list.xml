@@ -13,25 +13,14 @@
         android:orientation="vertical"
         android:padding="@dimen/solar_screen_padding">
 
-        <!-- Top Header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-
-
-
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+          <TextView style="@style/Solar.Title" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:id="@+id/polishBookingHeading" android:text="@string/polish_bookings" android:textSize="20sp"/>
+            <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefreshDetails" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details"/>
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/progress"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:contentDescription="@string/working"
-            android:visibility="gone" />
+        <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_bookings" android:visibility="gone"/>
 
         <LinearLayout
             android:id="@+id/errorContainer"
@@ -66,7 +55,8 @@
             android:layout_marginTop="24dp"
             android:padding="@dimen/solar_screen_padding"
             android:gravity="center"
-            android:background="@color/solar_background"
+            android:background="@drawable/bg_visual_brand"
+            app:drawableTopCompat="@drawable/ic_nav_bookings" android:drawablePadding="16dp"
             android:text="@string/no_booking_history"
             android:textSize="14sp"
             android:visibility="gone" />
@@ -119,15 +109,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="24dp">
+            android:layout_marginTop="0dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRefreshDetails"
-                style="@style/Solar.Button.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="52dp"
-                android:text="@string/btn_refresh_details" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonBackHome"

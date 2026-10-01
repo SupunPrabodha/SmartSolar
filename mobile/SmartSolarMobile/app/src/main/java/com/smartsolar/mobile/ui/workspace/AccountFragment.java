@@ -48,7 +48,9 @@ public final class AccountFragment extends WorkspaceFragment {
         if (user == null) return;
         name.setText(user.getFullName()); email.setText(user.getEmail()); phone.setText(user.getPhoneNumber());
         ((TextView) findViewById(R.id.profileName)).setText(user.getFullName());
+        ((TextView) findViewById(R.id.accountInitials)).setText(user.getFullName().isEmpty()?"?":user.getFullName().substring(0,1));
         ((TextView) findViewById(R.id.profileNic)).setText(user.getNic());
+        ((TextView) findViewById(R.id.accountIdentity)).setText(getString(R.string.visual_identity,user.getRole(),user.getStatus()));
     }
     @Override protected void load() {
         if (memory.hierarchy == null && !memory.values.getBoolean("draft")) populate();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SkeletonRegion } from './LoadingExperience';
 import Icon from './Icon';
 import { notify, dismiss, subscribeFeedback, durations } from '../util/feedback';
 
@@ -22,12 +23,12 @@ function FeedbackItem({ item }) {
   return <div className={'enterprise-toast toast-' + item.type} role={item.type === 'error' ? 'alert' : 'status'}
     onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-    <strong><span aria-hidden="true">{{success:'✓',info:'i',warning:'!',error:'×',loading:'…'}[item.type]}</span> {item.type === 'loading' ? 'Working' : item.type}</strong><span>{item.message}</span>
-    <button aria-label="Dismiss feedback" onClick={() => dismiss(item.id)}>×</button>
+    <strong><Icon name={{success:'check',info:'info',warning:'warning',error:'warning',loading:'refresh'}[item.type]}/> {item.title || (item.type === 'loading' ? 'Working' : item.type)}</strong><span>{item.message}</span>
+    <button aria-label="Dismiss feedback" onClick={() => dismiss(item.id)}><Icon name="close"/></button>
   </div>;
 }
 export function LoadingState({ label = 'Loading your workspace…' }) {
-  return <div className="loading-state" role="status"><span className="loading-orbit" aria-hidden="true" /><span>{label}</span></div>;
+  return <SkeletonRegion label={label} />;
 }
 export function EmptyState({ title = 'Nothing here yet', children }) {
   return <div className="empty-state"><Icon name="station" /><h2>{title}</h2><p>{children}</p></div>;

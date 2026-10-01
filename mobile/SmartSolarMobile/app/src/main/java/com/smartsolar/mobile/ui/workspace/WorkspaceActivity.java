@@ -38,6 +38,8 @@ public final class WorkspaceActivity extends AppCompatActivity {
     private BottomNavigationView navigation;
     private MaterialToolbar toolbar;
     private TextView toolbarTitle;
+    private com.google.android.material.bottomsheet.BottomSheetDialog accountMenu;
+    public boolean inboxLoading;
     private View content, navSurface, gate;
     private Destination selected = Destination.HOME;
     private SharedPreferences preferences;
@@ -69,11 +71,14 @@ public final class WorkspaceActivity extends AppCompatActivity {
         }
         toolbar = findViewById(R.id.workspaceToolbar);
         toolbarTitle = findViewById(R.id.workspaceToolbarTitle);
-        toolbar.getMenu().add(0, 1001, 0, "My Profile").setIcon(R.drawable.ic_nav_account).setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        toolbar.getMenu().add(0, 1002, 1, "Notifications").setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        toolbar.getMenu().add(0, 1001, 0, getString(R.string.visual_account_menu)).setIcon(R.drawable.ic_nav_account).setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        android.view.MenuItem notifications=toolbar.getMenu().add(0, 1002, 1, "Notifications").setIcon(R.drawable.ic_ui_bell);
+        notifications.setActionView(R.layout.view_notification_action);notifications.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS);
+        notifications.getActionView().setOnClickListener(v->{if(isVerified())com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this,"inbox");});
         toolbar.setOnMenuItemClickListener(item -> {
             if (!isVerified()) return true;
-            com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this, item.getItemId() == 1001 ? "profile" : "inbox");
+            if (item.getItemId() == 1001) showAccountMenu();
+            else com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this, "inbox");
             return true;
         });
         navigation = findViewById(R.id.workspaceBottomNav);
@@ -110,6 +115,21 @@ public final class WorkspaceActivity extends AppCompatActivity {
         // A retained profile is valid only for this same in-memory session on configuration recreation.
         if (saved != null && state.verified && sessionToken != null && preferences.getLong("expires_at", 0) > System.currentTimeMillis()) { needsVerification = false; showWorkspace(); }
     }
+    private void showAccountMenu() {
+        if (accountMenu != null) accountMenu.dismiss();
+        accountMenu = WorkspaceAccountMenu.show(this, state.profile,
+            () -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(this, "profile"),
+            () -> startActivity(new Intent(this, com.smartsolar.mobile.ui.account.AccountExperienceActivity.class)
+                .putExtra("mode", "profile").putExtra("focusSecurity", true)),
+            () -> {
+                Fragment home = getSupportFragmentManager().findFragmentByTag("workspace:HOME");
+                if (home instanceof HomeFragment) ((HomeFragment)home).retry();
+                verify();
+            },
+            () -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setIcon(R.drawable.ic_solar_brand).setTitle(R.string.sign_out).setMessage(R.string.sign_out_confirmation)
+                .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.sign_out, (dialog, which) -> logout()).show());
+    }
     public WorkspaceState state() { return state; }
     public boolean isVerified() { return state != null && state.verified && !openingLogin; }
     public String role() { return state.profile == null ? "" : state.profile.getRole(); }
@@ -121,12 +141,16 @@ public final class WorkspaceActivity extends AppCompatActivity {
         if (auth == null || verifying || openingLogin) return;
         verifying = true; state.verified = false; gate.setVisibility(View.VISIBLE);
         content.setVisibility(View.INVISIBLE); navSurface.setVisibility(View.GONE);
-        ((TextView) findViewById(R.id.workspaceMessage)).setText(R.string.checking_session);
+        ((TextView) findViewById(R.id.workspaceMessage)).setText(R.string.visual_restoring);
         findViewById(R.id.workspaceRetry).setEnabled(false);
+        findViewById(R.id.workspaceRetry).setVisibility(View.GONE);
+        findViewById(R.id.workspaceBootProgress).setVisibility(View.VISIBLE);
         final int request = ++generation;
         auth.restore((user, expiry, error) -> {
             if (isFinishing() || isDestroyed() || request != generation) return;
             verifying = false; findViewById(R.id.workspaceRetry).setEnabled(true);
+            findViewById(R.id.workspaceRetry).setVisibility(View.VISIBLE);
+            findViewById(R.id.workspaceBootProgress).setVisibility(View.GONE);
             if (!foreground) { needsVerification = true; state.verified = false; return; }
             if (user == null) {
                 if (error == 0 || error == R.string.session_expired || error == R.string.mobile_role_not_supported) { openLogin(); return; }
@@ -160,19 +184,32 @@ public final class WorkspaceActivity extends AppCompatActivity {
     private void loadInbox() {
         if (inboxCall != null) inboxCall.cancel();
         inboxCall = RetrofitClient.create(this, BuildConfig.API_BASE_URL, BuildConfig.DEBUG).notifications();
+        inboxLoading = true; updateActivityLoading();
         final int request = generation;
         inboxCall.enqueue(new retrofit2.Callback<com.smartsolar.mobile.data.remote.dto.NotificationInbox>() {
             @Override public void onResponse(retrofit2.Call<com.smartsolar.mobile.data.remote.dto.NotificationInbox> call, retrofit2.Response<com.smartsolar.mobile.data.remote.dto.NotificationInbox> response) {
                 if (response.errorBody() != null) response.errorBody().close();
                 if (!foreground || request != generation || !isVerified()) return;
+                inboxLoading = false;
                 if (response.isSuccessful() && response.body() != null) {
                     inbox = response.body();
                     toolbar.getMenu().findItem(1002).setTitle("Notifications" + (inbox.unreadCount == 0 ? "" : " (" + (inbox.unreadCount > 99 ? "99+" : inbox.unreadCount) + ")"));
+                    View bell=toolbar.getMenu().findItem(1002).getActionView();
+                    bell.setContentDescription(getResources().getQuantityString(R.plurals.polish_notification_description,inbox.unreadCount,inbox.unreadCount));
+                    TextView badge=bell.findViewById(R.id.toolbarUnreadBadge);
+                    badge.setText(inbox.unreadCount>99?"99+":String.valueOf(inbox.unreadCount));badge.setVisibility(inbox.unreadCount>0?View.VISIBLE:View.GONE);
                     notifyReady(getSupportFragmentManager());
-                }
+                } else updateActivityLoading();
             }
-            @Override public void onFailure(retrofit2.Call<com.smartsolar.mobile.data.remote.dto.NotificationInbox> call, Throwable error) { }
+            @Override public void onFailure(retrofit2.Call<com.smartsolar.mobile.data.remote.dto.NotificationInbox> call, Throwable error) {
+                if (!foreground || request != generation || !isVerified()) return;
+                inboxLoading = false; updateActivityLoading();
+            }
         });
+    }
+    private void updateActivityLoading() {
+        Fragment home = getSupportFragmentManager().findFragmentByTag("workspace:HOME");
+        if (home instanceof HomeFragment) ((HomeFragment)home).updateActivityLoading();
     }
     private void notifyReady(androidx.fragment.app.FragmentManager manager) {
         for (Fragment f : manager.getFragments()) {
@@ -248,6 +285,7 @@ public final class WorkspaceActivity extends AppCompatActivity {
     @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); }
     @Override protected void onSaveInstanceState(Bundle out) { out.putString("destination", selected.name()); out.putString("owner", state.owner); super.onSaveInstanceState(out); }
     @Override protected void onStop() {
+        if (accountMenu != null) { accountMenu.dismiss(); accountMenu = null; }
         foreground = false; if (inboxCall != null) inboxCall.cancel(); main.removeCallbacks(expire);
         if (!isChangingConfigurations()) { needsVerification = true; state.verified = false; }
         super.onStop();

@@ -1,4 +1,4 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/solar_background">
-<com.google.android.material.appbar.MaterialToolbar android:id="@+id/deepToolbar" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="?attr/actionBarSize" app:titleMarginStart="12dp" app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"/>
+<com.google.android.material.appbar.MaterialToolbar android:id="@+id/deepToolbar" android:background="@color/solar_header_surface" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="?attr/actionBarSize" app:titleMarginStart="12dp" app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"/>
 <FrameLayout android:id="@+id/deepContent" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
 </LinearLayout>

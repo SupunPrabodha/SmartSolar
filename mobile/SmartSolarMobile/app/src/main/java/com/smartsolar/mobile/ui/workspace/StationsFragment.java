@@ -71,6 +71,7 @@ public final class StationsFragment extends WorkspaceFragment {
             stations.addAll(snapshot.stations); distances.putAll(snapshot.distances);
         }
         findViewById(R.id.findNearby).setOnClickListener(v -> {
+            showDiscoverySelection();
             if (!authorized()) { workspace().verify(); return; }
             if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) locate();
             else permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -95,6 +96,7 @@ public final class StationsFragment extends WorkspaceFragment {
             findViewById(R.id.stationMap).setVisibility(View.GONE);
             ((TextView) findViewById(R.id.mapStatus)).setText(R.string.map_unavailable);
         }
+        showDiscoverySelection();
         if (memory.data != null) render();
     }
     @Override protected void onWorkspaceReady() {
@@ -105,6 +107,7 @@ public final class StationsFragment extends WorkspaceFragment {
         resetRequests(); clearContent(); message.setText("");
         memory.loading = true; memory.refresh.attempted(0);
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) latitude = longitude = null;
+        showDiscoverySelection();
         if (latitude != null && longitude != null) {
             locationStatus.setText(R.string.nearby_radius);
             request(api.nearbyStations(latitude, longitude, 25), rows -> {
@@ -149,14 +152,22 @@ public final class StationsFragment extends WorkspaceFragment {
                 latitude = longitude = null; locationStatus.setText(R.string.location_unavailable); load();
             });
     }
+    private void showDiscoverySelection() {
+        boolean nearby = latitude != null && longitude != null;
+        ((com.google.android.material.button.MaterialButton)findViewById(R.id.findNearby)).setChecked(nearby);
+        ((com.google.android.material.button.MaterialButton)findViewById(R.id.showAllStations)).setChecked(!nearby);
+    }
     private void render() {
+        showDiscoverySelection();
         list.removeAllViews();
         if (stations.isEmpty()) message.setText(R.string.no_stations);
         for (StationResponse station : stations) {
             View row = getLayoutInflater().inflate(R.layout.item_station, list, false);
             ((TextView) row.findViewById(R.id.stationName)).setText(station.name);
             androidx.core.view.ViewCompat.setAccessibilityHeading(row.findViewById(R.id.stationName), true);
-            ((TextView) row.findViewById(R.id.stationSummary)).setText(getString(R.string.station_summary, station.address, station.capacityKwh, station.totalBatterySlots));
+            ((TextView) row.findViewById(R.id.stationSummary)).setText(station.address);
+            ((TextView) row.findViewById(R.id.stationCapacity)).setText(getString(R.string.visual_station_capacity, station.capacityKwh));
+            ((TextView) row.findViewById(R.id.stationSlots)).setText(getString(R.string.visual_station_slots, station.totalBatterySlots));
             TextView distance = row.findViewById(R.id.stationDistance);
             Double km = distances.get(station.stationId);
             distance.setText(km == null ? getString(R.string.distance_unknown) : getString(R.string.station_distance, km));

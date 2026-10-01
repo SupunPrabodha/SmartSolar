@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/loginRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_screen_padding">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_space_lg" android:background="@drawable/bg_solar_hero">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/loginRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/solar_background">
+
+<com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="12dp" app:cardBackgroundColor="@color/solar_hero" app:cardCornerRadius="@dimen/solar_radius_large" app:cardElevation="0dp" app:strokeWidth="0dp">
+<androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="match_parent">
+<!-- The photo fills the composition; only foreground content determines its minimum height. -->
+<ImageView android:layout_width="0dp" android:layout_height="0dp" android:src="@drawable/login_solar_community" android:scaleType="centerCrop" android:importantForAccessibility="no" android:focusable="false"
+    app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+<View android:layout_width="0dp" android:layout_height="0dp" android:background="@drawable/bg_login_photo_overlay" android:importantForAccessibility="no"
+    app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+<LinearLayout android:id="@+id/loginHeroContent" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp"
+    app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
     <com.google.android.material.card.MaterialCardView android:layout_width="48dp" android:layout_height="48dp" app:cardBackgroundColor="@color/solar_hero" app:cardCornerRadius="@dimen/solar_radius_small" app:strokeWidth="0dp" android:importantForAccessibility="no">
         <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:padding="0dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
@@ -11,24 +21,30 @@
         <TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/brand_subtitle" android:textColor="@color/solar_hero_text" android:textSize="12sp" />
     </LinearLayout>
 </LinearLayout>
-<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_xl" android:text="@string/login_title" android:textColor="@color/solar_hero_text" android:textAppearance="?attr/textAppearanceHeadlineLarge" android:textStyle="bold" />
-<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_description" android:textColor="@color/solar_hero_text" android:layout_marginTop="@dimen/solar_space_md" />
-</LinearLayout>
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="20dp" android:padding="20dp" android:background="@drawable/bg_solar_surface">
-<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:hint="@string/nic_hint">
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:accessibilityHeading="true" android:text="@string/login_title" android:textColor="@color/solar_hero_text" android:textSize="24sp" android:textStyle="bold" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_description" android:textColor="@color/solar_hero_text" android:layout_marginTop="8dp" />
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="16dp" android:padding="16dp" android:background="@drawable/bg_auth_form">
+<com.google.android.material.textfield.TextInputLayout style="@style/Solar.AuthInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:hint="@string/nic_hint">
     <com.google.android.material.textfield.TextInputEditText android:id="@+id/editNic" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textNoSuggestions" android:singleLine="true" android:autofillHints="username" android:imeOptions="actionNext" />
 </com.google.android.material.textfield.TextInputLayout>
-<com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:hint="@string/password_hint" app:endIconMode="password_toggle">
-    <com.google.android.material.textfield.TextInputEditText android:id="@+id/editPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:autofillHints="password" android:saveEnabled="false" />
+<com.google.android.material.textfield.TextInputLayout style="@style/Solar.AuthInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:hint="@string/password_hint" app:endIconMode="password_toggle">
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/editPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword" android:singleLine="true" android:autofillHints="password" android:imeOptions="actionDone" android:saveEnabled="false" />
 </com.google.android.material.textfield.TextInputLayout>
-<TextView android:id="@+id/textError" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:textColor="?attr/colorError" android:accessibilityLiveRegion="polite" android:visibility="gone" />
-<ProgressBar android:id="@+id/progress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:layout_marginTop="@dimen/solar_space_base" android:contentDescription="@string/working" android:visibility="gone" />
-<com.google.android.material.button.MaterialButton android:id="@+id/buttonLogin" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp" android:text="@string/sign_in" android:layout_marginTop="20dp" />
 <com.google.android.material.button.MaterialButton android:id="@+id/buttonForgotPassword"
- android:layout_width="match_parent" android:layout_height="wrap_content" style="@style/Solar.Button" android:text="@string/forgot_password" />
- <com.google.android.material.button.MaterialButton android:id="@+id/buttonCreateAccount" style="@style/Solar.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/create_account" />
-<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_roles" android:layout_marginTop="20dp" android:textSize="12sp" />
+ android:layout_width="wrap_content" android:layout_gravity="end" android:layout_height="wrap_content" style="@style/Solar.Button.Text" android:text="@string/forgot_password" />
+<TextView android:id="@+id/textError" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/solar_space_base" android:textColor="?attr/colorError" android:accessibilityLiveRegion="polite" android:visibility="gone" />
+<FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonLogin" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp" android:paddingStart="48dp" android:paddingEnd="48dp" android:text="@string/sign_in" />
+<ProgressBar android:id="@+id/progress" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="start|center_vertical" android:layout_marginStart="16dp" android:indeterminateTint="@color/solar_primary" android:contentDescription="@string/working" android:visibility="gone" />
+</FrameLayout>
+
+ <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginVertical="12dp" android:background="@color/solar_border"/>
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/auth_new_member" android:layout_marginBottom="8dp"/>
+<com.google.android.material.button.MaterialButton android:id="@+id/buttonCreateAccount" style="@style/Solar.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/create_account" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_roles" android:layout_marginTop="12dp" android:textSize="12sp" />
 </LinearLayout>
-<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/foundation_footer" android:layout_marginTop="40dp" android:textSize="12sp" android:gravity="center" />
+<TextView style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/auth_footer" android:textColor="@color/solar_hero_text" android:layout_marginTop="12dp" android:textSize="12sp" android:gravity="center" />
 </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
 </ScrollView>

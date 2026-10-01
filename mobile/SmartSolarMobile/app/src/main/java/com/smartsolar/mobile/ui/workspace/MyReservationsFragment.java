@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ImageView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.smartsolar.mobile.BuildConfig;
@@ -156,6 +157,8 @@ public final class MyReservationsFragment extends WorkspaceFragment {
         // Fetch current prosumer reservations from backend repository
         if (repository == null || busy) return;
         setBusy(true);
+        progress.setVisibility(View.GONE);
+        findViewById(R.id.reservationsSkeleton).setVisibility(View.VISIBLE);
         textError.setVisibility(View.GONE);
         textSuccess.setVisibility(View.GONE);
 
@@ -222,7 +225,8 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             TextView textCardStatus = card.findViewById(R.id.textCardStatus);
             TextView textCardStation = card.findViewById(R.id.textCardStation);
             TextView textCardEnergy = card.findViewById(R.id.textCardEnergy);
-            TextView textChevron = card.findViewById(R.id.textChevron);
+            TextView textCardStartPreview = card.findViewById(R.id.textCardStartPreview);
+            ImageView textChevron = card.findViewById(R.id.textChevron);
             View cardHeader = card.findViewById(R.id.cardHeader);
             View layoutExpandedDetails = card.findViewById(R.id.layoutExpandedDetails);
 
@@ -305,10 +309,10 @@ public final class MyReservationsFragment extends WorkspaceFragment {
                 boolean isExpanded = layoutExpandedDetails.getVisibility() == View.VISIBLE;
                 if (isExpanded) expanded.remove(res.getReservationId()); else expanded.add(res.getReservationId());
                 layoutExpandedDetails.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
-                textChevron.setText(isExpanded ? "⌄" : "⌃");
+                textChevron.setRotation(isExpanded ? 0f : 180f);
             };
             layoutExpandedDetails.setVisibility(expanded.contains(res.getReservationId()) ? View.VISIBLE : View.GONE);
-            textChevron.setText(expanded.contains(res.getReservationId()) ? "⌃" : "⌄");
+            textChevron.setRotation(expanded.contains(res.getReservationId()) ? 180f : 0f);
             androidx.core.view.ViewCompat.setStateDescription(cardHeader, getString(expanded.contains(res.getReservationId()) ? R.string.details_expanded : R.string.details_collapsed));
             cardHeader.setOnClickListener(v -> {
                 toggleListener.onClick(v);
@@ -422,6 +426,7 @@ public final class MyReservationsFragment extends WorkspaceFragment {
     private void setBusy(boolean value) {
         // Update loading busy state and disable interactive buttons
         busy = value;
+        if (!value) findViewById(R.id.reservationsSkeleton).setVisibility(View.GONE);
         memory.loading = value;
         progress.setVisibility(value ? View.VISIBLE : View.GONE);
         buttonRefreshDetails.setEnabled(!value);
