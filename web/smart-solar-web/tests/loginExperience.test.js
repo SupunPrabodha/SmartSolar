@@ -61,7 +61,7 @@ test('password reveal, persistent labels, semantic heading and recovery link are
   assert.equal(view.root.findByProps({id:'password'}).props.type,'password');
   assert.equal(view.root.findAllByProps({href:'/forgot-password'}).length,1);
   assert.match(json(view),/login-story/);assert.match(json(view),/Prosumers use the Android app/);
-  const motif=view.root.findByProps({className:'login-grid-motif'});
+  const motif=view.root.findByProps({className:'login-photo-divider'});
   assert.equal(motif.props['aria-hidden'],'true');
   assert.equal(motif.props.focusable,'false');
  }finally{await dispose(view);}
