@@ -16,6 +16,14 @@ public class MobileAccessTest {
         assertFalse(MobileAccess.canEnter(null, "Active"));
     }
 
+    @Test public void onlyGridOperatorCanScanTransactionQr() {
+        assertTrue(MobileAccess.canScanTransactionQr("GridOperator"));
+        assertFalse(MobileAccess.canScanTransactionQr("Prosumer"));
+        assertFalse(MobileAccess.canScanTransactionQr("Backoffice"));
+        assertFalse(MobileAccess.canScanTransactionQr("gridoperator"));
+        assertFalse(MobileAccess.canScanTransactionQr(null));
+    }
+
     @Test public void inactiveOrMissingStatusCannotEnter() {
         for (String role : new String[] { "Prosumer", "GridOperator" }) {
             assertFalse(MobileAccess.canEnter(role, "PendingActivation"));

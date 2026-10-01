@@ -23,6 +23,10 @@ internal static class UserMappings
             user.Role,
             user.Status,
             user.CreatedAtUtc,
-            user.UpdatedAtUtc);
+            user.UpdatedAtUtc,
+            user.ApprovedAtUtc,
+            user.EmailVerifiedAtUtc,
+            user.ProfileCompletedAtUtc is not null && user.AvatarVersion is not null,
+            user.AvatarVersion);
     }
 }

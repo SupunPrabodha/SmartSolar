@@ -1,0 +1,23 @@
+<resources>
+<string name="auth_signin_failed">Sign-in failed. Check your NIC and password and try again.</string>
+<string name="auth_offline">No connection. Check your network and try again.</string>
+<string name="auth_unavailable">Smart Solar is temporarily unavailable. Try again shortly.</string>
+<string name="auth_rate_limited">Too many sign-in attempts. Wait a moment and try again.</string>
+<string name="auth_enter_nic">Enter your NIC.</string>
+<string name="auth_enter_password">Enter your password.</string>
+<string name="auth_signing_in">Signing in…</string>
+<string name="auth_new_member">New to Smart Solar?</string>
+<string name="auth_footer">Shared energy · Connected community.</string>
+<string name="auth_registered">Account created. Your account is pending activation. You can sign in after Backoffice approval.</string>
+<string name="detail_refresh">Refresh station</string>
+<string name="detail_capacity">Capacity</string>
+<string name="detail_capacity_value">%1$.2f kWh</string>
+<string name="detail_battery">Battery slots</string>
+<string name="detail_hours">Opening hours</string>
+<string name="detail_week">Next 7 days · device local time</string>
+<string name="detail_no_hours">No published opening hours for this period.</string>
+<string name="detail_available">%1$d of %2$d available</string>
+<string name="detail_loading_slots">Loading booking-slot availability</string>
+<string name="detail_starts">Starts · %1$s</string>
+<string name="detail_ends">Ends · %1$s</string>
+</resources>

@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scrollSummaryAnalytics"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/solar_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/solar_space_xl">
+
+        <!-- Header Actions: Refresh and Period Filter -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="@dimen/solar_screen_padding"
+            android:paddingTop="@dimen/solar_space_sm">
+
+            <TextView
+                style="@style/Solar.Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/nav_summary"
+                android:textSize="20sp" />
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/buttonRefreshSummary" style="@style/Solar.Button.Refresh"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:contentDescription="@string/btn_refresh_details" android:tooltipText="@string/btn_refresh_details"/>
+        </LinearLayout>
+
+        <!-- Period Filter Chips (Horizontal Scroll bounded to screen padding) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:layout_marginHorizontal="@dimen/solar_screen_padding"
+            android:layout_marginTop="@dimen/solar_space_sm"
+            android:layout_marginBottom="@dimen/solar_space_sm">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupPeriods"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAllTime"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/summary_period_all_time" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThisMonth"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/summary_period_this_month" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThisWeek"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/summary_period_this_week" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipLast30Days"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/summary_period_last_30_days" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThisYear"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/summary_period_this_year" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <ProgressBar
+            android:id="@+id/progressSummary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginVertical="@dimen/solar_space_lg"
+            android:indeterminateTint="@color/solar_primary"
+            android:visibility="gone" />
+
+        <!-- Error Container -->
+        <LinearLayout
+            android:id="@+id/errorContainerSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/solar_screen_padding"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textErrorSummary"
+                style="@style/Solar.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/solar_status_rejected"
+                android:text="@string/load_failed" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonRetrySummary"
+                style="@style/Solar.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/solar_space_md"
+                android:text="@string/retry" />
+        </LinearLayout>
+
+        <!-- Main Content Area -->
+        <LinearLayout
+            android:id="@+id/layoutSummaryContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/solar_screen_padding">
+
+            <!-- Chart Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Solar.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/solar_space_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/solar_card_padding">
+
+                    <TextView
+                        style="@style/Solar.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Energy Distribution"
+                        android:textSize="16sp" />
+
+                    <com.smartsolar.mobile.ui.common.SolarDonutChartView
+                        android:id="@+id/chartEnergyDonut"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp"
+                        android:layout_marginTop="@dimen/solar_space_sm"
+                        android:layout_marginBottom="@dimen/solar_space_xs" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Tap any segment for status details"
+                        android:textColor="@color/solar_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2x2 KPI Cards -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/solar_space_sm">
+
+                <!-- KPI: Completed / Provided to Grid -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Solar.Card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/solar_space_xs">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:background="@color/solar_status_completed"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/summary_provided_to_grid"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textKpiCompletedKwh"
+                            style="@style/Solar.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="0.0 kWh"
+                            android:textColor="@color/solar_status_completed"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/textKpiCompletedSub"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0 bookings"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- KPI: Pending Approval -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Solar.Card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/solar_space_xs">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:background="@color/solar_status_pending"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/summary_pending_approval"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textKpiPendingKwh"
+                            style="@style/Solar.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="0.0 kWh"
+                            android:textColor="@color/solar_status_pending"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/textKpiPendingSub"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0 bookings"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/solar_space_md">
+
+                <!-- KPI: Approved / Scheduled -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Solar.Card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/solar_space_xs">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:background="@color/solar_status_approved"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/summary_approved_scheduled"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textKpiApprovedKwh"
+                            style="@style/Solar.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="0.0 kWh"
+                            android:textColor="@color/solar_status_approved"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/textKpiApprovedSub"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0 bookings"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- KPI: Total Energy Traded -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Solar.Card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/solar_space_xs">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <View
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:background="@color/solar_primary"
+                                android:layout_marginEnd="6dp" />
+
+                            <TextView
+                                style="@style/Solar.Body"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/summary_total_energy"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/textKpiTotalKwh"
+                            style="@style/Solar.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="0.0 kWh"
+                            android:textColor="@color/solar_text"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/textKpiTotalSub"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0 bookings"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Carbon Offset & Green Impact Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Solar.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/solar_space_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/solar_card_padding">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            style="@style/Solar.Title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/summary_carbon_offset_title"
+                            android:textSize="16sp" />
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textCarbonOffsetKg"
+                        style="@style/Solar.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/solar_space_sm"
+                        android:textColor="@color/solar_emerald"
+                        android:textSize="26sp"
+                        android:text="0.0 kg CO₂" />
+
+                    <TextView
+                        android:id="@+id/textCarbonTreesEquivalent"
+                        style="@style/Solar.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/solar_text"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:text="Equivalent to ~0.0 tree-years of CO₂ absorption" />
+
+                    <TextView
+                        style="@style/Solar.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/solar_space_xs"
+                        android:textColor="@color/solar_secondary"
+                        android:textSize="11sp"
+                        android:text="@string/summary_carbon_formula_note" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Top Trading Station Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Solar.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/solar_card_padding">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            style="@style/Solar.Title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/summary_top_station_title"
+                            android:textSize="16sp" />
+
+                        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textTopStationName"
+                        style="@style/Solar.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/solar_space_sm"
+                        android:textColor="@color/solar_primary"
+                        android:textSize="18sp"
+                        android:text="@string/summary_top_station_empty" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutTopStationDetails"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textTopStationEnergy"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/solar_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:text="0.0 kWh delivered" />
+
+                        <TextView
+                            android:id="@+id/textTopStationTransfers"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/solar_secondary"
+                            android:textSize="12sp"
+                            android:text="0 completed transfers" />
+
+                        <TextView
+                            android:id="@+id/textTopStationShare"
+                            style="@style/Solar.Body"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/solar_emerald"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:text="0.0% of your supplied energy" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

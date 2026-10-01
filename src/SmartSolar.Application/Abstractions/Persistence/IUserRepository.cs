@@ -13,6 +13,7 @@ namespace SmartSolar.Application.Abstractions.Persistence;
 public interface IUserRepository
 {
     Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default);
+    Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default) => GetByNicAsync(nic, cancellationToken);
     Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default);

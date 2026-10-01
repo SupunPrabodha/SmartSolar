@@ -37,6 +37,7 @@ public sealed class AuthController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, user);
     }
 
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("authentication")]
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]

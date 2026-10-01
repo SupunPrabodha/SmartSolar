@@ -1,0 +1,5 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="40dp" android:height="40dp" android:viewportWidth="64" android:viewportHeight="64">
+    <path android:fillColor="@color/solar_brand_forest" android:pathData="M20,0h24q20,0 20,20v24q0,20 -20,20h-24q-20,0 -20,-20v-24q0,-20 20,-20"/>
+    <path android:fillColor="@android:color/transparent" android:strokeColor="@color/solar_accent" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M16,36a16,16 0,0 1,32,0M32,8v5M12,17l4,4M52,17l-4,4M7,34h5M52,34h5M16,43h12l8,-11h12M20,53h12l9,-10h7"/>
+    <path android:fillColor="@color/solar_accent" android:pathData="M14,43a2,2 0,1 0,4 0a2,2 0,1 0,-4 0M46,32a2,2 0,1 0,4 0a2,2 0,1 0,-4 0M46,43a2,2 0,1 0,4 0a2,2 0,1 0,-4 0"/>
+</vector>

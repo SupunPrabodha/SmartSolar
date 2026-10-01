@@ -1,0 +1,79 @@
+package com.smartsolar.mobile.ui.workspace;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import com.smartsolar.mobile.R;
+import com.smartsolar.mobile.BuildConfig;
+import com.smartsolar.mobile.data.remote.RetrofitClient;
+import com.smartsolar.mobile.data.remote.dto.ReservationDashboardSummaryResponse;
+import com.smartsolar.mobile.data.repository.ReservationRepository;
+import com.smartsolar.mobile.ui.reservation.CreateReservationActivity;
+import com.smartsolar.mobile.util.MobileNavigation.Section;
+import com.smartsolar.mobile.util.ReservationUiUtils;
+
+/** Shared role-aware Home content; switching tabs neither reloads profile nor counts. */
+public final class HomeFragment extends WorkspaceFragment {
+    private ReservationRepository repository;
+    @Override protected int layout() { return R.layout.fragment_home; }
+    @Override protected void bind(Bundle saved) {
+        repository = new ReservationRepository(RetrofitClient.create(requireContext(), BuildConfig.API_BASE_URL, BuildConfig.DEBUG));
+        findViewById(R.id.profileContent).setVisibility(View.VISIBLE);
+        findViewById(R.id.buttonCurrentBookings).setOnClickListener(v -> workspace().openSection(Section.CURRENT));
+        findViewById(R.id.buttonPendingBookings).setOnClickListener(v -> workspace().openSection(Section.PENDING));
+        findViewById(R.id.buttonScanTransaction).setOnClickListener(v -> workspace().openScanner());
+        findViewById(R.id.buttonModuleTwo).setOnClickListener(v -> {
+            workspace().openSection(Section.MINE);
+            startActivity(new Intent(requireContext(), CreateReservationActivity.class));
+        });
+        profile();
+        if (memory.data != null) render((ReservationDashboardSummaryResponse) memory.data);
+    }
+    void updateActivityLoading() { if (alive()) profile(); }
+    private void profile() {
+        if (workspace().state().profile == null) return;
+        com.smartsolar.mobile.data.remote.dto.UserResponse user = workspace().state().profile;
+        ((TextView) findViewById(R.id.textWelcome)).setText(ReservationUiUtils.greeting() + ", " + user.getFullName());
+        ReservationUiUtils.formatStatusBadge(findViewById(R.id.textAccountStatus), user.getStatus());
+        boolean operator = "GridOperator".equals(user.getRole());
+        ((TextView) findViewById(R.id.homeDescription)).setText(operator ? R.string.operator_home_description : R.string.prosumer_home_description);
+        findViewById(R.id.buttonScanTransaction).setVisibility(operator ? View.VISIBLE : View.GONE);
+        findViewById(R.id.buttonModuleTwo).setVisibility(operator ? View.GONE : View.VISIBLE);
+        ((TextView) findViewById(R.id.textSession)).setText(R.string.workspace_verified);
+        StringBuilder recent = new StringBuilder();
+        if (workspace().inbox != null) {
+            for (int i = 0; i < Math.min(3, workspace().inbox.items.size()); i++) {
+                com.smartsolar.mobile.data.remote.dto.NotificationInbox.Item item = workspace().inbox.items.get(i);
+                recent.append(item.message).append("\n").append(ReservationUiUtils.formatTime(item.atUtc)).append("\n\n");
+            }
+        }
+        TextView activity = findViewById(R.id.textRecentActivity);
+        boolean loadingActivity = workspace().inboxLoading && workspace().inbox == null;
+        findViewById(R.id.activitySkeleton).setVisibility(loadingActivity ? View.VISIBLE : View.GONE);
+        activity.setVisibility(loadingActivity ? View.GONE : View.VISIBLE);
+        activity.setText(recent.length() == 0 ? "Open Notifications for your latest business and security updates." : recent.toString());
+        activity.setOnClickListener(v -> com.smartsolar.mobile.ui.account.AccountExperienceActivity.open(requireActivity(), "inbox"));
+    }
+    @Override protected void onWorkspaceReady() { profile(); }
+    @Override protected void load() {
+        memory.loading = true; metricsLoading(true);
+        repository.getDashboardSummary((summary, error, code) -> {
+            if (!alive()) return;
+            memory.loading = false; metricsLoading(false);
+            if (code == 401) { workspace().openLogin(); return; }
+            if (summary != null) { memory.data = summary; render(summary); }
+            else ((TextView) findViewById(R.id.textMetricsStatus)).setText(error == 0 ? R.string.load_failed : error);
+        });
+    }
+    private void metricsLoading(boolean loading) {
+        findViewById(R.id.progress).setVisibility(loading ? View.VISIBLE : View.GONE);
+        findViewById(R.id.homeMetrics).setVisibility(loading ? View.GONE : View.VISIBLE);
+    }
+    private void render(ReservationDashboardSummaryResponse value) {
+        ((TextView) findViewById(R.id.textPendingCount)).setText(String.valueOf(value.getPendingReservations()));
+        ((TextView) findViewById(R.id.textApprovedFutureCount)).setText(String.valueOf(value.getApprovedFutureReservations()));
+        ((TextView) findViewById(R.id.textMetricsStatus)).setText(getString(R.string.generated_at, ReservationUiUtils.formatTime(value.getGeneratedAtUtc())));
+    }
+    @Override public void onDestroyView() { if (repository != null) repository.close(); super.onDestroyView(); }
+}

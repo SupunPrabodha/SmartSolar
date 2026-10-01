@@ -7,6 +7,7 @@
 
 using SmartSolar.Application.Abstractions.Persistence;
 using SmartSolar.Application.Abstractions.Security;
+using SmartSolar.Application.Exceptions;
 using SmartSolar.Domain.Entities;
 using SmartSolar.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
@@ -55,7 +56,10 @@ public sealed class DevelopmentDataSeeder
         var request = new CreateStaffRequest { Nic = nic, Password = password, Email = email, FullName = fullName, PhoneNumber = phone, Role = UserRole.Backoffice };
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
 
-        if (await _users.GetByNicAsync(nic, cancellationToken) is not null)
+        // Treat either unique identifier as evidence that the configured seed account already exists.
+        // Never overwrite an existing account during startup.
+        if (await _users.GetByNicAsync(nic, cancellationToken) is not null ||
+            await _users.GetByEmailAsync(email, cancellationToken) is not null)
         {
             return;
         }
@@ -74,6 +78,20 @@ public sealed class DevelopmentDataSeeder
         };
 
         admin.PasswordHash = _passwords.HashPassword(admin, password);
-        await _users.InsertAsync(admin, cancellationToken);
+        try
+        {
+            await _users.InsertAsync(admin, cancellationToken);
+        }
+        catch (ConflictException)
+        {
+            // Another API instance may have inserted the same seed account after the checks above.
+            if (await _users.GetByNicAsync(nic, cancellationToken) is not null ||
+                await _users.GetByEmailAsync(email, cancellationToken) is not null)
+            {
+                return;
+            }
+
+            throw;
+        }
     }
 }

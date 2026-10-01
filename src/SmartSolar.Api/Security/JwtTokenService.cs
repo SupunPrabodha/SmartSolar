@@ -37,7 +37,8 @@ public sealed class JwtTokenService : IJwtTokenService
             new Claim(ClaimTypes.NameIdentifier, user.Nic),
             new Claim(ClaimTypes.Name, user.FullName),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim("security_version", user.SecurityVersion.ToString(System.Globalization.CultureInfo.InvariantCulture))
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));

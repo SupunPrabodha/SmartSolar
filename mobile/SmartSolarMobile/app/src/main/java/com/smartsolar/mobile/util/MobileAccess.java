@@ -7,4 +7,8 @@ public final class MobileAccess {
     public static boolean canEnter(String role, String status) {
         return "Active".equals(status) && ("Prosumer".equals(role) || "GridOperator".equals(role));
     }
+
+    public static boolean canScanTransactionQr(String role) {
+        return "GridOperator".equals(role);
+    }
 }

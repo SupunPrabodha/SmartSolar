@@ -1,0 +1,47 @@
+/*
+ * File: IReservationService.cs
+ * Project: Smart Solar Microgrid Trading System
+ * Purpose: Defines reservation use cases for a trusted authenticated caller identity.
+ * Note: Keep this header and update method-level comments as the code evolves.
+ */
+using SmartSolar.Application.DTOs.Reservations;
+
+namespace SmartSolar.Application.Abstractions.Reservations;
+
+// actorNic must come from authenticated server context, never a request body.
+public interface IReservationService
+{
+    Task<IReadOnlyList<ReservationResponse>> ListAsync(string actorNic, ListReservationsRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<ReservationResponse>> GetMyReservationsAsync(string actorNic, CancellationToken ct = default);
+    Task<IReadOnlyList<AvailableSlotResponse>> GetAvailableSlotsAsync(string actorNic, CancellationToken ct = default);
+    Task<ReservationResponse> CreateAsync(string actorNic, CreateReservationRequest request, CancellationToken ct = default);
+    Task<ReservationResponse> CreateForAsync(string actorNic, string prosumerNic, CreateReservationRequest request, CancellationToken ct = default);
+    Task<ReservationResponse> GetAsync(string actorNic, string reservationId, CancellationToken ct = default);
+    Task<ReservationResponse> UpdateAsync(string actorNic, string reservationId, UpdateReservationRequest request, CancellationToken ct = default);
+    Task<ReservationResponse> CancelAsync(string actorNic, string reservationId, CancellationToken ct = default);
+    Task<ReservationResponse> ApproveAsync(
+        string actorNic,
+        string reservationId,
+        CancellationToken ct = default);
+
+    Task<ReservationResponse> RejectAsync(
+        string actorNic,
+        string reservationId,
+        RejectReservationRequest request,
+        CancellationToken ct = default);
+
+    Task<ReservationQrResponse> IssueQrAsync(
+        string actorNic,
+        string reservationId,
+        CancellationToken ct = default);
+
+    Task<ReservationVerificationResponse> VerifyQrAsync(
+        string actorNic,
+        VerifyReservationQrRequest request,
+        CancellationToken ct = default);
+
+    Task<ReservationCompletionResponse> CompleteTransferAsync(
+        string actorNic,
+        CompleteReservationTransferRequest request,
+        CancellationToken ct = default);
+}

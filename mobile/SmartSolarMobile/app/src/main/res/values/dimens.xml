@@ -1,0 +1,18 @@
+<resources>
+    <dimen name="solar_screen_padding">20dp</dimen>
+    <dimen name="solar_card_padding">20dp</dimen>
+    <dimen name="solar_card_radius">20dp</dimen>
+    <dimen name="solar_control_height">48dp</dimen>
+    <dimen name="solar_nav_margin">12dp</dimen>
+    <dimen name="solar_nav_height">64dp</dimen>
+    <dimen name="solar_radius_small">12dp</dimen>
+    <dimen name="solar_radius_large">28dp</dimen>
+    <dimen name="solar_space_xs">4dp</dimen>
+    <dimen name="solar_space_sm">8dp</dimen>
+    <dimen name="solar_space_md">12dp</dimen>
+    <dimen name="solar_space_base">16dp</dimen>
+    <dimen name="solar_space_lg">24dp</dimen>
+    <dimen name="solar_space_xl">32dp</dimen>
+    <dimen name="solar_elevation_card">1dp</dimen>
+    <dimen name="solar_elevation_floating">6dp</dimen>
+</resources>

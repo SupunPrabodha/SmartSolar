@@ -1,0 +1,33 @@
+const paths = {
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+  eyeOff: 'm3 3 18 18M10 5.2A11 11 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3 3.8M6 6.5A20 20 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5-1.1M10 10a3 3 0 0 0 4 4',
+  close: 'M6 6l12 12M6 18 18 6',
+  warning: 'M12 3 2 21h20zM12 9v5M12 17h.01',
+  bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4',
+  profile: 'M20 21v-2a7 7 0 0 0-14 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+  refresh: 'M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M18 18A8 8 0 0 1 5 16',
+  download: 'M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5',
+  edit: 'm15 5 4 4M4 20l5-1L21 7l-4-4L5 15z',
+  power: 'M12 2v10M6 5a9 9 0 1 0 12 0',
+  shield: 'M12 3 3 7v5c0 5 9 10 9 10s9-5 9-10V7zM9 12l2 2 4-4',
+  camera: 'M3 7h4l2-3h6l2 3h4v14H3zM16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+  checkAll: 'm2 12 4 4L16 6m-5 10 3 3L24 9',
+  chevron: 'm8 10 4 4 4-4',
+  arrow: 'M4 12h16m-6-6 6 6-6 6',
+  logout: 'M10 3H4v18h6M10 12h11m-5-5 5 5-5 5',
+  filter: 'M4 7h16M7 12h10M10 17h4',
+  info: 'M12 11v6M12 7h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
+  check: 'M5 12l4 4L19 6',
+  home: 'M3 10 12 3l9 7M5 9v12h5v-7h4v7h5V9',
+  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  station: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 9h.01M15 9h.01M9 12h.01M15 12h.01',
+  bookings: 'M5 5h14v16H5zM9 3h6v4H9zM8 11h8M8 15h8',
+  dashboard: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  current: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
+  pending: 'M4 4h16M4 20h16M6 4v3l6 5 6-5V4M6 20v-3l6-5 6 5v3',
+  history: 'M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v5l4 2',
+  search: 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
+};
+export default function Icon({ name }) {
+  return <svg className="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name] || paths.bookings} /></svg>;
+}

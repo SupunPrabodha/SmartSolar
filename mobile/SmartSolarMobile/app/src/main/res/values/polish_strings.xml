@@ -1,0 +1,32 @@
+<resources>
+<string name="polish_notifications">Notifications</string>
+<string name="polish_refresh_notifications">Refresh notifications</string>
+<string name="polish_personal">Personal information</string>
+<string name="polish_security">Account security</string>
+<string name="polish_history">Security history</string>
+<string name="polish_identity_info">Identity, role and account state are managed by Smart Solar.</string>
+<string name="polish_photo_hint">JPEG, PNG or WebP, up to 2 MB.</string>
+<string name="polish_change_photo">Change photo</string>
+<string name="polish_complete">Profile complete</string>
+<string name="polish_incomplete">Complete your profile</string>
+<string name="polish_filters">Filters</string>
+<string name="polish_priority">Priority</string>
+<string name="polish_all">All</string>
+<string name="polish_unread">Unread</string>
+<string name="polish_high">High</string>
+<string name="polish_medium">Medium</string>
+<string name="polish_low">Low</string>
+<plurals name="polish_unread_count"><item quantity="one">%1$d unread</item><item quantity="other">%1$d unread</item></plurals>
+<plurals name="polish_notification_description"><item quantity="one">Notifications, %1$d unread</item><item quantity="other">Notifications, %1$d unread</item></plurals>
+<string name="polish_caught_up">You\'re all caught up</string>
+<string name="polish_no_notifications">No notifications match these filters.</string>
+<string name="polish_no_history">No account activity yet</string>
+<string name="polish_history_hint">Account and security updates will appear here.</string>
+<string name="polish_mark_all">Mark all read</string>
+<string name="polish_results">Search results</string>
+<plurals name="polish_results_count"><item quantity="one">%1$d booking shown</item><item quantity="other">%1$d bookings shown</item></plurals>
+<string name="polish_search_empty">No bookings found. Try adjusting your filters.</string>
+<string name="polish_account_actions">Account</string>
+<string name="polish_bookings">Bookings</string>
+<string name="polish_photo_description">Your profile photo</string>
+</resources>

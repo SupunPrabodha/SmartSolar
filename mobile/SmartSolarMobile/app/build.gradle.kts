@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -15,12 +16,19 @@ if (releaseApiUrl.isNotEmpty()) {
     }
 }
 
+val mapsProperties = Properties()
+val mapsFile = rootProject.file("secrets.properties")
+if (mapsFile.exists()) mapsFile.inputStream().use { mapsProperties.load(it) }
+val mapsApiKey = mapsProperties.getProperty("MAPS_API_KEY", "").trim()
+
 android {
     namespace = "com.smartsolar.mobile"
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.smartsolar.mobile"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        buildConfigField("boolean", "MAPS_CONFIGURED", mapsApiKey.isNotEmpty().toString())
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -30,7 +38,7 @@ android {
     buildFeatures { buildConfig = true }
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5000/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://localhost:5000/api/v1/\"")
         }
         release {
             // An unconfigured release shows a configuration message and makes no network requests.
@@ -46,6 +54,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.google.maps)
+    implementation(libs.google.location)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -53,6 +63,8 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.android.embedded)
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.ext.junit)

@@ -1,0 +1,52 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/workspaceRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/solar_background">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/workspaceToolbar" android:background="@color/solar_header_surface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:contentInsetStart="16dp"
+        app:contentInsetStartWithNavigation="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="@string/brand_name"
+                android:src="@drawable/ic_solar_brand" />
+
+            <TextView
+                android:id="@+id/workspaceToolbarTitle"
+                style="@style/TextAppearance.Material3.TitleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/solar_text"
+                android:textStyle="bold"
+                android:text="@string/brand_name" />
+        </LinearLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <androidx.fragment.app.FragmentContainerView android:id="@+id/workspaceContent" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="invisible"/>
+        <LinearLayout android:id="@+id/workspaceGate" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="@dimen/solar_screen_padding" android:orientation="vertical" android:gravity="center">
+            <ImageView android:layout_width="64dp" android:layout_height="64dp" android:src="@drawable/ic_solar_brand" android:importantForAccessibility="no"/>
+            <TextView style="@style/Solar.Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/brand_name" />
+            <TextView style="@style/Solar.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="24dp" android:text="@string/visual_secure_operations" />
+            <View android:id="@+id/workspaceBootProgress" android:layout_width="120dp" android:layout_height="4dp" android:layout_marginBottom="20dp" android:background="@color/solar_accent" android:importantForAccessibility="no"/>
+            <TextView android:id="@+id/workspaceMessage" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:accessibilityLiveRegion="polite" android:text="@string/checking_session"/>
+            <com.google.android.material.button.MaterialButton android:id="@+id/workspaceRetry" style="@style/Solar.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/retry"/>
+        </LinearLayout>
+    </FrameLayout>
+    <com.google.android.material.card.MaterialCardView android:id="@+id/workspaceNavSurface" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/solar_nav_margin" android:layout_marginBottom="10dp" android:layout_marginTop="6dp"
+        app:cardCornerRadius="@dimen/solar_radius_large" app:cardElevation="@dimen/solar_elevation_floating" app:cardBackgroundColor="@color/solar_nav_surface" app:strokeColor="@color/solar_border" app:strokeWidth="1dp" android:visibility="gone">
+        <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/workspaceBottomNav" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/solar_nav_height"
+            android:background="@android:color/transparent" app:elevation="0dp" app:itemIconTint="@color/solar_nav_item" app:itemTextColor="@color/solar_nav_item"
+            app:itemIconSize="24dp" app:itemRippleColor="@color/solar_action_ripple" app:itemActiveIndicatorStyle="@style/Solar.NavIndicator" app:itemTextAppearanceActive="@style/Solar.NavLabel" app:itemTextAppearanceInactive="@style/Solar.NavLabel" app:labelVisibilityMode="labeled" app:itemHorizontalTranslationEnabled="false"/>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

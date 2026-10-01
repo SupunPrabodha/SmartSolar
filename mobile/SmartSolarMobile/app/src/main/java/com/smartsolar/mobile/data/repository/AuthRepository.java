@@ -42,7 +42,7 @@ public final class AuthRepository implements AutoCloseable {
                 Response<LoginResponse> response = call.execute();
                 if (!response.isSuccessful() || response.body() == null) {
                     if (response.errorBody() != null) response.errorBody().close();
-                    deliver(callback, null, R.string.login_failed);
+                    deliver(callback, null, loginFailureResource(response.code()));
                     return;
                 }
                 LoginResponse body = response.body();
@@ -59,6 +59,14 @@ public final class AuthRepository implements AutoCloseable {
                 deliver(callback, null, R.string.session_failed);
             } finally { currentCall = null; }
         });
+    }
+
+    /** Preserve only the failure category; never expose the response body to login UI. */
+    static int loginFailureResource(int status) {
+        if (status == 429) return R.string.auth_rate_limited;
+        if (status >= 500 && status <= 599 || status >= 200 && status <= 299)
+            return R.string.auth_unavailable;
+        return R.string.login_failed;
     }
 
     public void restore(Callback callback) {
