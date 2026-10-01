@@ -1,0 +1,9 @@
+<resources>
+    <style name="Solar.AuthInput" parent="Solar.Input">
+        <item name="boxStrokeColor">@color/auth_input_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">@color/solar_primary</item>
+        <item name="endIconTint">@color/solar_action_text</item>
+    </style>
+</resources>

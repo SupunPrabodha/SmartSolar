@@ -23,7 +23,7 @@ function FeedbackItem({ item }) {
   return <div className={'enterprise-toast toast-' + item.type} role={item.type === 'error' ? 'alert' : 'status'}
     onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-    <strong><Icon name={{success:'check',info:'info',warning:'warning',error:'warning',loading:'refresh'}[item.type]}/> {item.type === 'loading' ? 'Working' : item.type}</strong><span>{item.message}</span>
+    <strong><Icon name={{success:'check',info:'info',warning:'warning',error:'warning',loading:'refresh'}[item.type]}/> {item.title || (item.type === 'loading' ? 'Working' : item.type)}</strong><span>{item.message}</span>
     <button aria-label="Dismiss feedback" onClick={() => dismiss(item.id)}><Icon name="close"/></button>
   </div>;
 }

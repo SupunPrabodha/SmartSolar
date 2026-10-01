@@ -76,3 +76,56 @@ These checks apply to the follow-up Android contrast pass and remain unexecuted.
 - [ ] Floating navigation: labels/icons remain readable on selected and unselected surfaces, including dark pressed states; existing destinations remain unchanged.
 - [ ] TalkBack announces action names, not just “button”. Verify icon descriptions for profile, bell, refresh, Back, camera and QR actions.
 - [ ] Repeat on a physical device in light/dark themes, large fonts, portrait/landscape, with keyboard and gesture navigation. Compare pressed/disabled states and contrast against the calculated resource pairs in the report.
+
+## Enterprise authentication experience
+
+Focused follow-up status: **automated checks passed; manual acceptance required.** The approved minimal AuthRepository classification is now implemented: 401/403 remain generic, 429 is rate limiting, 5xx is service unavailable, and the existing IO failure maps to offline. No session/auth rules changed. See the latest premium-authentication report section.
+
+### Web Login
+
+- [ ] Sign in as active Backoffice and GridOperator; confirm existing workspace redirects. Check rejected mobile-only roles retain existing access policy.
+- [ ] Try wrong NIC/password and rejected accounts. Expect one toast titled “Sign-in failed” with “Check your NIC and password and try again.” No Reference, trace, correlation ID or raw response is visible.
+- [ ] Confirm the toast is announced once; dismiss it and retry. Keyboard focus remains usable after rejection.
+- [ ] Toggle Show/Hide password, use autofill and submit with Enter. Check visible labels, focus rings and the quiet Forgot password link.
+- [ ] Delay login: the button stays in place, displays Signing in, disables controls and prevents duplicate submission.
+- [ ] Test network outage, HTTP 503 and 429: operational feedback stays distinct from credential rejection. Test expired-session restoration and retry.
+- [ ] Inspect 1920 / 1440 / 1024 / 768 / 390 widths, 200% zoom, keyboard only and reduced motion. Compact branding remains visible without horizontal scrolling.
+
+### Android Login and registration
+
+- [ ] Sign in using active Prosumer and GridOperator accounts. Confirm unchanged destinations/session behavior and generic feedback for rejected credentials.
+- [ ] Test offline login; expect “No connection. Check your network and try again.”
+- [ ] Test HTTP 503 and 429: expect “Smart Solar is temporarily unavailable. Try again shortly.” and “Too many sign-in attempts. Wait a moment and try again.” respectively. Neither should imply wrong credentials or display raw response text.
+- [ ] Check separate missing-NIC/password field messages, password reveal/autofill, IME Next/Done, duplicate-submit prevention and the stationary button/progress.
+- [ ] Verify Forgot password opens the unchanged recovery flow and outlined Create Prosumer account opens registration.
+- [ ] Successfully self-register a disposable Prosumer. Expect Login with “Account created. Your account is pending activation. You can sign in after Backoffice approval.”
+- [ ] Confirm no automatic login, no password prefill and Back does not reopen the completed registration form. Reopening/rotating Login must not repeat consumed success feedback.
+- [ ] Fail registration with invalid/duplicate data or network outage; remain on the registration form with existing validation.
+- [ ] Inspect default/large text, portrait/landscape, keyboard/insets, light/dark themes, TalkBack labels/order and 48dp targets.
+
+## Station details final refinement
+
+- [ ] Open a real station from the existing discovery flow. Check actual name, long address, distance or existing distance fallback, capacity in kWh and battery-slot count.
+- [ ] Verify Back and labelled Refresh station toolbar actions, including native ripple, target size and unchanged reload behavior.
+- [ ] Compare grouped next-seven-day hours with authoritative schedule data using device-local time, including timezone/date-boundary and 24:00 cases. Missing records must not invent Closed days.
+- [ ] Compare each active slot's labelled start/end and available/total counts with API data. No inferred “busy” categories or new booking actions.
+- [ ] Delay initial station and slot responses: placeholders end on success/failure; loaded station content remains above slot loading.
+- [ ] Test absent hours, no active slots, zero availability, inactive station, network failure, retry and session expiry/401.
+- [ ] Inspect long names/addresses, wrapped dates/metrics, large fonts, landscape, dark/light modes, TalkBack order and system/gesture insets.
+
+No browser, emulator, physical-device or accessibility runtime execution is claimed for this follow-up.
+
+## Premium authentication follow-up
+
+Automated Web and Android gates pass. These additional visual/device checks remain manual. Station Details was not modified by this follow-up.
+
+- [ ] Web: original solar-network SVG is subtle, non-interactive and ignored by assistive technology. Forest branding, tonal right panel and bounded form remain composed at 1920 / 1440 / 1024 / 768 / 390 and 200% zoom.
+- [ ] Web: check field hover/focus/disabled states, password reveal keyboard focus, sole primary Sign in CTA and quiet recovery link. Repeat generic errors, rate limit and offline/service recovery.
+- [ ] Android, keyboard closed: on a tall/normal phone with enough room, hero + form + secondary footer form one vertically centered composition with balanced space above/below.
+- [ ] Android, short phone/landscape/large fonts: scroll from hero through footer without clipping; no fixed spacer creates unreachable content.
+- [ ] Android, keyboard open: focus NIC then Password, use Next/Done, scroll to Sign in and confirm all actions remain reachable. Hide the keyboard and confirm centering returns when there is room.
+- [ ] Android: check the original vector motif, bordered mint form, focused field stroke and reveal icon in light/dark modes. TalkBack must skip decorative artwork and announce fields/actions.
+- [ ] Android: test 401/403, 429, 500/503 and network failure through a controlled test API/proxy; compare generic rejection, throttling, unavailable and offline messages. Do not change production security settings to induce failures.
+- [ ] Recheck successful registration -> Login -> pending-activation message, empty password, no auto-login and sane Back behavior. Failed registration stays on the form.
+
+No browser viewport, emulator, physical-device, keyboard, TalkBack or rendered contrast result is inferred from automated tests.

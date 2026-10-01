@@ -55,10 +55,14 @@ public final class RegisterActivity extends AppCompatActivity {
             try {
                 Response<com.smartsolar.mobile.data.remote.dto.UserResponse> response = api.registerProsumer(new RegisterProsumerRequest(nicValue, nameValue, emailValue, phoneValue, passwordValue)).execute();
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
                     setBusy(false);
                     if (response.isSuccessful()) {
-                        success.setText(R.string.registration_pending); success.setVisibility(View.VISIBLE); error.setVisibility(View.GONE); register.setEnabled(false);
-                        ((TextView) findViewById(R.id.buttonBackToLogin)).setText(R.string.return_to_sign_in); findViewById(R.id.buttonBackToLogin).setVisibility(View.VISIBLE);
+                        password.setText("");
+                        startActivity(new android.content.Intent(this,LoginActivity.class)
+                            .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            .putExtra("registrationCompleted",true));
+                        finish();
                     } else if (response.code() == 409) showError("An account with that NIC or email already exists.");
                     else showError(R.string.registration_failed);
                 });

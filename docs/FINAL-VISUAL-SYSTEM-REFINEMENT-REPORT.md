@@ -1,6 +1,6 @@
 # Final Visual System Refinement Report
 
-Latest follow-up: [Enterprise contrast and surface refinement](#enterprise-contrast-and-surface-refinement). Earlier validation below is retained as historical evidence.
+Latest follow-up: [Premium authentication refinement](#premium-authentication-refinement). The approved HTTP classification fix resolves the earlier blocker. Automated checks pass; visual/device acceptance remains manual. Earlier sections retain historical results.
 
 ## Executive summary
 
@@ -290,3 +290,130 @@ rg -n '^(<<<<<<<|=======\s*$|>>>>>>>)' --glob '!*.lock' --glob '!gradlew*' --glo
 Use the new “Enterprise contrast refinement” section in [the manual checklist](FINAL-VISUAL-SYSTEM-MANUAL-ACCEPTANCE.md). Prioritize all account-sheet labels and destructive row, pressed/disabled contrast in both themes, 48dp refresh targets, large fonts, TalkBack descriptions and landscape sheet scrolling. Then inspect Home, booking cards, search/stations, profile/account, New Reservation and navigation on a physical device.
 
 **READY FOR ENTERPRISE CONTRAST MANUAL ACCEPTANCE**
+
+## Enterprise authentication experience
+
+Focused follow-up, 2026-10-01. **Android HTTP classification is unresolved; this is not an unconditional readiness claim.** All independent presentation/navigation work and requested build gates are complete.
+
+Web keeps its split forest brand/login concept, with concise brand copy, a bounded 480px authentication card, one semantic H1, visible labels, password-manager autocomplete, vector eye/reveal action, quiet password recovery and compact narrow-screen branding. Credential rejection now uses the existing feedback host with title “Sign-in failed” and message “Check your NIC and password and try again.” Raw error text and Reference/correlation IDs are not rendered by Login. Network/5xx and 429 use dedicated allowlisted copy. Existing telemetry, login request, auth context and workspace redirect remain unchanged. Duplicate submission is guarded synchronously; busy state remains on the button and focus returns after failure.
+
+Android keeps a smaller forest hero, labelled Material fields, IME Next/Done, a stationary Sign in button with local progress, quiet Forgot password and outlined registration. Existing Snackbar feedback displays allowlisted generic authentication copy; missing fields have distinct labels. The UI mapper distinguishes network, service and rate-limit resources without rendering diagnostic text.
+
+**Scope blocker:** AuthRepository currently maps every unsuccessful login HTTP response to login_failed. The new UI mapper cannot recover the discarded HTTP status. Consequently HTTP 429/500/503 still appear as generic authentication rejection on Android. The requested exception would classify only response failures in AuthRepository (429 -> rate-limit message; 5xx or unusable response -> service message; rejected credentials -> generic message), preserving requests, sessions, rate limits and authorization. Permission was requested because section 35 of the supplied task explicitly excludes repositories except for the registration-navigation bug. No answer or exception has been assumed. Existing JVM presentation tests validate mapping inputs; they do not claim that real 5xx/429 responses reach the desired UI branch.
+
+Registration success now clears the password field, opens the existing Login with CLEAR_TOP and only a registrationCompleted boolean, then finishes RegisterActivity. Login consumes the flag and shows:
+“Account created. Your account is pending activation. You can sign in after Backoffice approval.”
+There is no auto-login, password Intent extra or state/API change. Failed registration stays on its existing form. Real Activity back-stack and Snackbar delivery remain device checks; no fabricated JVM navigation result is claimed.
+
+## Station details final refinement
+
+Replaced the prose layout with a strong station hero, separate real capacity/battery tiles, grouped dated opening-hour rows and active-slot cards with labelled start/end plus actual available/total text. Existing station/slot requests, active filters, recurrence conversion, timezone formatting and distance fallback remain intact. No new Closed inference or availability category was added.
+
+The same Refresh View and listener now sit in the existing focused toolbar with its 24dp vector, 48dp target, tooltip and “Refresh station” description. Existing LoadingSurface has an opt-in station-detail shape with hero/metric/row placeholders; other usages retain their geometry. Loading appears after loaded station content while slots arrive. Existing errors/retry/session handling remain authoritative.
+
+All surfaces/text/icons use existing theme tokens and static placeholders. Decorative skeleton blocks stay outside accessibility traversal. Native dark-mode tokens, wrapping text, labelled buttons and Web focus/reduced-motion rules are retained; TalkBack, contrast in rendered states, large fonts and responsive geometry require manual execution.
+
+### Validation for this focused follow-up
+
+| Gate | Result |
+| --- | --- |
+| Web npm.cmd test | **103 passed**, zero failed/skipped, exit 0. Eight added tests cover generic 400/401/403 feedback, no diagnostics, 503/network/429, reveal/labels/structure and duplicate-submit/busy/success redirect. |
+| Web npm.cmd run build | Exit 0, **75 modules**, production build **1.51s**. |
+| Android clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:processReleaseMainManifest | Exit 0, **BUILD SUCCESSFUL in 55s**, **51 tasks executed** on final run. |
+| Android JVM reports | **74 tests passed**, zero failures/errors/skips; three added presentation-mapping tests. |
+| Android lint | **0 errors, 138 warnings**. Remaining style/localization/dependency/layout notices were not suppressed. |
+| Repository checks | Diff whitespace clean, conflict-marker scan no matches; main resource XML parsed; resource linking passed. |
+| Scope / secrets | No protected-path changes in backend, API/data/session, manifests, dependencies, auth context, routes or WorkspaceActivity. Targeted credential-pattern scan of changed/new files found no matches. |
+
+Commands are the Web and clean Android commands shown earlier in this report. Android used installed JDK 17 and command-local TEMP/TMP under ignored TestResults/enterprise-temp; no committed environment change. Debug APK and reports remain in the standard app/build output directories.
+
+### Exact files for authentication and station details
+
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/auth/LoginActivity.java`
+- `docs/FINAL-VISUAL-SYSTEM-MANUAL-ACCEPTANCE.md`
+- `docs/FINAL-VISUAL-SYSTEM-REFINEMENT-REPORT.md`
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/auth/LoginErrorPresentation.java`
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/auth/RegisterActivity.java`
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/common/LoadingSurface.java`
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/ui/stations/StationDetailActivity.java`
+- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_login.xml`
+- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_station_detail.xml`
+- `mobile/SmartSolarMobile/app/src/main/res/values/auth_station_refinement.xml`
+- `mobile/SmartSolarMobile/app/src/test/java/com/smartsolar/mobile/LoginErrorPresentationTest.java`
+- `web/smart-solar-web/src/components/Feedback.jsx`
+- `web/smart-solar-web/src/components/Icon.jsx`
+- `web/smart-solar-web/src/pages/LoginPage.jsx`
+- `web/smart-solar-web/src/util/feedback.js`
+- `web/smart-solar-web/src/util/signInFeedback.js`
+- `web/smart-solar-web/src/visual-system.css`
+- `web/smart-solar-web/tests/loginExperience.test.js`
+
+### Scope and manual limitations
+
+Changes are limited to login/feedback presentation, station-detail presentation, the explicit registration-completion navigation fix and their tests/documentation. No backend business rules, Mongo schema, JWT semantics, roles, password/reset protections, account-state rules, API contracts, reservations, QR, Maps/location, SQLite, destination policy, permissions or dependencies changed. No commit, push, merge or deployment.
+
+Use the latest authentication/station sections in [the manual checklist](FINAL-VISUAL-SYSTEM-MANUAL-ACCEPTANCE.md). Browser widths/zoom/keyboard/reduced motion, emulator/physical device, successful registration back stack, TalkBack, theme/large-text/insets and real network/API failure paths remain unexecuted. Resolve the Android repository classification scope conflict before claiming this task ready.
+
+**Historical blocker, resolved by the approved premium authentication follow-up below.**
+
+## Premium authentication refinement
+
+This follow-up implements the user's explicit approval for minimal AuthRepository failure classification and refines only Web/Android Login. The earlier unresolved-classification notes above describe the previous pass, not the current implementation. StationDetailActivity and its layout were compared with their contents at the start of this follow-up and are unchanged.
+
+### Design and behavior
+
+Briefly reviewed [IBM Carbon's enterprise forms patterns](https://www.carbondesignsystem.com/building-blocks/core/patterns/forms) for visible labels, predictable field order and keyboard/password-manager support, and [Material text-field guidance](https://github.com/material-components/material-web/blob/main/docs/components/text-field.md) for accessible labelled fields. These informed hierarchy only. No reference artwork, layout or branding was copied.
+
+Web retains the forest Smart Solar split screen and “Powering local energy exchange.” headline. Added original inline SVG solar-network linework, a restrained forest tonal layer, bounded mint right-panel surround, subtle card accent/depth and explicit field/reveal/button states. The SVG is decorative, unfocusable and hidden from accessibility APIs. The 480px maximum form, responsive single-column treatment and existing reduced-motion handling remain. No external artwork or dependency.
+
+Android retains its forest hero and form. ScrollView fillViewport plus center_vertical on the wrapping inner LinearLayout centers the whole hero/form/footer composition whenever it fits. Content expands and scrolls when height is constrained; no screen-height calculation, weighted spacer or artificial large top margin. Existing IME/system-bar insets remain intact. Reduced internal spacing and a secondary footer keep the composition compact. Added original VectorDrawable network detail behind the hero, a bordered mint form and login-local theme-aware focused/hover/disabled field strokes. Material labels, reveal, autofill and Next/Done behavior are preserved. Layout rendering on real devices remains manual.
+
+The approved repository edit only changes the resource selected on failed login responses:
+- 401/403 (and other ordinary rejection responses) -> generic login failure.
+- 429 -> rate-limit feedback.
+- 500–599 -> service unavailable.
+- A successful HTTP response with no usable body -> service unavailable.
+- Existing IOException handling remains connection_failed, displayed as offline.
+
+No response body or diagnostic identifier is displayed. The existing session clearing/saving, JWT, role/account checks, worker/callback lifecycle, restore/logout and request logic are unchanged. The shared UI mapper yields exactly the existing generic credential rejection and dedicated operational messages.
+
+Registration completion is retained without further edits: password cleared, existing Login opened with CLEAR_TOP and only a success boolean, completed Activity finished, no auto-login or password extra. The pending-activation success message remains “Account created. Your account is pending activation. You can sign in after Backoffice approval.” Failed registration stays on its form.
+
+### Current validation
+
+| Gate | Result |
+| --- | --- |
+| Web npm.cmd test | **103 passed**, 0 failed/skipped; exit 0. Existing login regression test also checks the motif's decorative accessibility attributes. |
+| Web npm.cmd run build | Exit 0; **75 modules**, built in **3.92s**. |
+| Android clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:processReleaseMainManifest | Exit 0; **BUILD SUCCESSFUL in 1m 24s**, **51 tasks executed**. |
+| JVM reports | **78 tests**, 0 failures/errors/skips. Four new tests exercise rejected credentials, throttling, all 5xx values and absent success bodies through repository classification and the UI mapper. Existing offline mapping tests retained. |
+| Lint | **0 errors, 138 warnings**; no checks suppressed. |
+| Repository | git diff --check passed; conflict-marker scan found no matches. Main resource XML parsed and resource linking passed. Targeted credential-pattern scan found no matches. |
+| Scope | Only approved AuthRepository classification and its test touch the data-layer path. No backend/security contracts, manifests, dependencies, routes or destination policy changes. Station Details unchanged in this follow-up. |
+
+These are local automated results. JVM classification tests do not instantiate an Activity, emulate real network outages or prove device layout behavior.
+
+### Exact files changed in this follow-up
+
+- `docs/FINAL-VISUAL-SYSTEM-MANUAL-ACCEPTANCE.md`
+- `docs/FINAL-VISUAL-SYSTEM-REFINEMENT-REPORT.md`
+- `web/smart-solar-web/src/pages/LoginPage.jsx`
+- `web/smart-solar-web/src/visual-system.css`
+- `web/smart-solar-web/tests/loginExperience.test.js`
+- `mobile/SmartSolarMobile/app/src/main/java/com/smartsolar/mobile/data/repository/AuthRepository.java`
+- `mobile/SmartSolarMobile/app/src/main/res/layout/activity_login.xml`
+- `mobile/SmartSolarMobile/app/src/main/res/color/auth_input_stroke.xml` (new)
+- `mobile/SmartSolarMobile/app/src/main/res/drawable/bg_auth_form.xml` (new)
+- `mobile/SmartSolarMobile/app/src/main/res/drawable/ic_auth_microgrid.xml` (new)
+- `mobile/SmartSolarMobile/app/src/main/res/values/auth_styles.xml` (new)
+- `mobile/SmartSolarMobile/app/src/test/java/com/smartsolar/mobile/data/repository/LoginHttpFailureTest.java` (new)
+
+Other working-tree changes from the preceding pass are retained and listed in its section above.
+
+### Remaining acceptance and scope
+
+Run the premium-authentication additions in [the checklist](FINAL-VISUAL-SYSTEM-MANUAL-ACCEPTANCE.md), especially Android vertical centering/scrolling with keyboard and large text, Web widths/200% zoom, light/dark rendering, TalkBack, generic/operational failures and successful registration Back behavior. No browser, emulator, physical-device, screenshot or accessibility runtime result is claimed.
+
+No backend business rule, API contract, MongoDB, JWT/session semantics, role/account-state, password/reset, navigation policy or dependency changed. No OAuth, CAPTCHA, MFA or SSO added. No commit, push, merge or deployment.
+
+**READY FOR PREMIUM AUTHENTICATION MANUAL ACCEPTANCE**

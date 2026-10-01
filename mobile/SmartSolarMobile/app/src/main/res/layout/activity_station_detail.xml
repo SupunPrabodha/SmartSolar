@@ -2,8 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/catalogRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/solar_screen_padding">
 <com.google.android.material.button.MaterialButton android:id="@+id/catalogBack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/catalog_back"  android:visibility="gone"/>
-<ProgressBar android:id="@+id/catalogProgress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:contentDescription="@string/working" android:visibility="gone" />
+
 <TextView android:id="@+id/catalogMessage" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" android:layout_marginVertical="12dp" />
 <com.google.android.material.button.MaterialButton android:id="@+id/catalogRetry" style="@style/Solar.Button.Refresh"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:contentDescription="@string/catalog_retry" android:tooltipText="@string/catalog_retry"/><LinearLayout android:id="@+id/stationDetails" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" /></LinearLayout></ScrollView>
+                android:contentDescription="@string/detail_refresh" android:tooltipText="@string/detail_refresh"/><LinearLayout android:id="@+id/stationDetails" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" /><com.smartsolar.mobile.ui.common.LoadingSurface android:tag="station-detail" android:id="@+id/catalogProgress" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="@string/visual_loading_stations" android:visibility="gone"/></LinearLayout></ScrollView>

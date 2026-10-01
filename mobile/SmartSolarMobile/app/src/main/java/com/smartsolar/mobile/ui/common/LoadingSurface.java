@@ -26,6 +26,30 @@ public final class LoadingSurface extends LinearLayout {
         status.setTextColor(context.getColor(R.color.solar_secondary));
         status.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
         addView(status, new LayoutParams(-1, -2));
+        if ("station-detail".equals(getTag())) {
+            LinearLayout shape = new LinearLayout(context);
+            shape.setOrientation(VERTICAL);
+            shape.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+            addView(shape, new LayoutParams(-1, -2));
+            block(shape, 160, 28);
+            block(shape, -1, 12);
+            LinearLayout tiles = new LinearLayout(context);
+            tiles.setOrientation(HORIZONTAL);
+            shape.addView(tiles, new LayoutParams(-1, -2));
+            for (int index = 0; index < 2; index++) {
+                LinearLayout tile = new LinearLayout(context);
+                tile.setOrientation(VERTICAL);
+                tile.setPadding(0, dp(12), dp(12), dp(12));
+                tiles.addView(tile, new LayoutParams(0, -2, 1));
+                block(tile, -1, 32);
+                block(tile, 64, 12);
+            }
+            for (int row = 0; row < 3; row++) {
+                block(shape, 120, 18);
+                block(shape, -1, 12);
+            }
+            return;
+        }
         if ("metrics".equals(getTag())) {
             LinearLayout metrics = new LinearLayout(context); metrics.setOrientation(HORIZONTAL);
             addView(metrics,new LayoutParams(-1,-2));

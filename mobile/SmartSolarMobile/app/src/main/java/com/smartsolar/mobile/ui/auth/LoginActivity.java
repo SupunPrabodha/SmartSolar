@@ -28,6 +28,8 @@ public final class LoginActivity extends AppCompatActivity {
     private View progress;
     private AuthRepository repository;
     private boolean busy;
+    private boolean signingIn;
+    private final com.smartsolar.mobile.util.EnterpriseFeedback feedback = new com.smartsolar.mobile.util.EnterpriseFeedback();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,14 @@ public final class LoginActivity extends AppCompatActivity {
             return;
         }
         buttonLogin.setOnClickListener(view -> login());
+        editPassword.setOnEditorActionListener((view, action, event) -> {
+            if (action == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) { if (!busy) login(); return true; }
+            return false;
+        });
+        if (getIntent().getBooleanExtra("registrationCompleted",false)) {
+            getIntent().removeExtra("registrationCompleted");
+            findViewById(R.id.loginRoot).post(() -> feedback.show(findViewById(R.id.loginRoot),getString(R.string.auth_registered),false));
+        }
     }
 
     @Override
@@ -73,12 +83,12 @@ public final class LoginActivity extends AppCompatActivity {
     }
 
     private void login() {
+        if (busy) return;
         String nic = editNic.getText().toString().trim();
         String password = editPassword.getText().toString();
-        if (nic.isEmpty() || password.isEmpty()) {
-            showError(R.string.credentials_required);
-            return;
-        }
+        if (nic.isEmpty()) { editNic.setError(getString(R.string.auth_enter_nic)); editNic.requestFocus(); return; }
+        if (password.isEmpty()) { editPassword.setError(getString(R.string.auth_enter_password)); editPassword.requestFocus(); return; }
+        signingIn=true;
         setBusy(true);
         repository.login(nic, password, this::showResult);
         editPassword.setText("");
@@ -88,6 +98,7 @@ public final class LoginActivity extends AppCompatActivity {
         busy = value;
         progress.setVisibility(value ? View.VISIBLE : View.GONE);
         buttonLogin.setEnabled(!value);
+        buttonLogin.setText(value && signingIn ? R.string.auth_signing_in : R.string.sign_in);
         editNic.setEnabled(!value);
         editPassword.setEnabled(!value);
         if (value) textError.setVisibility(View.GONE);
@@ -107,11 +118,16 @@ public final class LoginActivity extends AppCompatActivity {
             finish();
             return;
         }
-        if (error != 0) showError(error);
+        if (error != 0) {
+            textError.setVisibility(View.GONE);
+            feedback.show(findViewById(R.id.loginRoot),getString(LoginErrorPresentation.message(error)),true);
+        }
+        signingIn=false;
     }
 
     @Override
     protected void onDestroy() {
+        feedback.dismiss();
         if (repository != null) repository.close();
         super.onDestroy();
     }
