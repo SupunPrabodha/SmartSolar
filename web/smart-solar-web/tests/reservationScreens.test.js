@@ -1,3 +1,4 @@
+import { displayReference } from '../src/util/displayReference.js';
 import assert from 'node:assert/strict';
 import { after, afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
@@ -24,7 +25,7 @@ after(() => server.close());
 const originalFetch = globalThis.fetch;
 const base = '/operator/reservations';
 const row = {
-  reservationId: 'reservation-1', prosumerNic: '200012345678', stationId: '22222222222222222222222222222222',
+  reservationId: '33333333-3333-3333-3333-333333333333', prosumerNic: '200012345678', stationId: '22222222222222222222222222222222',
   slotId: '11111111111111111111111111111111', energyAmountKwh: 1.5, status: 'Pending',
   scheduledStartAtUtc: '2099-01-03T00:00:00Z', scheduledEndAtUtc: '2099-01-03T01:00:00Z',
   createdAtUtc: '2099-01-01T00:00:00Z', updatedAtUtc: '2099-01-01T00:00:00Z'
@@ -85,6 +86,7 @@ beforeEach(() => {
   globalThis.window = new EventTarget();
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
+    if (url.includes('/stations?')) return response([{stationId:row.stationId,name:'Test Solar Station'}]);
     if (url.includes('/reservations/slots')) {
       return response([{
         slotId: row.slotId,
@@ -108,18 +110,18 @@ afterEach(async () => {
 
 test('list loads real rows and applies only the operational filters', async () => {
   await mount(base);
-  assert.match(text(view.root), /reservation-1/);
+  assert.ok(text(view.root).includes(displayReference(row.reservationId)));
   assert.match(text(view.root), /1.5 kWh/);
   // Pending row shows 'Review' action button
-  const actionLink = view.root.findAllByType('a').find(a => a.props.href === '/operator/reservations/reservation-1');
-  assert.ok(actionLink, 'Expected action link for reservation-1');
+  const actionLink = view.root.findAllByType('a').find(a => a.props.href === '/operator/reservations/33333333-3333-3333-3333-333333333333');
+  assert.ok(actionLink, 'Expected action link for 33333333-3333-3333-3333-333333333333');
   assert.equal(text(actionLink), 'Review');
 
   await fill('filter-status', 'Pending');
   await fill('filter-nic', '200012345678');
   await review();
   await settle();
-  const query = new URL(calls.at(-1).url).searchParams;
+  const query = new URL(calls.filter(c => !c.url.includes('/stations?')).at(-1).url).searchParams;
   assert.equal(query.get('status'), 'Pending');
   assert.equal(query.get('prosumerNic'), '200012345678');
 });
@@ -138,7 +140,7 @@ test('list has loading, empty, error and read-retry states', async () => {
   globalThis.fetch = async () => response([row]);
   await click('Try again');
   await settle();
-  assert.match(text(view.root), /reservation-1/);
+  assert.ok(text(view.root).includes(displayReference(row.reservationId)));
 });
 
 test('obsolete filtered read cannot replace newer results', async () => {
@@ -151,7 +153,7 @@ test('obsolete filtered read cannot replace newer results', async () => {
   await settle();
   await act(async () => { oldRead(response([row])); });
   assert.match(text(view.root), /No matching reservations/);
-  assert.doesNotMatch(text(view.root), /reservation-1/);
+  assert.ok(!text(view.root).includes(displayReference(row.reservationId)));
 });
 
 test('assisted create validates, reviews, prevents duplicate submission and shows server summary', async () => {
@@ -175,7 +177,7 @@ test('assisted create validates, reviews, prevents duplicate submission and show
   assert.deepEqual(JSON.parse(postCalls[0].options.body), { slotId: row.slotId, energyAmountKwh: 1.5 });
   await act(async () => { finish(response(row, 201)); });
   assert.match(text(view.root), /Reservation created/);
-  assert.match(text(view.root), /reservation-1/);
+  assert.ok(text(view.root).includes(displayReference(row.reservationId)));
   assert.match(text(view.root), /2099/);
 });
 
@@ -190,7 +192,7 @@ test('assisted create allows selecting slot from active slots dropdown and toggl
   await click('Enter slot reference');
   const input = view.root.findByProps({ id: 'slotId' });
   assert.equal(input.type, 'input');
-  assert.equal(input.props.value, row.slotId);
+  assert.equal(input.props.value, 'SLOT-SB2J5ZFT6T');
   // Toggle back to dropdown
   await click('Select from active slots list');
   const selectAgain = view.root.findByProps({ id: 'slotId' });
@@ -198,14 +200,15 @@ test('assisted create allows selecting slot from active slots dropdown and toggl
 });
 
 test('edit prefills existing data and displays the server reapproval result', async () => {
-  await mount(base + '/reservation-1/edit');
+  await mount(base + '/' + row.reservationId + '/edit');
   assert.equal(view.root.findByProps({ id: 'prosumerNic' }).props.readOnly, true);
   assert.equal(view.root.findByProps({ id: 'energyAmountKwh' }).props.value, '1.5');
   await fill('energyAmountKwh', '2');
   await review();
   globalThis.fetch = async (url, options) => { calls.push({ url, options }); return response({ ...row, energyAmountKwh: 2 }); };
   await click('Confirm changes');
-  assert.equal(calls.at(-1).options.method, 'PUT');
+  assert.equal(calls.filter(c => !c.url.includes('/stations?')).at(-1).options.method, 'PUT');
+  assert.ok(calls.filter(c => !c.url.includes('/stations?')).at(-1).url.endsWith('/reservations/' + row.reservationId));
   assert.match(text(view.root), /Reservation updated/);
   assert.match(text(view.root), /2 kWh/);
 });
@@ -224,32 +227,32 @@ test('create server validation is preserved on returning to the form', async () 
 });
 
 test('details cancellation requires confirmation and shows the cancelled summary', async () => {
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   await click('Cancel reservation');
-  assert.equal(calls.filter(c => !c.url.includes('/audit/')).length, 1);
+  assert.equal(calls.filter(c => !c.url.includes('/audit/') && !c.url.includes('/stations?')).length, 1);
   await click('Keep reservation');
-  assert.equal(calls.filter(c => !c.url.includes('/audit/')).length, 1);
+  assert.equal(calls.filter(c => !c.url.includes('/audit/') && !c.url.includes('/stations?')).length, 1);
   await click('Cancel reservation');
   globalThis.fetch = async (url, options) => { calls.push({ url, options }); return response({ ...row, status: 'Cancelled' }); };
   await click('Confirm cancellation');
-  assert.equal(calls.at(-1).options.method, 'PATCH');
+  assert.equal(calls.filter(c => !c.url.includes('/stations?')).at(-1).options.method, 'PATCH');
   assert.match(text(view.root), /Reservation cancelled/);
   assert.equal(button('Cancel reservation').props.disabled, true);
 });
 
 test('terminal reservations disable modification and cancellation in details and direct edit', async () => {
   globalThis.fetch = async () => response({ ...row, status: 'Completed' });
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   assert.equal(button('Cancel reservation').props.disabled, true);
   assert.equal(button('Modify reservation').props.disabled, true);
   await act(async () => { view.unmount(); });
   view = null;
-  await mount(base + '/reservation-1/edit');
+  await mount(base + '/' + row.reservationId + '/edit');
   assert.equal(view.root.findByType('fieldset').props.disabled, true);
 });
 
 test('cancellation failure keeps a recoverable confirmation and never claims success', async () => {
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   await click('Cancel reservation');
   globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
   await click('Confirm cancellation');
@@ -270,7 +273,7 @@ test('station filter applies and clear filters resets both inputs and results', 
   await fill('filter-station', '22222222222222222222222222222222');
   await review();
   await settle();
-  const query = new URL(calls.at(-1).url).searchParams;
+  const query = new URL(calls.filter(c => !c.url.includes('/stations?')).at(-1).url).searchParams;
   assert.equal(query.get('stationId'), '22222222222222222222222222222222');
   await click('Clear filters');
   await settle();
@@ -307,7 +310,7 @@ test('create displays 401 session expiration error notice', async () => {
 });
 
 test('update handles 409 conflict and keeps editable form available', async () => {
-  await mount(base + '/reservation-1/edit');
+  await mount(base + '/' + row.reservationId + '/edit');
   await fill('energyAmountKwh', '3.0');
   await review();
   globalThis.fetch = async () => response({
@@ -320,7 +323,7 @@ test('update handles 409 conflict and keeps editable form available', async () =
 });
 
 test('cancellation 409 conflict stays in dialog and displays server problem', async () => {
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   await click('Cancel reservation');
   globalThis.fetch = async () => response({
     title: 'Conflict', status: 409, detail: 'Reservation cannot be cancelled within 12 hours of start.'
@@ -341,7 +344,7 @@ test('client validation flags all invalid fields with aria-invalid', async () =>
   assert.equal(view.root.findByProps({ id: 'slotId' }).props['aria-invalid'], 'true');
   assert.equal(view.root.findByProps({ id: 'energyAmountKwh' }).props['aria-invalid'], 'true');
   assert.match(text(view.root), /Enter a valid Prosumer NIC/);
-  assert.match(text(view.root), /Enter a nonempty slot GUID/);
+  assert.match(text(view.root), /Select an available slot or enter its reference/);
   assert.match(text(view.root), /Enter an energy amount greater than zero/);
 });
 
@@ -365,20 +368,20 @@ test('error notice displays multiple validation error messages from ProblemDetai
 });
 
 test('details approval requires confirmation and shows approved summary', async () => {
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   await click('Approve reservation');
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
     return response({ ...row, status: 'Approved' });
   };
   await click('Confirm approval');
-  assert.equal(calls.at(-1).options.method, 'PATCH');
-  assert.ok(calls.at(-1).url.endsWith('/approve'));
+  assert.equal(calls.filter(c => !c.url.includes('/stations?')).at(-1).options.method, 'PATCH');
+  assert.ok(calls.filter(c => !c.url.includes('/stations?')).at(-1).url.endsWith('/approve'));
   assert.match(text(view.root), /Reservation approved successfully/);
 });
 
 test('details rejection requires remark and shows rejected summary with released capacity note', async () => {
-  await mount(base + '/reservation-1');
+  await mount(base + '/33333333-3333-3333-3333-333333333333');
   await click('Reject reservation');
   // Attempt submit without remark
   await click('Confirm rejection');
@@ -391,8 +394,8 @@ test('details rejection requires remark and shows rejected summary with released
     return response({ ...row, status: 'Rejected', rejectionRemark: 'Grid maintenance' });
   };
   await click('Confirm rejection');
-  assert.equal(calls.at(-1).options.method, 'PATCH');
-  assert.ok(calls.at(-1).url.endsWith('/reject'));
+  assert.equal(calls.filter(c => !c.url.includes('/stations?')).at(-1).options.method, 'PATCH');
+  assert.ok(calls.filter(c => !c.url.includes('/stations?')).at(-1).url.endsWith('/reject'));
   assert.match(text(view.root), /Reservation rejected/);
 });
 

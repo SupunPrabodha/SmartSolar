@@ -1,3 +1,4 @@
+import { displayReference } from '../util/displayReference';
 import { ActionLabel, SkeletonRegion } from './LoadingExperience';
 import Icon from './Icon';
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -108,7 +109,7 @@ export function CommandPalette({onClose}) {
   const [query,setQuery] = useState(''), [hits,setHits] = useState([]), [error,setError] = useState(''), [loading,setLoading] = useState(false), [index,setIndex] = useState(0);
   const navigation = [['Home','/'],['My Profile','/profile'],['Notifications','/notifications'],['Stations','/stations'],
     ...(user.role==='Backoffice'?[['Users','/users']]:[['Reservations','/operator/reservations'],['Booking history','/operator/reservations/history']])];
-  const choices = [...navigation.filter(([label])=>label.toLowerCase().includes(query.toLowerCase())).map(([label,path])=>({label,path})),...hits.map(x=>({label:x.label+' · '+x.kind,
+  const choices = [...navigation.filter(([label])=>label.toLowerCase().includes(query.toLowerCase())).map(([label,path])=>({label,path})),...hits.map(x=>({label:(x.kind==='reservations'?displayReference(x.id):x.label)+' · '+x.kind,
     path:x.kind==='reservations'?'/operator/reservations/'+encodeURIComponent(x.id):x.kind==='users'?'/users?q='+encodeURIComponent(x.id):'/stations?id='+encodeURIComponent(x.id)}))];
   useEffect(()=>{
     const controller=new AbortController(); setHits([]);setError('');setIndex(0);
@@ -119,10 +120,10 @@ export function CommandPalette({onClose}) {
     return ()=>{clearTimeout(timer);controller.abort();};
   },[query]);
   function open(item){if(item){onClose();navigate(item.path);}}
-  return <Overlay title="Search your workspace" onClose={onClose}><label className="form-label" htmlFor="global-search">Navigation, names or reference prefixes</label>
+  return <Overlay title="Search your workspace" onClose={onClose}><label className="form-label" htmlFor="global-search">Navigation, names or Prosumer NIC</label>
     <input id="global-search" className="form-control mb-3" value={query} maxLength={80} onChange={e=>setQuery(e.target.value)} role="combobox" aria-expanded="true" aria-controls="search-options" aria-activedescendant={choices[index]?'search-option-'+index:undefined}
       onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setIndex(i=>Math.min(i+1,choices.length-1));}if(e.key==='ArrowUp'){e.preventDefault();setIndex(i=>Math.max(0,i-1));}if(e.key==='Enter'){e.preventDefault();open(choices[index]);}}}/>
-    <p className="small text-secondary">Enter at least 2 characters. Record matching is case-sensitive and starts at the beginning of a name or ID.</p>
+    <p className="small text-secondary">Enter at least 2 characters. Record matching is case-sensitive. Use Search Bookings to find a booking by its REF or STN reference.</p>
     {loading&&<SkeletonRegion label="Searching…" rows={2} />}{error&&<p role="alert">{error}</p>}
     <ul className="command-results" id="search-options" role="listbox">{choices.map((x,i)=><li role="option" aria-selected={i===index} id={'search-option-'+i} key={x.path+i}><button className={i===index?'active':''} onClick={()=>open(x)}>{x.label}</button></li>)}</ul>
     {!loading&&!choices.length&&<p>No matching results.</p>}</Overlay>;

@@ -1,3 +1,4 @@
+import ReferencePicker from '../../components/ReferencePicker';
 import { ExportButton } from '../../components/Experience';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -36,8 +37,8 @@ export default function ReservationListPage() {
           </select></div>
         <div className="col-md-4"><label className="form-label" htmlFor="filter-nic">Prosumer NIC</label>
           <input id="filter-nic" className="form-control" value={draft.prosumerNic} onChange={e => setDraft({ ...draft, prosumerNic: e.target.value })} /></div>
-        <div className="col-md-5"><label className="form-label" htmlFor="filter-station">Station ID</label>
-          <input id="filter-station" className="form-control" value={draft.stationId} onChange={e => setDraft({ ...draft, stationId: e.target.value })} /></div>
+        <div className="col-md-5"><label className="form-label" htmlFor="filter-station">Station reference</label>
+          <ReferencePicker id="filter-station" kind="station" value={draft.stationId} onChange={e => setDraft({ ...draft, stationId: e.target.value })}/></div>
       </div>
       <div className="d-flex flex-wrap gap-2 mt-3">
         <button className="btn btn-outline-primary" type="submit">Apply filters</button>

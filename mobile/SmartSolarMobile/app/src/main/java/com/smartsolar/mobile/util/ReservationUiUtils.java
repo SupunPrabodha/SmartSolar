@@ -41,10 +41,7 @@ public final class ReservationUiUtils {
         try { return DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()).withZone(ZoneId.systemDefault()).format(Instant.parse(value)); }
         catch (RuntimeException error) { return "Time unavailable"; }
     }
-    public static String shortReference(String value) {
-        if (value == null || value.isEmpty()) return "Unavailable";
-        return value.length() > 14 ? value.substring(0, 8).toUpperCase(Locale.ROOT) + "…" + value.substring(value.length() - 4).toUpperCase(Locale.ROOT) : value;
-    }
+    public static String shortReference(String value) { return DisplayReference.reservation(value); }
     public static String schedule(String start, String end) {
         try {
             java.time.ZonedDateTime a = Instant.parse(start).atZone(ZoneId.systemDefault()), b = Instant.parse(end).atZone(ZoneId.systemDefault());

@@ -4,6 +4,7 @@
  */
 
 package com.smartsolar.mobile.ui.workspace;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import com.smartsolar.mobile.ui.reservation.CreateReservationActivity;
 import com.smartsolar.mobile.ui.reservation.ModifyReservationActivity;
@@ -247,6 +248,7 @@ public final class MyReservationsFragment extends WorkspaceFragment {
             ReservationUiUtils.formatStatusAccent(viewStatusAccent, res.getStatus());
 
             StationNameResolver.bindStationName(textCardStation, res.getStationId());
+            ((TextView) card.findViewById(R.id.bookingReferences)).setText(DisplayReference.reservation(res.getReservationId()) + "\n" + DisplayReference.slot(res.getSlotId()));
             textCardEnergy.setText(String.format(Locale.US, "%.1f kWh", res.getEnergyAmountKwh()));
 
             // Bind Expanded Details
@@ -341,7 +343,7 @@ public final class MyReservationsFragment extends WorkspaceFragment {
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.dialog_cancel_title)
                 .setMessage(getString(R.string.dialog_cancel_message,
-                        reservation.getReservationId(),
+                        DisplayReference.reservation(reservation.getReservationId()),
                         String.format(Locale.US, "%.1f", reservation.getEnergyAmountKwh())))
                 .setNegativeButton(R.string.dialog_keep_reservation, null)
                 .setPositiveButton(R.string.dialog_confirm_cancellation, (dialog, which) -> executeCancel(reservation))

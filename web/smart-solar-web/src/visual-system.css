@@ -1,3 +1,4 @@
+@import "leaflet/dist/leaflet.css";
 /* Shared visual hierarchy: warm canvas, mint surfaces, restrained solar accents. */
 :root { --visual-canvas:#f4f7f3; --visual-mint:#eaf3ee; --visual-mint-strong:#e3efe9; --visual-selected:#ddf0e7; --skeleton-base:#e2e9e4; --skeleton-highlight:#eef3ef; }
 body, .workspace, .workspace-body { background:var(--visual-canvas); }
@@ -98,3 +99,19 @@ form.surface-card.d-flex { background:var(--visual-mint); }
   .login-photo-page .login-story-title { font-size:1.75rem; }
   .login-photo-page .login-panel { padding:28px 24px; }
 }
+
+/* Station location tools stay inside the existing responsive overlay. */
+.station-identity {display:flex;align-items:center;gap:.85rem;margin:.75rem 0 1rem;min-width:0}
+.station-identity > div {min-width:0;overflow-wrap:anywhere}
+.station-avatar {display:grid;place-items:center;width:3rem;height:3rem;flex:0 0 3rem;border-radius:.9rem;background:#dbeee2;color:#0b4937;border:1px solid #bad5c5}
+.station-avatar svg {width:1.65rem;height:1.65rem}
+.display-reference,.record-ref {user-select:text;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.station-location-editor {padding:1rem;border:1px solid #c9dad0;border-radius:1rem;background:#eef5f0;margin-block:1rem;min-width:0}
+.station-location-helper {display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
+.station-location-helper input {flex:1 1 15rem;min-width:0}
+.station-location-helper button {flex:0 0 auto}
+.station-location-map {min-width:0;width:100%;margin-top:.75rem}
+.station-map-canvas {height:clamp(220px,35vh,360px);width:100%;max-width:100%;border:1px solid #bccfc3;border-radius:.75rem;background:#e4ece7;z-index:0}
+.station-map-pin span {display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#0b4937;border:3px solid white;box-shadow:0 2px 5px #0005}
+.station-map-pin span:after {content:'';position:absolute;width:8px;height:8px;border-radius:50%;background:#ffd05b;top:6px;left:6px}
+@media(max-width:480px) {.station-location-editor{padding:.65rem}.station-location-helper button{width:100%}}

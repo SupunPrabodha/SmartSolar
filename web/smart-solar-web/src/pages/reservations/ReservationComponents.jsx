@@ -1,3 +1,4 @@
+import StationCaption, { useStationNames } from '../../components/StationCaption';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { LoadingState } from '../../components/Feedback';
@@ -35,17 +36,17 @@ export function StatusBadge({ status }) {
 }
 
 export function ReservationSummary({ reservation }) {
+  const names = useStationNames();
   const sections = [
-    ['Overview', [['Energy', `${reservation.energyAmountKwh} kWh`], ['Lifecycle status', <StatusBadge key="status" status={reservation.status}/>]]],
+    ['Overview', [['Reservation reference', shortReference(reservation.reservationId)], ['Energy', `${reservation.energyAmountKwh} kWh`], ['Lifecycle status', <StatusBadge key="status" status={reservation.status}/>]]],
     ['Prosumer', [['NIC', reservation.prosumerNic]]],
-    ['Station & Slot', [['Station', reservation.stationName || shortReference(reservation.stationId)], ['Slot', shortReference(reservation.slotId)]]],
+    ['Station & Slot', [['Station', <StationCaption id={reservation.stationId} name={reservation.stationName || names[reservation.stationId]}/>], ['Slot', shortReference(reservation.slotId, 'slot')]]],
     ['Transfer Schedule', [['Starts', formatUtc(reservation.scheduledStartAtUtc)], ['Ends', formatUtc(reservation.scheduledEndAtUtc)], ['Change cutoff', formatUtc(new Date(Date.parse(reservation.scheduledStartAtUtc) - 12 * 3600000))]]]
   ];
   if (reservation.status === 'Rejected' && reservation.rejectionRemark) sections.push(['Rejection Reason', [['Reason', reservation.rejectionRemark]]]);
   if (reservation.completedAtUtc || reservation.completedByOperatorNic) sections.push(['Completion', [['Completed', formatUtc(reservation.completedAtUtc)], ['Grid Operator', reservation.completedByOperatorNic || 'Unavailable']]]);
   return <><p className="small text-secondary mb-3">Times shown in your local timezone ({localTimeZone()}).</p>
     <div className="reservation-summary">{sections.map(([title,fields]) => <section className="record-section" key={title}><h2>{title}</h2><dl>{fields.map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>)}</div>
-    <details className="small mt-2"><summary>Full record references</summary><dl className="mt-2 text-break"><dt>Reservation ID</dt><dd>{reservation.reservationId}</dd><dt>Station ID</dt><dd>{reservation.stationId}</dd><dt>Slot ID</dt><dd>{reservation.slotId}</dd></dl></details>
   </>;
 }
 
@@ -75,17 +76,18 @@ export function PaginationControls({ page, hasMore, onPageChange, loading }) {
 }
 
 export function ReservationTable({ items, caption, reviewPending = false }) {
+  const names = useStationNames();
   return <div className="surface-card p-0 overflow-hidden">
     <div className="table-responsive" tabIndex="0" role="region" aria-label="Reservation table">
       <table className="table table-hover align-middle mb-0 reservation-table">
         {caption && <caption className="px-3">{caption}</caption>}
         <thead><tr>{['Reservation', 'Prosumer', 'Station', 'Schedule', 'Energy', 'Status', 'Actions'].map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
         <tbody>{items.map(row => <tr key={row.reservationId}>
-          <td><span className="record-ref" title={row.reservationId}>{shortReference(row.reservationId)}</span></td><td>{row.prosumerNic}</td>
-          <td><span title={row.stationId}>{row.stationName || shortReference(row.stationId)}</span><small className="d-block text-secondary" title={row.slotId}>Slot {shortReference(row.slotId)}</small></td>
+          <td><span className="record-ref" aria-label={`Reservation reference ${shortReference(row.reservationId)}`}>{shortReference(row.reservationId)}</span></td><td>{row.prosumerNic}</td>
+          <td><StationCaption id={row.stationId} name={row.stationName || names[row.stationId]}/><small className="d-block text-secondary display-reference">{shortReference(row.slotId, 'slot')}</small></td>
           <td><Schedule start={row.scheduledStartAtUtc} end={row.scheduledEndAtUtc}/></td>
           <td>{row.energyAmountKwh} kWh</td><td><StatusBadge status={row.status} />{row.status === 'Rejected' && row.rejectionRemark && <div className="small text-danger" title={row.rejectionRemark}>{row.rejectionRemark}</div>}</td>
-          <td><Link className="btn btn-outline-primary btn-sm" aria-label={`${reviewPending && row.status === 'Pending' ? 'Review' : 'View'} reservation ${row.reservationId}`} to={`/operator/reservations/${encodeURIComponent(row.reservationId)}`}>{reviewPending && row.status === 'Pending' ? 'Review' : 'View'}</Link></td>
+          <td><Link className="btn btn-outline-primary btn-sm" aria-label={`${reviewPending && row.status === 'Pending' ? 'Review' : 'View'} reservation ${shortReference(row.reservationId)}`} to={`/operator/reservations/${encodeURIComponent(row.reservationId)}`}>{reviewPending && row.status === 'Pending' ? 'Review' : 'View'}</Link></td>
         </tr>)}</tbody>
       </table>
     </div>

@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservation;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -111,6 +112,7 @@ public final class CreateReservationActivity extends AppCompatActivity {
                 slotsLoading = false;
                 availableSlots.clear();
                 if (result != null) availableSlots.addAll(result);
+                SlotReferenceInput.bind(editSlotId, slotIds());
 
                 String prompt = availableSlots.isEmpty()
                         ? getString(R.string.no_active_slots_available)
@@ -132,6 +134,12 @@ public final class CreateReservationActivity extends AppCompatActivity {
         });
     }
 
+    private List<String> slotIds() {
+        List<String> ids = new ArrayList<>();
+        for (AvailableSlotResponse slot : availableSlots) ids.add(slot.getSlotId());
+        return ids;
+    }
+
     private void toggleManualSlotMode() {
         isManualSlotMode = !isManualSlotMode;
         if (isManualSlotMode) {
@@ -151,7 +159,7 @@ public final class CreateReservationActivity extends AppCompatActivity {
 
         String slotId;
         if (isManualSlotMode) {
-            slotId = editSlotId.getText() != null ? editSlotId.getText().toString().trim() : "";
+            slotId = DisplayReference.resolveSlot(editSlotId.getText().toString(), slotIds());
         } else {
             if (slotsLoading) {
                 showError(getString(R.string.loading_active_slots));
@@ -179,7 +187,7 @@ public final class CreateReservationActivity extends AppCompatActivity {
         }
 
         selectedSlotId = slotId;
-        textReviewSlotId.setText(selectedSlotId);
+        textReviewSlotId.setText(DisplayReference.slot(selectedSlotId));
         textReviewEnergy.setText(energyStr + " kWh");
         layoutForm.setVisibility(View.GONE);
         layoutReview.setVisibility(View.VISIBLE);

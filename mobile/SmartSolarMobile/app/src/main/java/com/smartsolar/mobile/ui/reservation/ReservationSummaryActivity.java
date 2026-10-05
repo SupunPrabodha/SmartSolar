@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservation;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -65,11 +66,14 @@ public final class ReservationSummaryActivity extends AppCompatActivity {
         TextView textEnd = findViewById(R.id.textSummaryEnd);
         TextView textCutoff = findViewById(R.id.textSummaryCutoff);
 
-        textReservationId.setText(reservation.getReservationId());
+        textReservationId.setText(DisplayReference.reservation(reservation.getReservationId()));
+        textReservationId.setTextIsSelectable(true);
         ReservationUiUtils.formatStatusBadge(textStatus, reservation.getStatus());
         textNic.setText(reservation.getProsumerNic());
-        textStationId.setText(reservation.getStationId());
-        textSlotId.setText(reservation.getSlotId());
+        textStationId.setText(DisplayReference.station(reservation.getStationId()));
+        textStationId.setTextIsSelectable(true);
+        textSlotId.setText(DisplayReference.slot(reservation.getSlotId()));
+        textSlotId.setTextIsSelectable(true);
         textEnergy.setText(String.format("%s kWh", reservation.getEnergyAmountKwh()));
         textStart.setText(ReservationUiUtils.formatUtc(reservation.getScheduledStartAtUtc()));
         textEnd.setText(ReservationUiUtils.formatUtc(reservation.getScheduledEndAtUtc()));

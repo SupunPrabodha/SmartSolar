@@ -1,3 +1,6 @@
+import StationIdentity from '../components/StationIdentity';
+import StationLocation, { StationMap, OpenStationMap } from '../components/StationLocation';
+import { displayReference } from '../util/displayReference';
 import { AuditHistory, ExportButton } from '../components/Experience';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -36,12 +39,14 @@ function StationForm({ station, onSaved, onCancel }) {
   }
   return <Overlay title={station ? 'Edit station' : 'Add station'} onClose={onCancel} busy={busy} wide>
     <ErrorMessage value={error} /><form onSubmit={save}><fieldset disabled={busy}>
+      <StationIdentity station={form} preview />
       <div className="row"><div className="col-md-6"><Field label="Name" required minLength={2} maxLength={120} {...field('name')} /></div>
         <div className="col-md-6"><Field label="Address" required minLength={3} maxLength={300} {...field('address')} /></div>
         <div className="col-md-6"><Field label="Latitude" required type="number" step="any" min="-90" max="90" {...field('latitude')} /></div>
         <div className="col-md-6"><Field label="Longitude" required type="number" step="any" min="-180" max="180" {...field('longitude')} /></div>
         <div className="col-md-6"><Field label="Energy capacity (kWh)" required type="number" step="any" min="0.000001" {...field('capacityKwh')} /></div>
         <div className="col-md-6"><Field label="Total battery slots" required type="number" step="1" min="1" max="2147483647" {...field('totalBatterySlots')} /></div></div>
+      <StationLocation latitude={form.latitude} longitude={form.longitude} disabled={busy} onChange={point => setForm(current => ({ ...current, ...point }))}/>
       <h3 className="h5 mt-3">Weekly operating schedule (UTC)</h3>
       <p>Use 24-hour HH:mm. Closing at 24:00 means midnight at the end of that day. Split overnight hours across two days.</p>
       {form.operatingSchedule.map((day, i) => <div className="row align-items-center mb-2" key={day.day}>
@@ -83,7 +88,7 @@ function SlotForm({ slot, station, onSaved, onCancel }) {
 function SlotRow({ slot, canManage, busy, onEdit, onAvailability, onDeactivate }) {
   const [available, setAvailable] = useState(slot.availableSlots);
   useEffect(() => { setAvailable(slot.availableSlots); }, [slot.availableSlots, slot.updatedAtUtc]);
-  return <tr><td>{showTime(slot.startAtUtc)}<br />to {showTime(slot.endAtUtc)}</td><td>{slot.availableSlots} / {slot.totalSlots}</td>
+  return <tr><td><span className="d-block display-reference">{displayReference(slot.slotId, 'slot')}</span>{showTime(slot.startAtUtc)}<br />to {showTime(slot.endAtUtc)}</td><td>{slot.availableSlots} / {slot.totalSlots}</td>
     <td><StatusBadge status={slot.isActive ? 'Active' : 'Inactive'}/></td>{canManage && <td>
       <button type="button" disabled={busy} className="btn btn-sm btn-outline-primary me-2" onClick={onEdit}>Edit</button>
       {slot.isActive && <><button type="button" disabled={busy} className="btn btn-sm btn-outline-danger" onClick={onDeactivate}>Deactivate</button>
@@ -124,10 +129,12 @@ function StationDetails({ id, onClose, onChanged }) {
       <p>{confirmation.description}</p><ErrorMessage value={error} />
     </ConfirmDialog>}
     {loading && <LoadingState label="Loading station and availability…" />}
-    {station && <><article className="surface-card"><h2>{station.name}</h2><p>{station.address}</p>
+    {station && <><article className="surface-card"><StationIdentity station={station}/><p>{station.address}</p>
       <dl className="row"><dt className="col-sm-4">Status</dt><dd className="col-sm-8">{station.isActive ? 'Active' : 'Inactive'}</dd>
         <dt className="col-sm-4">Coordinates</dt><dd className="col-sm-8">{station.latitude}, {station.longitude}</dd>
         <dt className="col-sm-4">Capacity</dt><dd className="col-sm-8">{station.capacityKwh} kWh / {station.totalBatterySlots} battery slots</dd></dl>
+      <StationMap latitude={station.latitude} longitude={station.longitude}/>
+      <div className="my-3"><OpenStationMap latitude={station.latitude} longitude={station.longitude}/></div>
       <h3 className="h5">Operating schedule (UTC)</h3>
       {station.operatingSchedule?.length ? <ul>{station.operatingSchedule.map(day => <li key={day.day}>
         {days[day.day - 1]}: {day.isClosed ? 'Closed' : day.opensAt + '-' + day.closesAt}</li>)}</ul> : <p>Schedule not configured. Provide all seven days when editing.</p>}
@@ -135,7 +142,7 @@ function StationDetails({ id, onClose, onChanged }) {
         <button className="btn btn-primary" disabled={busy} onClick={() => setEditing(true)}>Edit station</button>
         {station.isActive && <button className="btn btn-outline-danger" disabled={busy} onClick={() => { setError(''); setConfirmation({ title: 'Deactivate ' + station.name + '?', description: 'The station will disappear from discovery. Historical records remain. Active reservations may prevent this change.', path: '/stations/' + id + '/deactivate', body: { expectedUpdatedAtUtc: station.updatedAtUtc }, message: 'Station deactivated.' }); }}>Deactivate station</button>}</div>}</article>
       <AuditHistory kind="stations" id={id} />
-      {slots.length > 0 && <section className="surface-card p-3 my-3"><label className="form-label">Slot audit history<select className="form-select" value={auditSlot} onChange={e=>setAuditSlot(e.target.value)}><option value="">Select a slot</option>{slots.map(x=><option key={x.slotId} value={x.slotId}>{x.slotId}</option>)}</select></label>{auditSlot && <AuditHistory kind="slots" id={auditSlot}/>}</section>}
+      {slots.length > 0 && <section className="surface-card p-3 my-3"><label className="form-label">Slot audit history<select className="form-select" value={auditSlot} onChange={e=>setAuditSlot(e.target.value)}><option value="">Select a slot</option>{slots.map(x=><option key={x.slotId} value={x.slotId}>{displayReference(x.slotId, 'slot')} · {showTime(x.startAtUtc)}</option>)}</select></label>{auditSlot && <AuditHistory kind="slots" id={auditSlot}/>}</section>}
       {editing && <StationForm key={station.updatedAtUtc} station={station} onSaved={() => saved('Station saved.')} onCancel={() => setEditing(false)} />}
       <div className="d-flex flex-wrap justify-content-between gap-2 mt-4 mb-2"><h2 className="h4">Booking slots</h2>
         {canManage && station.isActive && <button className="btn btn-primary" disabled={busy} onClick={() => setSlotForm({})}>Add slot</button>}</div>
@@ -181,7 +188,7 @@ export default function StationsPage() {
       <ErrorMessage value={error} />{loading ? <LoadingState label="Loading your station network…" /> : !error && (
         !stations.length ? <EmptyState title="No stations found">Try a different name or address, or include inactive stations.</EmptyState> :
           <div className="module-grid">{stations.map(station => <article className="surface-card station-card" key={station.stationId}>
-            <StatusBadge status={station.isActive ? 'Active' : 'Inactive'}/><h2>{station.name}</h2><p>{station.address}</p><div className="station-specs"><p><strong>{station.capacityKwh}</strong>kWh capacity</p><p><strong>{station.totalBatterySlots}</strong>battery slots</p></div><button className="btn btn-outline-primary" onClick={() => { setSelected(station.stationId); setAdding(false); }}>
+            <StatusBadge status={station.isActive ? 'Active' : 'Inactive'}/><StationIdentity station={station}/><p>{station.address}</p><div className="station-specs"><p><strong>{station.capacityKwh}</strong>kWh capacity</p><p><strong>{station.totalBatterySlots}</strong>battery slots</p></div><button className="btn btn-outline-primary" onClick={() => { setSelected(station.stationId); setAdding(false); }}>
               Manage station</button></article>)}</div>)}
     </>}
   </HomePage>;
