@@ -58,9 +58,9 @@
     <string name="reservation_updated_banner">Reservation updated and awaiting approval.</string>
     <string name="reservation_cancelled_banner">Reservation cancelled. Reserved capacity has been released.</string>
 
-    <string name="slot_id_hint">Slot ID</string>
+    <string name="slot_id_hint">Slot reference</string>
     <string name="energy_amount_hint">Energy amount (kWh)</string>
-    <string name="reservation_id_hint">Reservation ID</string>
+    <string name="reservation_id_hint">Reservation reference</string>
 
     <string name="btn_review_reservation">Review reservation</string>
     <string name="btn_update_reservation">Update Reservation</string>
@@ -90,10 +90,10 @@
     <string name="error_slot_required">Enter a valid slot reference.</string>
     <string name="error_energy_positive">Enter an energy amount greater than zero.</string>
 
-    <string name="label_reservation_id">Reservation ID</string>
+    <string name="label_reservation_id">Reservation reference</string>
     <string name="label_prosumer_nic">Prosumer NIC</string>
-    <string name="label_station_id">Station ID</string>
-    <string name="label_slot_id">Slot ID</string>
+    <string name="label_station_id">Station reference</string>
+    <string name="label_slot_id">Slot reference</string>
     <string name="label_accepted_start">Scheduled start</string>
     <string name="label_accepted_end">Scheduled end</string>
     <string name="label_energy_amount">Energy amount</string>
@@ -109,7 +109,7 @@
     <string name="loading_active_slots">Loading active slots&#8230;</string>
     <string name="no_active_slots_available">No available slots</string>
     <string name="select_slot_prompt">Choose an available slot</string>
-    <string name="error_select_slot_required">Please select an active slot or enter a custom slot ID.</string>
+    <string name="error_select_slot_required">Please select an active slot or enter a slot reference from the available list.</string>
 
     <!-- Member 4 - Dashboard / booking views -->
     <string name="generated_at">Updated %1$s</string>
@@ -209,11 +209,11 @@
     <string name="title_create_account">Create account</string>
     <string name="unavailable_value">—</string>
     <string name="reservation_create_description">Book an energy charging or drop-off slot. Times are shown in your device timezone.</string>
-    <string name="reservation_slot_guidance">Select an active slot or enter a known slot reference.</string>
+    <string name="reservation_slot_guidance">Select an active slot or enter a reference from the available list.</string>
     <string name="reservation_notice_guidance">Slots must start within 7 days. Changes require at least 12 hours notice.</string>
     <string name="current_reservation_heading">Current Reservation</string>
     <string name="reservation_modify_guidance">The server verifies capacity and notice requirements before confirming changes.</string>
-    <string name="new_slot_reference">New Slot ID</string>
+    <string name="new_slot_reference">New slot reference</string>
     <string name="new_energy_amount">New Energy Amount</string>
     <string name="cancel_changes">Cancel changes</string>
     <string name="details_chevron">⌄</string>
@@ -249,4 +249,10 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="photo_security">Profile photo and account security</string>
     <string name="enterprise_recent">Recent activity</string>
+    <string name="reference_invalid">Enter the full REF or STN reference shown on a booking.</string>
+    <string name="reference_ambiguous">More than one record matches this reference. Narrow the search by account or status.</string>
+    <string name="reference_search_limit">Too many records to resolve this reference. Narrow the search by account or status.</string>
+    <string name="search_previous_page">Previous page</string>
+    <string name="search_next_page">Next page</string>
+    <string name="search_page_label">Page %1$d</string>
 </resources>

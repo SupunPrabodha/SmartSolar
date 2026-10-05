@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.stations;
+import com.smartsolar.mobile.util.DisplayReference;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,7 +25,15 @@ public final class StationDetailActivity extends CatalogActivity {
         request(api.getStation(stationId), station -> {
             if (!station.isActive) { message.setText(R.string.station_unavailable); return; }
             section=SurfaceUi.card(content);SurfaceUi.tint(section,R.color.solar_surface_strong);
-            SurfaceUi.heading(section,station.name,R.drawable.ic_nav_stations).setTextSize(24);
+            android.widget.ImageView badge = new android.widget.ImageView(this);
+            badge.setImageResource(R.drawable.ic_nav_stations);
+            badge.setImageTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.solar_primary)));
+            badge.setBackgroundResource(R.drawable.bg_visual_brand);
+            int inset = SurfaceUi.dp(this,10); badge.setPadding(inset,inset,inset,inset);
+            badge.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            section.addView(badge,new LinearLayout.LayoutParams(SurfaceUi.dp(this,48),SurfaceUi.dp(this,48)));
+            SurfaceUi.heading(section,station.name,0).setTextSize(24);
+            add(DisplayReference.station(station.stationId), false);
             add(station.address, false);
             if (getIntent().hasExtra("distanceKm")) add(getString(R.string.station_distance_at_search, getIntent().getDoubleExtra("distanceKm", 0)), false);
             else add(getString(R.string.distance_unknown), false);
@@ -64,6 +73,7 @@ public final class StationDetailActivity extends CatalogActivity {
                         hasActiveSlots=true;
                         LinearLayout availability=section;
                         section=SurfaceUi.card(availability);SurfaceUi.tint(section,R.color.solar_surface);
+                        add(DisplayReference.slot(slot.slotId),false);
                         add(getString(R.string.detail_starts,time(slot.startAtUtc)),true);
                         add(getString(R.string.detail_ends,time(slot.endAtUtc)),false);
                         SurfaceUi.pill(section,getString(R.string.detail_available,slot.availableSlots,slot.totalSlots),R.color.solar_primary,R.color.solar_surface_selected);

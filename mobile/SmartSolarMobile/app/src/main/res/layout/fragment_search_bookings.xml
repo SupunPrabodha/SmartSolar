@@ -15,4 +15,10 @@
  <com.smartsolar.mobile.ui.common.LoadingSurface android:id="@+id/searchProgress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="12dp" android:contentDescription="@string/visual_loading_results" android:visibility="gone"/>
  <TextView android:id="@+id/searchMessage" app:drawableStartCompat="@drawable/ic_nav_search" style="@style/Solar.Body" android:background="@drawable/bg_visual_strong" android:padding="16dp" android:layout_marginVertical="12dp" android:drawablePadding="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"  android:paddingVertical="12dp" android:accessibilityLiveRegion="polite"/>
  <androidx.recyclerview.widget.RecyclerView android:id="@+id/searchResults" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false"/>
+
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp">
+ <TextView android:id="@+id/searchPageLabel" style="@style/Solar.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite"/>
+ <com.google.android.material.button.MaterialButton android:id="@+id/searchPrevious" style="@style/Solar.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:enabled="false" android:text="@string/search_previous_page"/>
+ <com.google.android.material.button.MaterialButton android:id="@+id/searchNext" style="@style/Solar.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:enabled="false" android:text="@string/search_next_page"/>
+ </LinearLayout>
 </LinearLayout></androidx.core.widget.NestedScrollView>

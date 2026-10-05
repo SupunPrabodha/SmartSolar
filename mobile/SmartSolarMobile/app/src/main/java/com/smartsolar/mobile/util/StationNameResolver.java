@@ -61,13 +61,13 @@ public final class StationNameResolver {
         final String cleanId = stationId.trim();
         String cached = CACHE.get(cleanId);
         if (cached != null && !cached.isEmpty()) {
-            textView.setText(cached);
+            textView.setText(cached + "\n" + DisplayReference.station(cleanId));
             textView.setTag(cleanId);
             return;
         }
 
         // Set fallback text while resolving
-        textView.setText("Station " + ReservationUiUtils.shortReference(cleanId));
+        textView.setText(DisplayReference.station(cleanId));
         textView.setTag(cleanId);
 
         Context context = textView.getContext();
@@ -80,7 +80,7 @@ public final class StationNameResolver {
                     String name = body.name.trim();
                     CACHE.put(cleanId, name);
                     if (cleanId.equals(textView.getTag())) {
-                        textView.setText(name);
+                        textView.setText(name + "\n" + DisplayReference.station(cleanId));
                     }
                 }
             }
@@ -118,13 +118,13 @@ public final class StationNameResolver {
                     CACHE.put(cleanId, name);
                     if (callback != null) callback.onResolved(name);
                 } else {
-                    if (callback != null) callback.onResolved("Station " + ReservationUiUtils.shortReference(cleanId));
+                    if (callback != null) callback.onResolved(DisplayReference.station(cleanId));
                 }
             }
 
             @Override
             public void onFailure(Call<StationResponse> call, Throwable t) {
-                if (callback != null) callback.onResolved("Station " + ReservationUiUtils.shortReference(cleanId));
+                if (callback != null) callback.onResolved(DisplayReference.station(cleanId));
             }
         });
     }

@@ -1,3 +1,4 @@
+import { displayReference } from '../src/util/displayReference.js';
 import assert from 'node:assert/strict';
 import { after, afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
@@ -192,8 +193,10 @@ test('history renders returned records', async () => {
   await mountComponent(React.createElement(BookingHistory));
   const rendered = text(view.root);
   assert.ok(rendered.includes('Completed'));
-  assert.ok(rendered.includes('11111111…5555'));
-  assert.ok(view.root.findAllByProps({ title: sampleReservation.reservationId }).length > 0, 'Full reference remains available');
+  assert.ok(rendered.includes(displayReference(sampleReservation.reservationId)));
+  assert.equal(view.root.findAllByProps({ title: sampleReservation.reservationId }).length, 0, 'Raw ID is not a tooltip');
+  assert.ok(view.root.findAllByProps({ 'aria-label': 'Reservation reference ' + displayReference(sampleReservation.reservationId) }).length > 0);
+  assert.ok(view.root.findAllByType('a').some(a => a.props.href?.endsWith(sampleReservation.reservationId)), 'Navigation keeps the real ID');
 });
 
 test('search sends the expected query/filter values', async () => {
@@ -226,7 +229,7 @@ test('search sends the expected query/filter values', async () => {
   });
   await settle();
 
-  const lastCall = calls[calls.length - 1];
+  const lastCall = calls.filter(c => !c.url.includes('/stations?')).at(-1);
   const url = new URL(lastCall.url);
   assert.equal(url.searchParams.get('fromUtc'), new Date('2030-05-10T10:00').toISOString());
   assert.equal(url.searchParams.get('toUtc'), new Date('2030-05-11T11:30').toISOString());

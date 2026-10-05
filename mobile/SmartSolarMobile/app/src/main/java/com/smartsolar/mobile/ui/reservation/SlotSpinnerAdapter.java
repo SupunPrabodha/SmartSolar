@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservation;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -62,13 +63,11 @@ public final class SlotSpinnerAdapter extends BaseAdapter {
 
             String station = slot.getStationId() != null && !slot.getStationId().trim().isEmpty()
                     ? slot.getStationId() : "Station";
-            textSelectedStation.setText("Station " + ReservationUiUtils.shortReference(station));
+            com.smartsolar.mobile.util.StationNameResolver.bindStationName(textSelectedStation, station);
             textSelectedBadge.setText(slot.getAvailableSlots() + " Avail");
             textSelectedSchedule.setText(ReservationUiUtils.formatUtc(slot.getStartAtUtc()));
 
-            String slotIdSnippet = slot.getSlotId() != null && slot.getSlotId().length() > 8
-                    ? slot.getSlotId().substring(0, 8) + "…"
-                    : String.valueOf(slot.getSlotId());
+            String slotIdSnippet = DisplayReference.slot(slot.getSlotId());
             textSelectedSlotId.setText("Slot: " + slotIdSnippet);
         }
 
@@ -98,12 +97,12 @@ public final class SlotSpinnerAdapter extends BaseAdapter {
 
             String station = slot.getStationId() != null && !slot.getStationId().trim().isEmpty()
                     ? slot.getStationId() : "Station";
-            textDropdownStation.setText("Station " + ReservationUiUtils.shortReference(station));
+            com.smartsolar.mobile.util.StationNameResolver.bindStationName(textDropdownStation, station);
             textDropdownBadge.setText(slot.getAvailableSlots() + " Avail");
 
             String startFormatted = ReservationUiUtils.formatUtc(slot.getStartAtUtc());
             textDropdownSchedule.setText(startFormatted);
-            textDropdownSlotId.setText("Slot ID: " + slot.getSlotId());
+            textDropdownSlotId.setText(DisplayReference.slot(slot.getSlotId()));
         }
 
         return view;

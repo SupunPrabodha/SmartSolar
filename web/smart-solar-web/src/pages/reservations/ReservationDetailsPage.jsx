@@ -128,7 +128,7 @@ function Details({ reservationId }) {
       <dialog ref={cancelDialog} className="reservation-dialog" aria-labelledby="cancel-title"
         onCancel={event => { if (mutation.pending) event.preventDefault(); else setConfirmingCancel(false); }}>
         <h2 id="cancel-title" className="h4">Cancel this reservation?</h2>
-        <p className="text-break">Reservation {data.reservationId} for {data.prosumerNic}, {data.energyAmountKwh} kWh.</p>
+        <p className="text-break">Reservation {shortReference(data.reservationId)} for {data.prosumerNic}, {data.energyAmountKwh} kWh.</p>
         <p>This releases its reserved capacity. This action cannot be undone.</p>
         <ErrorNotice error={mutation.error} mutation />
         {restriction && <div className="alert alert-info">{restriction}</div>}
@@ -145,7 +145,7 @@ function Details({ reservationId }) {
       <dialog ref={approveDialog} className="reservation-dialog" aria-labelledby="approve-title"
         onCancel={event => { if (mutation.pending) event.preventDefault(); else setConfirmingApprove(false); }}>
         <h2 id="approve-title" className="h4">Approve this reservation?</h2>
-        <p className="text-break">Approve reservation {data.reservationId} for Prosumer <strong>{data.prosumerNic}</strong> ({data.energyAmountKwh} kWh).</p>
+        <p className="text-break">Approve reservation {shortReference(data.reservationId)} for Prosumer <strong>{data.prosumerNic}</strong> ({data.energyAmountKwh} kWh).</p>
         <p className="text-secondary small">This changes the reservation status to <strong>Approved</strong> and keeps slot capacity allocated.</p>
         <ErrorNotice error={mutation.error} mutation />
         <div className="d-flex flex-wrap gap-2 mt-3">
@@ -162,7 +162,7 @@ function Details({ reservationId }) {
         onCancel={event => { if (mutation.pending) event.preventDefault(); else setRejectModalOpen(false); }}>
         <form onSubmit={confirmReject}>
           <h2 id="reject-title" className="h4 text-danger">Reject this reservation?</h2>
-          <p className="text-break">Reject reservation {data.reservationId} for Prosumer <strong>{data.prosumerNic}</strong>.</p>
+          <p className="text-break">Reject reservation {shortReference(data.reservationId)} for Prosumer <strong>{data.prosumerNic}</strong>.</p>
           <p className="text-secondary small">This releases 1 slot capacity back to the station. Please state why the reservation is being rejected:</p>
 
           <div className="mb-3">

@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservations;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import com.smartsolar.mobile.util.ReservationUiUtils;
 import android.content.Intent;
@@ -88,9 +89,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
         buttonCompleteTransfer = findViewById(R.id.buttonCompleteTransfer);
         progressCompleteTransfer = findViewById(R.id.progressCompleteTransfer);
 
-        String idSnippet = reservationId != null && reservationId.length() > 8
-                ? reservationId.substring(0, 8) + "…"
-                : String.valueOf(reservationId);
+        String idSnippet = DisplayReference.reservation(reservationId);
         textReservationId.setText("Reservation: " + idSnippet);
 
         com.smartsolar.mobile.util.ReservationUiUtils.formatStatusBadge(textStatus, currentStatus);
@@ -103,7 +102,9 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
         }
 
         String station = stationId != null ? stationId : "—";
-        textStationSlot.setText("Station " + ReservationUiUtils.shortReference(station));
+        textStationSlot.setText(DisplayReference.station(stationId) + "\n" + DisplayReference.slot(slotId));
+        textReservationId.setTextIsSelectable(true);
+        textStationSlot.setTextIsSelectable(true);
 
         String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
         textSchedule.setText(ReservationUiUtils.schedule(scheduleStart, scheduleEnd));
@@ -145,7 +146,7 @@ public final class QrVerificationResultActivity extends AppCompatActivity {
     private void showCompletionConfirmation() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.confirm_completion_title)
-                .setMessage(getString(R.string.confirm_completion_message, energyAmount, reservationId != null ? reservationId : ""))
+                .setMessage(getString(R.string.confirm_completion_message, energyAmount, DisplayReference.reservation(reservationId)))
                 .setPositiveButton(R.string.confirm_action, (dialog, which) -> executeCompletion())
                 .setNegativeButton(R.string.cancel_action, null)
                 .show();

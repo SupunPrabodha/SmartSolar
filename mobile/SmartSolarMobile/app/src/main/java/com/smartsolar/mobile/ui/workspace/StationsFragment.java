@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.workspace;
+import com.smartsolar.mobile.util.DisplayReference;
 import com.smartsolar.mobile.ui.stations.StationDetailActivity;
 import android.Manifest;
 import android.content.Intent;
@@ -165,7 +166,7 @@ public final class StationsFragment extends WorkspaceFragment {
             View row = getLayoutInflater().inflate(R.layout.item_station, list, false);
             ((TextView) row.findViewById(R.id.stationName)).setText(station.name);
             androidx.core.view.ViewCompat.setAccessibilityHeading(row.findViewById(R.id.stationName), true);
-            ((TextView) row.findViewById(R.id.stationSummary)).setText(station.address);
+            ((TextView) row.findViewById(R.id.stationSummary)).setText(station.address + "\n" + DisplayReference.station(station.stationId));
             ((TextView) row.findViewById(R.id.stationCapacity)).setText(getString(R.string.visual_station_capacity, station.capacityKwh));
             ((TextView) row.findViewById(R.id.stationSlots)).setText(getString(R.string.visual_station_slots, station.totalBatterySlots));
             TextView distance = row.findViewById(R.id.stationDistance);
