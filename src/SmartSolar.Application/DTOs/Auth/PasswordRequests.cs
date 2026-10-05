@@ -1,6 +1,8 @@
 /*
+ * File: PasswordRequests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Defines shared password-length validation and recovery/change request DTOs.
  */
 using System.ComponentModel.DataAnnotations;
 
@@ -12,6 +14,7 @@ public sealed class PasswordPolicyAttribute : StringLengthAttribute
     public const int Maximum = 100;
     public PasswordPolicyAttribute() : base(Maximum)
     {
+        // Apply the shared password-length bounds and validation message.
         MinimumLength = Minimum;
         ErrorMessage = "Use a password between 8 and 100 characters.";
     }

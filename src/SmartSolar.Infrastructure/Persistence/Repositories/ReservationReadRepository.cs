@@ -1,6 +1,7 @@
 /*
  * File: ReservationReadRepository.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Executes bounded reservation views and live counts in MongoDB without lifecycle writes.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

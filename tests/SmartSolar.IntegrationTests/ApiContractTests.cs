@@ -1,6 +1,7 @@
 /*
  * File: ApiContractTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Verifies HTTP error formatting and BSON mapping without external services.
  */
 using System.Text.Json;

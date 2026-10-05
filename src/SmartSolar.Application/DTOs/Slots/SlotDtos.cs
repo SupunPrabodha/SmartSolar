@@ -1,6 +1,7 @@
 /*
  * File: SlotDtos.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Defines booking-slot administration DTOs, not reservation commands.
  */
 using System.ComponentModel.DataAnnotations;

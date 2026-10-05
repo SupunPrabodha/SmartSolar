@@ -1,6 +1,7 @@
 /*
  * File: ClaimsPrincipalExtensions.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Reads common authenticated-user claims from the current request principal.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

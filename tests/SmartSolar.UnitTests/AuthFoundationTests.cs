@@ -1,6 +1,7 @@
 /*
  * File: AuthFoundationTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Verifies shared account lifecycle and password behavior without a database.
  */
 using SmartSolar.Application.Abstractions.Auth;
@@ -205,11 +206,33 @@ public sealed class AuthFoundationTests
     {
         // This test double isolates application rules from persistence; MongoDB has separate integration tests.
         public List<User> Items { get; } = [];
-        public Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default) => Task.FromResult(Items.Find(x => x.Nic == nic));
-        public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default) => Task.FromResult(Items.Find(x => x.Email == email));
-        public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<User>>(Items);
-        public Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<User>>(Items.Where(x => x.Status == status).ToList());
-        public Task InsertAsync(User user, CancellationToken cancellationToken = default) { Items.Add(user); return Task.CompletedTask; }
-        public Task ReplaceAsync(User user, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default)
+        {
+            // Look up the requested account in the in-memory test repository.
+            return Task.FromResult(Items.Find(x => x.Nic == nic));
+        }
+        public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            // Look up the test account by its stored email address.
+            return Task.FromResult(Items.Find(x => x.Email == email));
+        }
+        public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            // Return accounts currently held by the test repository.
+            return Task.FromResult<IReadOnlyList<User>>(Items);
+        }
+        public Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default)
+        {
+            // Filter test accounts by the requested persisted state.
+            return Task.FromResult<IReadOnlyList<User>>(Items.Where(x => x.Status == status).ToList());
+        }
+        public Task InsertAsync(User user, CancellationToken cancellationToken = default) {
+            // Store the fixture account for later authentication and lifecycle assertions.
+            Items.Add(user); return Task.CompletedTask; }
+        public Task ReplaceAsync(User user, CancellationToken cancellationToken = default)
+        {
+            // Complete the reference-backed fixture update; the account was already mutated in memory.
+            return Task.CompletedTask;
+        }
     }
 }

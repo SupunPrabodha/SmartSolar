@@ -1,6 +1,7 @@
 /*
  * File: ReservationServiceTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Exercises authoritative lifecycle, ownership, capacity and recovery behavior.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -92,6 +93,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task ConcurrentDifferentProsumersCannotExceedStationEnergyCapacity()
     {
+        // Race separate Prosumer requests to verify the shared gate prevents excess slot energy allocation.
         var f = new Fixture();
         f.Station.CapacityKwh = 50;
 
@@ -105,6 +107,7 @@ public sealed class ReservationServiceTests
 
         static async Task<object?> Capture(Func<Task<ReservationResponse>> operation)
         {
+            // Capture the operation result or exception so competing outcomes can be asserted together.
             try { return await operation(); }
             catch (Exception exception) { return exception; }
         }
@@ -113,6 +116,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task UpdateRejectsEnergyExceedingStationCapacity()
     {
+        // Verify one reservation cannot exceed the station's energy limit.
         var f = new Fixture();
         f.Station.CapacityKwh = 100;
         var created = await f.Create(nic: "P1", amount: 50);
@@ -125,6 +129,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task UpdateRejectsCumulativeEnergyExceedingStationCapacity()
     {
+        // Verify updates account for other active allocations on the same slot.
         var f = new Fixture();
         f.Station.CapacityKwh = 100;
         var r1 = await f.Create(nic: "P1", amount: 50);
@@ -139,6 +144,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task UpdateAllowsAdjustingEnergyWithinAvailableStationCapacity()
     {
+        // Verify an adjustment within the remaining slot energy limit succeeds.
         var f = new Fixture();
         f.Station.CapacityKwh = 100;
         var r1 = await f.Create(nic: "P1", amount: 50);
@@ -429,6 +435,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task GetAvailableSlotsReturnsActiveSlotsWithinHorizon()
     {
+        // Verify discovery excludes full inventory and starts beyond the booking horizon.
         var f = new Fixture();
         var validSlot = f.AddSlot(Now.AddDays(2));
         var outOfHorizonSlot = f.AddSlot(Now.AddDays(8));
@@ -580,6 +587,7 @@ public sealed class ReservationServiceTests
     [Fact]
     public async Task GetMyReservationsReturnsOnlyCallerReservations()
     {
+        // Verify own-reservation reads isolate Prosumers and reject staff callers.
         var f = new Fixture();
         await f.Create("P1");
         await f.Create("P2");
@@ -675,15 +683,36 @@ public sealed class ReservationServiceTests
                 .OrderByDescending(x => x.CreatedAtUtc).ThenBy(x => x.ReservationId).Select(x => Copy(x)!).ToList());
         }
 
-        public Task<EnergyReservation?> GetAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Reservations.GetValueOrDefault(id)));
-        public Task<EnergyBookingSlot?> GetSlotAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Slots.GetValueOrDefault(id)));
-        public Task<IReadOnlyList<EnergyBookingSlot>> GetActiveSlotsAsync(CancellationToken ct = default) =>
-            Task.FromResult<IReadOnlyList<EnergyBookingSlot>>(Slots.Values.Where(x => x.IsActive && x.AvailableSlots > 0).Select(x => Copy(x)!).ToList());
-        public Task<SolarStation?> GetStationAsync(string id, CancellationToken ct = default) => Task.FromResult(Copy(Stations.GetValueOrDefault(id)));
-        public Task<IReadOnlyList<EnergyReservation>> GetActiveAsync(string nic, CancellationToken ct = default) =>
-            Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.ProsumerNic == nic && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
-        public Task<IReadOnlyList<EnergyReservation>> GetActiveBySlotAsync(string slotId, CancellationToken ct = default) =>
-            Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.SlotId == slotId && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
+        public Task<EnergyReservation?> GetAsync(string id, CancellationToken ct = default)
+        {
+            // Retrieve the requested reservation from the test repository.
+            return Task.FromResult(Copy(Reservations.GetValueOrDefault(id)));
+        }
+        public Task<EnergyBookingSlot?> GetSlotAsync(string id, CancellationToken ct = default)
+        {
+            // Retrieve the referenced booking slot from the test repository.
+            return Task.FromResult(Copy(Slots.GetValueOrDefault(id)));
+        }
+        public Task<IReadOnlyList<EnergyBookingSlot>> GetActiveSlotsAsync(CancellationToken ct = default)
+        {
+            // Return active test inventory with remaining booking places.
+            return Task.FromResult<IReadOnlyList<EnergyBookingSlot>>(Slots.Values.Where(x => x.IsActive && x.AvailableSlots > 0).Select(x => Copy(x)!).ToList());
+        }
+        public Task<SolarStation?> GetStationAsync(string id, CancellationToken ct = default)
+        {
+            // Retrieve the referenced station from the test repository.
+            return Task.FromResult(Copy(Stations.GetValueOrDefault(id)));
+        }
+        public Task<IReadOnlyList<EnergyReservation>> GetActiveAsync(string nic, CancellationToken ct = default)
+        {
+            // Return the owner's Pending and Approved reservations for overlap checks.
+            return Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.ProsumerNic == nic && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
+        }
+        public Task<IReadOnlyList<EnergyReservation>> GetActiveBySlotAsync(string slotId, CancellationToken ct = default)
+        {
+            // Return Pending and Approved allocations on the requested test slot.
+            return Task.FromResult<IReadOnlyList<EnergyReservation>>(Reservations.Values.Where(x => x.SlotId == slotId && x.Status is ReservationStatus.Pending or ReservationStatus.Approved).Select(x => Copy(x)!).ToList());
+        }
 
         public Task<bool> TryLockAsync(string nic, string token, CancellationToken ct = default)
         {
@@ -745,6 +774,7 @@ public sealed class ReservationServiceTests
 
         public Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default)
         {
+            // Find the fixture reservation associated with the supplied QR lookup hash.
             if (string.IsNullOrWhiteSpace(qrTokenHash)) return Task.FromResult<EnergyReservation?>(null);
             return Task.FromResult(Copy(Reservations.Values.FirstOrDefault(x => x.QrTokenHash == qrTokenHash)));
         }
@@ -752,6 +782,7 @@ public sealed class ReservationServiceTests
         public Task<bool> TryUpdateQrHashAsync(
             string reservationId, string? expectedHash, string newHash, DateTime issuedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
         {
+            // Simulate conditional QR rotation for the expected approved fixture record.
             if (!Reservations.TryGetValue(reservationId, out var existing)) return Task.FromResult(false);
             if (existing.Status != ReservationStatus.Approved || existing.QrTokenHash != expectedHash) return Task.FromResult(false);
             existing.QrTokenHash = newHash;
@@ -763,6 +794,7 @@ public sealed class ReservationServiceTests
         public Task<bool> TryCompleteReservationAsync(
             string reservationId, string qrTokenHash, string operatorNic, DateTime completedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default)
         {
+            // Simulate one approved-to-completed transition with matching hash and operator metadata.
             if (!Reservations.TryGetValue(reservationId, out var existing)) return Task.FromResult(false);
             if (existing.Status != ReservationStatus.Approved || existing.QrTokenHash != qrTokenHash) return Task.FromResult(false);
             existing.Status = ReservationStatus.Completed;
@@ -777,11 +809,31 @@ public sealed class ReservationServiceTests
     {
         public Dictionary<string, User> Items { get; } = [];
         // Account doubles expose only the common repository contract used by the real service.
-        public Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default) => Task.FromResult(Items.GetValueOrDefault(nic));
-        public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default) => Task.FromResult(Items.Values.FirstOrDefault(x => x.Email == email));
-        public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<User>>(Items.Values.ToList());
-        public Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<User>>(Items.Values.Where(x => x.Status == status).ToList());
-        public Task InsertAsync(User user, CancellationToken cancellationToken = default) { Items.Add(user.Nic, user); return Task.CompletedTask; }
-        public Task ReplaceAsync(User user, CancellationToken cancellationToken = default) { Items[user.Nic] = user; return Task.CompletedTask; }
+        public Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default)
+        {
+            // Look up the requested account in the in-memory test repository.
+            return Task.FromResult(Items.GetValueOrDefault(nic));
+        }
+        public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            // Look up the test account by its stored email address.
+            return Task.FromResult(Items.Values.FirstOrDefault(x => x.Email == email));
+        }
+        public Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            // Return accounts currently held by the test repository.
+            return Task.FromResult<IReadOnlyList<User>>(Items.Values.ToList());
+        }
+        public Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default)
+        {
+            // Filter test accounts by the requested persisted state.
+            return Task.FromResult<IReadOnlyList<User>>(Items.Values.Where(x => x.Status == status).ToList());
+        }
+        public Task InsertAsync(User user, CancellationToken cancellationToken = default) {
+            // Store the fixture account for later authentication and lifecycle assertions.
+            Items.Add(user.Nic, user); return Task.CompletedTask; }
+        public Task ReplaceAsync(User user, CancellationToken cancellationToken = default) {
+            // Replace the fixture account under its unchanged NIC.
+            Items[user.Nic] = user; return Task.CompletedTask; }
     }
 }

@@ -4,7 +4,7 @@ Base path: `/api/v1`
 
 QR issuance is restricted to the owning active Prosumer. GridOperators may verify and complete, but cannot issue or rotate QR references; Backoffice cannot issue, verify or complete. Verification and completion require the accepted snapshot window (`start <= server now < end`) and active, correctly linked Prosumer, station and slot records.
 
-## Foundation endpoints
+## Account endpoints
 
 | Method | Route | Access | Purpose |
 |---|---|---|---|
@@ -18,7 +18,7 @@ QR issuance is restricted to the owning active Prosumer. GridOperators may verif
 | GET | `/users/{nic}` | Backoffice | User details |
 | PUT | `/users/{nic}` | Backoffice | Update editable contact fields for a Prosumer only |
 | POST | `/users/staff` | Backoffice | Create Backoffice/GridOperator user |
-| PATCH | `/users/{nic}/activate` | Backoffice | Activate/reactivate user |
+| PATCH | `/users/{nic}/activate` | Backoffice | Approve/send verification for Prosumer; activate/reactivate staff |
 | PATCH | `/users/{nic}/deactivate` | Backoffice | Deactivate user |
 
 Errors use `application/problem+json` and suitable HTTP status codes.
@@ -35,9 +35,7 @@ Profile and staff DTOs require name (2-120 characters), email, phone (7-20 chara
 
 `GET /health` is outside `/api/v1`: 200/Healthy when MongoDB responds, 503 when unavailable. Swagger UI `/swagger` and OpenAPI `/swagger/v1/swagger.json` are available only in Development. CORS origins are configured in `Cors:AllowedOrigins`; these are browser access settings, not authorization.
 
-No station, booking, reservation, Maps or QR feature endpoints are implemented in Phase 0.
-
-## Implemented Member 3 reservation lifecycle
+## Reservation lifecycle
 
 All paths below follow /api/v1. Backoffice is excluded. Creation/update accepts only slotId and energyAmountKwh; identity, station, status and accepted schedule come from the server.
 
@@ -58,18 +56,18 @@ Create returns 201; reads and mutations return 200 summaries. Summary fields inc
 
 Start must be in the future and at most seven elapsed days away. Updates/cancellations require at least twelve hours before the accepted start; replacement starts also require twelve hours and the seven-day horizon. Updates return Pending for reapproval and clear QR data. Pending can become Approved or Rejected; rejection requires a remark. Pending/Approved can become Cancelled. Terminal records cannot be updated/cancelled.
 
-See [Member 3 API detail](MEMBER-3-API-CONTRACT.md) and [final audit](FINAL-INTEGRATION-AUDIT.md) for observed implementation limits. Snapshot, concurrency and completion findings remain blockers; these routes' existence is not an end-to-end safety guarantee.
+Lifecycle rules, recovery limits and legacy-snapshot handling are in [business rules](BUSINESS-RULES.md) and [database](DATABASE.md).
 
-## Member 4 steps 2–5: implemented reservation reads
+## Booking reads
 
-These endpoints are implemented in addition to the existing Member 3 routes.
+These endpoints supplement the lifecycle routes.
 All require an active Prosumer or GridOperator. Prosumer identity comes from the
 authenticated account; only its own records are visible. GridOperators can view
 all reservations or narrow the list. Backoffice remains forbidden.
 
 | Method | Route under /api/v1 | Definition |
 | --- | --- | --- |
-| GET | /reservations/current | Pending/Approved with accepted end strictly after server UTC now |
+| GET | /reservations/current | Approved with accepted end strictly after server UTC now |
 | GET | /reservations/pending | Exact Pending status, regardless of date |
 | GET | /reservations/history | Rejected/Cancelled/Completed, plus Pending/Approved whose accepted end is at or before now |
 | GET | /reservations/search | Authorized records matching controlled filters |
@@ -127,10 +125,9 @@ revoked authentication, 403 role or explicit owner-scope violation, 409 snapshot
 requiring verified backfill, and 500 safe unexpected failure. Snapshot checks run
 before temporal filtering and pagination to avoid silently hiding ambiguous
 records. Approved legacy snapshots block the dashboard summary; missing Pending
-snapshots do not alter its status-only pending count. See
-[the handshake](MEMBER-4-RESERVATION-CONTRACT.md) for exact preflight scope.
+snapshots do not alter its status-only pending count. Snapshot preflight uses the authorized candidate scope before temporal filters; see [database](DATABASE.md).
 
-## Member 4 steps 7–9: implemented QR issuance and verification
+## QR issuance and verification
 
 These endpoints implement the secure QR lifecycle for approved reservations and grid operator verification:
 
@@ -201,7 +198,7 @@ These endpoints implement the secure QR lifecycle for approved reservations and 
   - `404 Not Found`: QR reference unknown, revoked, or invalidated by rotation.
   - `409 Conflict`: Known reservation found, but current status is not `Approved` (`Pending`, `Rejected`, `Cancelled`, or `Completed`).
 
-### Step 10: Implemented Transaction Completion Endpoint: `POST /api/v1/reservations/qr/complete`
+### Transaction Completion Endpoint: `POST /api/v1/reservations/qr/complete`
 - **Authorization**: Active `GridOperator` (operator NIC resolved securely from authenticated server context).
 - **Request Body**:
   ```json
@@ -241,9 +238,9 @@ These endpoints implement the secure QR lifecycle for approved reservations and 
   - `409 Conflict`: Reservation already completed, cancelled, rejected, pending, or concurrent status modification.
 
 
-## Member 1 endpoints
+## Station and slot endpoints
 
-These endpoints extend the historical Phase-0 foundation. All require a valid JWT for a currently Active account. All paths below follow `/api/v1`.
+All require a valid JWT for a currently Active account. All paths below follow `/api/v1`.
 
 | Method | Route | Role | Success |
 | --- | --- | --- | --- |
@@ -284,7 +281,7 @@ Station request example (illustrative values, not seeded data):
 }
 ```
 
-Name: 2–120 characters after required-field validation; address: 3–300; both are trimmed and rechecked after trimming. Latitude must be finite -90..90 and longitude finite -180..180. CapacityKwh > 0; TotalBatterySlots is an integer > 0. Schedule semantics are in [DATABASE.md](DATABASE.md#member-1-station-and-slot-contract). Station response adds stationId, isActive, createdAtUtc, updatedAtUtc.
+Name: 2–120 characters after required-field validation; address: 3–300; both are trimmed and rechecked after trimming. Latitude must be finite -90..90 and longitude finite -180..180. CapacityKwh > 0; TotalBatterySlots is an integer > 0. Schedule semantics are in [DATABASE.md](DATABASE.md#station-and-slot-contract). Station response adds stationId, isActive, createdAtUtc, updatedAtUtc.
 
 PUT is a complete editable-field update. Include **expectedUpdatedAtUtc with the exact updatedAtUtc from the latest response**. This timestamp is also required in both deactivation PATCH bodies, and in slot PUT/availability PATCH. Missing timestamp returns 400; stale timestamp returns 409. Reload and review before retrying. Clients cannot set IsActive through PUT, change IDs/parent references, or bypass soft-deactivation guards.
 
@@ -296,4 +293,41 @@ Nearby requires latitude and longitude; radiusKm defaults to 25 and accepts 0.1.
 
 Validation: 400. Missing/hidden record: 404. Inactive parent, overlapping windows, capacity conflict, stale write or protected reservation reference: 409. Anonymous/expired/inactive-account session: 401. Wrong role: 403. Errors retain application/problem+json and detail/field errors. Service operations are asynchronous and propagate cancellation.
 
-Station deactivation returns 409 when a referencing reservation is **Pending or Approved**. The same exact status filter protects slot edits, availability changes and deactivation. Rejected, Cancelled and Completed references do not trigger this guard; other validation and expectedUpdatedAtUtc checks still apply. The existing error status/body shape, routes, DTOs and role rules are unchanged. There are no station/slot reactivation, deletion, reservation, QR or completion endpoints in this change.
+Station deactivation returns 409 when a referencing reservation is **Pending or Approved**. The same exact status filter protects slot edits, availability changes and deactivation. Rejected, Cancelled and Completed references do not trigger this guard; other validation and expectedUpdatedAtUtc checks still apply. The existing error status/body shape, routes, DTOs and role rules are unchanged. There are no station/slot reactivation or hard-deletion endpoints.
+
+## Email verification
+
+`POST /auth/verify-email` is anonymous and accepts `{ "nic": "<account NIC>", "token": "<one-time token>" }`. The email URL carries NIC/token in its fragment; opening it does not activate an account. Tokens expire after 24 hours and explicit POST success returns 204 without a JWT. A valid, unexpired approval token activates the Prosumer; malformed/expired/consumed links cannot activate an account. Approval/resend through `PATCH /users/{nic}/activate` requires valid VerificationEmail SMTP/page configuration and returns 204. The account remains PendingActivation until verification. Resend replaces the previous link and requires a one-minute interval. Prosumer email changes revoke pending links and require approval and verification again; deactivation revokes links. Staff activation does not require Prosumer verification.
+
+## Password, profile and workspace endpoints
+
+| Method | Route | Access / behavior |
+| --- | --- | --- |
+| POST | /auth/forgot-password | Anonymous; {identifier}; generic acknowledgement regardless of account existence |
+| POST | /auth/reset-password | Anonymous; {token, newPassword}; one-time reset token |
+| POST | /users/me/change-password | Active account; {currentPassword, newPassword}; revokes previous sessions |
+| GET / PUT / DELETE | /users/me/avatar | Own account only; GET image, PUT multipart file, DELETE removal |
+| GET | /notifications?unreadOnly=&priority= | Own retained inbox; priority High, Medium or Low |
+| POST | /notifications/{id}/read | Mark own notification read |
+| POST | /notifications/read-all | Mark own retained inbox read |
+| GET | /audit/{kind}/{id} | Authorized users/stations/slots/reservations history; users/me supported |
+| GET | /search?q= | Scoped global search, 2–80 characters |
+| GET | /exports/{kind}.csv | Authorized users/stations/reservations export |
+
+Reset/change passwords require 8–100 characters. Recovery accepts requests through a bounded queue and a generic response; it does not disclose whether an account exists. Tokens expire after 20 minutes; replacement invalidates earlier tokens, and successful reset is a single conditional write. The new security version invalidates existing JWTs. Operational throttling uses 429; transport/database unavailability uses safe errors, not credential text. Clients must distinguish these from 401/403 without showing raw server internals.
+
+Avatar PUT accepts a multipart field named file, 1–2,000,000 bytes, JPEG/PNG/still WebP, at most 4096 pixels on either side and 12 million decoded pixels. The API decodes and normalizes to a bounded JPEG (up to 512 pixels), discarding original metadata. GET is private/no-store; profile responses contain avatarVersion/profileComplete metadata, never image bytes or security fields. Save and avatar changes retain the server's profile-completion behavior.
+
+Inbox responses contain items and unreadCount; the count covers all own retained unread items, even when filters hide some. Histories and notifications are bounded, not indefinite compliance archives. Global search uses escaped case-sensitive prefix matching with at most five results per kind and a two-second database deadline. Backoffice searches users/stations; GridOperator stations/reservations; Prosumer active stations/own reservations.
+
+CSV exports accept controlled search/status/stationId/prosumerNic/fromUtc/toUtc/reservationId/includeInactive/view filters as applicable. View may be current, pending or history. Export scope follows the caller's role/ownership, caps results at 1,000 (larger results are rejected), and has a five-second query deadline. CSV is UTF-8 with BOM, CRLF, explicit safe columns and spreadsheet-formula escaping; timestamps remain UTC. Passwords, JWTs, QR secrets, image bytes and internal locks are excluded.
+
+Responses include a server-generated X-Correlation-ID; ProblemDetails retain safe correlationId/traceId for support. CORS exposes the response header. Unexpected errors do not return exception text. Exact role checks remain in controllers/services and apply independently of UI visibility.
+
+## Compatibility and read limits
+
+The lifecycle collection reads (/reservations and /reservations/my) return arrays and are not the bounded booking-page endpoints. Available-slot reads expose server-resolved inventory; clients still submit the actual slotId and the API revalidates it at mutation time.
+
+POST /reservations/{reservationId}/complete is an operator-only alias requiring the scanned qrPayload; the route ID is checked against the resolved reservation. POST /reservations/qr/complete accepts an optional reservationId alongside qrPayload. Neither permits completion by ID alone.
+
+Snapshot preflight follows owner/exact-field/category-status scope before date filtering and pagination: Current examines Approved candidates, Pending examines Pending, and History/Search examine their matching exact-field scope before date classification. Another owner's invalid snapshots cannot affect a Prosumer's results. Dashboard checks Approved snapshots; pending counting is status-only. Page ordering/count reads are not a transactionally frozen cross-request snapshot.

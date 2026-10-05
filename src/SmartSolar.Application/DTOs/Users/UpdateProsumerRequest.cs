@@ -1,6 +1,7 @@
 /*
  * File: UpdateProsumerRequest.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Validated editable fields for a Backoffice-managed Prosumer profile.
  */
 using System.ComponentModel.DataAnnotations;

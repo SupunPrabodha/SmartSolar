@@ -1,7 +1,8 @@
 /*
  * File: CatalogServiceTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Tests Member 1 validation, catalog state changes and nearby discovery.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Tests catalog validation, catalog state changes and nearby discovery.
  */
 using System.Text.Json;
 using SmartSolar.Application.Abstractions.Persistence;
@@ -220,7 +221,11 @@ internal sealed class MemoryCatalog : IStationCatalogRepository, IReservationRef
         var match = Slots[value.SlotId].UpdatedAtUtc == expected;
         if (match) Slots[value.SlotId] = Copy(value); return Task.FromResult(match);
     }
-    public Task<decimal> ActiveAllocatedEnergyAsync(string id, CancellationToken ct) => Task.FromResult(0m);
+    public Task<decimal> ActiveAllocatedEnergyAsync(string id, CancellationToken ct)
+    {
+        // Return the fixture's unallocated baseline for catalog-only rule tests.
+        return Task.FromResult(0m);
+    }
     public Task<bool> HasActiveStationReservationsAsync(string id, CancellationToken ct)
     {
         // Simulate the active protection query; status filtering is tested against the real Mongo repository.

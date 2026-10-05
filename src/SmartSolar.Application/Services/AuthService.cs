@@ -1,6 +1,7 @@
 /*
  * File: AuthService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Implements Prosumer registration and login business rules.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

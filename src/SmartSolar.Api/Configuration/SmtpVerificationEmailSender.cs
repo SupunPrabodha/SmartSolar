@@ -1,6 +1,7 @@
 /*
  * File: SmtpVerificationEmailSender.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), Wickramathilaka N. M. (IT23165434)
  * Purpose: Sends Prosumer verification links through deployment-configured SMTP.
  */
 using SmartSolar.Application.Abstractions.Security;
@@ -41,6 +42,7 @@ public sealed class SmtpVerificationEmailSender(IConfiguration configuration) : 
 
     public Task SendResetAsync(string email, string token, CancellationToken ct)
     {
+        // Validate the reset page and send a single-use password recovery link.
         EnsureConfigured();
         var settings = configuration.GetSection("VerificationEmail");
         var value = settings["ResetPageUrl"] ??
@@ -55,10 +57,13 @@ public sealed class SmtpVerificationEmailSender(IConfiguration configuration) : 
             "\n\nIf you did not request this, ignore this email. Your password has not changed.", ct);
     }
 
-    public Task SendChangedAsync(string email, bool reset, CancellationToken ct) =>
-        DeliverAsync(email, "Smart Solar: password security alert",
+    public Task SendChangedAsync(string email, bool reset, CancellationToken ct)
+    {
+        // Notify the owner that the password changed and prior sessions were revoked.
+        return DeliverAsync(email, "Smart Solar: password security alert",
             "Your Smart Solar password was " + (reset ? "reset" : "changed") +
             ". All previous sessions have been invalidated. If this was not you, contact your administrator immediately.", ct);
+    }
 
     private async Task DeliverAsync(string email, string subject, string body, CancellationToken cancellationToken)
     {

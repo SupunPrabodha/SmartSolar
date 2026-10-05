@@ -1,6 +1,7 @@
 /*
  * File: JwtTokenService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Issues signed JWT access tokens containing identity and role claims.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

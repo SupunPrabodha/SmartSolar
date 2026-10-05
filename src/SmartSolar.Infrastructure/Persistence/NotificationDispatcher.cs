@@ -1,6 +1,8 @@
 /*
+ * File: NotificationDispatcher.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Delivers retained audit events to bounded recipient inboxes with deduplication.
  */
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;

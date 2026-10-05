@@ -1,6 +1,7 @@
 /*
  * File: ReservationQrResponse.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Returns opaque QR reference payload and issuance timestamp to an authorized Prosumer.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */

@@ -1,7 +1,8 @@
 /*
  * File: UserRole.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Smart Solar Development Team
+ * Purpose: Defines the Backoffice, GridOperator and Prosumer authorization roles.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

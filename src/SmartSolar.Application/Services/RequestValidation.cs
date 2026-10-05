@@ -1,6 +1,7 @@
 /*
  * File: RequestValidation.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Applies shared DTO constraints at the authoritative application boundary.
  */
 using System.ComponentModel.DataAnnotations;

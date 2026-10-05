@@ -1,8 +1,8 @@
 # Rubric traceability — current implementation and submission evidence
 
-Audit date: 2026-10-05. Source/test evidence is **not** hosted or device acceptance.
+Source/test coverage below is not hosted or device acceptance.
 Official brief reviewed: EAD_SE4040_Assignment_2026.pdf; team allocation checked against the v1.2 handover guide.
-See [current audit](../FINAL-STATION-REFERENCE-RUBRIC-AUDIT.md) for changes and actual command results.
+Use [manual acceptance](../FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md) and the [validation commands](../../README.md#validation).
 
 | Requirement | Source / UI evidence | Regression evidence | Acceptance still required |
 | --- | --- | --- | --- |
@@ -21,7 +21,7 @@ See [current audit](../FINAL-STATION-REFERENCE-RUBRIC-AUDIT.md) for changes and 
 | Maps and station selection | StationsFragment uses API station.latitude/longitude; StationDetailActivity | StationApiTest; build/resource checks | Real-device Maps key, tiles, nearby ordering, marker details; coarse permission grant/deny |
 | Approved owner QR; operator scan/verify/complete | ReservationsController role attributes; ReservationService QR methods; ReservationQrActivity/QrScannerActivity/QrVerificationResultActivity | ReservationQrServiceTests, ReservationQrApiTests, QrSecurityServiceTests, Android QR tests | Owner issuance, wrong roles/status, camera denial, timing window, replay/concurrent completion |
 | Stable presentation references | Web displayReference.js; Android DisplayReference.java; raw API values retained | Identical cross-platform fixtures; existing route/payload regressions | Same real record on both clients; copy, search, modify, QR/deep link regression |
-| Required C# comments | All 98 handwritten production and 19 test .cs files have a leading project block | Source inspection; no backend code changed | Beginning-of-method comments are incomplete (e.g. ExperienceRepository.SetAvatarAsync, GetAvatarAsync, ReservationRepository.RecordQrVerificationAsync). Owners must add meaningful explanations, not generic generated filler. |
+| Required C# comments | All 98 production and 19 test C# files have File/Project/Author(s)/Purpose headers and meaningful beginning comments on method/constructor/local-function bodies | Roslyn syntax audit and backend build/tests | Peer review substantive authorship and select readable source excerpts for the report |
 | Report and demonstration | Existing architecture/database docs and acceptance checklists are source material | No submitted report/evidence found in docs/report | Complete the evidence items below |
 
 ## MANUAL SUBMISSION ACTION REQUIRED
@@ -30,11 +30,11 @@ See [current audit](../FINAL-STATION-REFERENCE-RUBRIC-AUDIT.md) for changes and 
 - Produce the final high-level architecture, use-case and DFD diagrams. Existing architecture text diagram is a starting point, not a complete submitted figure set.
 - Add database design with all four collections, identifiers, references and relevant indexes.
 - Include source code as readable text in the report, citations, actual individual contributions, challenges and resolutions.
-- Review all required beginning-of-method comments with each code owner; include tests in the team's final interpretation of “each .cs file”.
-- Supply named contributors/student IDs and evidence (commits/PRs/tasks). The README allocation table describes responsibility, not a verified individual contribution claim.
+- Review source excerpts with code owners; headers and method comments include production and tests.
+- Confirm the README's verified names/IDs and equal 25% allocation in the final report, supported by substantive commits/PRs/tasks.
 - Record a video **no longer than five minutes**, publish it under the team's control and put the real accessible link in README.
 - Verify repository access for assessors and link the reviewed submitted revision.
 - Execute and record IIS, browser, real-device Maps/QR, SQLite, email and hosted CI checks.
 - Confirm revocation/rotation of the historically exposed Maps key and restrict the private replacement. This audit does not certify that cloud action.
 
-No completed screenshots, final report, video, deployment or personal contributions were invented.
+No completed screenshots, final report, video or deployment evidence is supplied by this checklist.

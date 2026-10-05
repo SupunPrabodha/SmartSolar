@@ -1,7 +1,8 @@
 /*
  * File: LoginRequest.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Wickramathilaka N. M. (IT23165434)
+ * Purpose: Validates the NIC and password supplied to the sign-in endpoint.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

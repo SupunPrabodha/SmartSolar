@@ -1,6 +1,8 @@
 /*
+ * File: PasswordSecurityService.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Validates recovery and password changes with atomic token consumption and session revocation.
  */
 using System.Security.Cryptography;
 using System.Text;
@@ -18,7 +20,11 @@ public sealed class PasswordSecurityService(IUserRepository users, IPasswordSecu
 {
     public static readonly TimeSpan ResetLifetime = TimeSpan.FromMinutes(20);
     public const string GenericResponse = "If an eligible Smart Solar account exists for the supplied details, password reset instructions have been sent.";
-    private static string Hash(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    private static string Hash(string token)
+    {
+        // Derive a SHA-256 lookup hash without persisting the raw recovery token.
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    }
 
     public async Task ForgotAsync(ForgotPasswordRequest request, CancellationToken ct = default)
     {
@@ -39,6 +45,7 @@ public sealed class PasswordSecurityService(IUserRepository users, IPasswordSecu
 
     public async Task ResetAsync(ResetPasswordRequest request, CancellationToken ct = default)
     {
+        // Validate the unexpired reset reference before committing a one-use credential change.
         RequestValidation.EnsureValid(request);
         if (!request.Token.All(Uri.IsHexDigit)) throw InvalidReset();
         var hash = Hash(request.Token);
@@ -49,6 +56,7 @@ public sealed class PasswordSecurityService(IUserRepository users, IPasswordSecu
 
     public async Task ChangeAsync(ChangePasswordRequest request, CancellationToken ct = default)
     {
+        // Verify the active account and current password before replacing its credentials.
         RequestValidation.EnsureValid(request);
         var user = await users.GetByNicAsync(identity.Nic, ct);
         if (user is null || user.Status != UserStatus.Active) throw new UnauthorizedException("Sign in again.");
@@ -74,5 +82,9 @@ public sealed class PasswordSecurityService(IUserRepository users, IPasswordSecu
         try { await email.SendChangedAsync(user.Email, reset, ct); }
         catch (Exception) { identity.DeliveryFailed("PasswordChanged"); }
     }
-    private static BadRequestException InvalidReset() => new("This password reset link is invalid or has expired.");
+    private static BadRequestException InvalidReset()
+    {
+        // Use the same safe message for invalid, replaced and expired reset links.
+        return new("This password reset link is invalid or has expired.");
+    }
 }

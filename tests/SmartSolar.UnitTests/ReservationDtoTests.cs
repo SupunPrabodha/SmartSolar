@@ -1,7 +1,8 @@
 /*
  * File: ReservationDtoTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Verifies reservation input constraints and the planned JSON boundary.
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
+ * Purpose: Verifies reservation input constraints and the public JSON boundary.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using System.ComponentModel.DataAnnotations;

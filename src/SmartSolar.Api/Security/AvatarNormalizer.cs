@@ -1,6 +1,8 @@
 /*
+ * File: AvatarNormalizer.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Validates and normalizes bounded avatar images to metadata-free JPEG bytes.
  */
 using SkiaSharp;
 using SmartSolar.Application.Exceptions;
@@ -10,6 +12,7 @@ public static class AvatarNormalizer
 {
     public static byte[] Normalize(byte[] input)
     {
+        // Decode and bound the input image before producing a metadata-free JPEG avatar.
         if (input.Length is < 1 or > 2_000_000) throw Invalid();
         using var data = SKData.CreateCopy(input);
         using var codec = SKCodec.Create(data);
@@ -30,5 +33,9 @@ public static class AvatarNormalizer
         using var encoded = image.Encode(SKEncodedImageFormat.Jpeg, 85);
         return encoded.ToArray();
     }
-    private static BadRequestException Invalid() => new("Choose a valid, still JPEG, PNG or WebP image under 2 MB and 4096 pixels per side.");
+    private static BadRequestException Invalid()
+    {
+        // Return safe image-validation guidance without exposing decoder internals.
+        return new("Choose a valid, still JPEG, PNG or WebP image under 2 MB and 4096 pixels per side.");
+    }
 }

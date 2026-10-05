@@ -1,6 +1,7 @@
 /*
  * File: PasswordService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Provides secure one-way password hashing and verification.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

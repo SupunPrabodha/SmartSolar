@@ -1,6 +1,7 @@
 /*
  * File: QrSecurityService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Issues cryptographically strong opaque QR references and one-way verification hashes.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */

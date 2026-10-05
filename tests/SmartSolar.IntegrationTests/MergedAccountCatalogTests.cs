@@ -1,6 +1,7 @@
 /*
  * File: MergedAccountCatalogTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), Wickramathilaka N. M. (IT23165434)
  * Purpose: Verifies merged account lifecycle and catalog authorization against the real API and MongoDB.
  */
 using System.Net.Http.Json;

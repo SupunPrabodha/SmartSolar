@@ -1,6 +1,7 @@
 /*
  * File: AppException.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Defines application-level exception types mapped to HTTP ProblemDetails responses.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

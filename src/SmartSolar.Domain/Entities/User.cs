@@ -1,7 +1,8 @@
 /*
  * File: User.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Liyanage S. P. (IT23187450), Wickramathilaka N. M. (IT23165434), RAMANAYAKE R. H. B. D. G. (IT23164130)
+ * Purpose: Models NIC-based account identity, verification, security versions and embedded profile history.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

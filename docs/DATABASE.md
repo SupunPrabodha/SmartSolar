@@ -7,7 +7,7 @@ Required collections:
 - `EnergyBookingSlots`
 - `EnergyReservation`
 
-The integrated schema includes Member 3 accepted schedule snapshots and User.ReservationWriteLock, plus Member 4 QR hash/completion fields. The checkpoint sections below are historical. [FINAL-INTEGRATION-AUDIT.md](FINAL-INTEGRATION-AUDIT.md) records current behavior and unresolved cross-record consistency; no migration or automatic backfill was performed by the audit.
+The schema retains accepted reservation schedule snapshots, account write-recovery locks and QR/completion metadata. No automatic legacy backfill is performed.
 
 ## Identifier strategy
 
@@ -18,9 +18,9 @@ The integrated schema includes Member 3 accepted schedule snapshots and User.Res
 
 Do not rename fields or collections without a reviewed architecture change because web and mobile API contracts depend on them.
 
-## Foundation persistence
+## Persistence and initialization
 
-`MongoMappings` in Infrastructure owns BSON ID/string-enum mappings. Existing PascalCase BSON field names are preserved; HTTP uses separate camelCase DTOs. `UsersDetail` has a unique normalized Email index in addition to MongoDB's unique `_id`. Other starter indexes cover station active/name, slot station/start, reservation Prosumer/created and station/status. These indexes are not completed feature workflows.
+`MongoMappings` in Infrastructure owns BSON ID/string-enum mappings. Existing PascalCase BSON field names are preserved; HTTP uses separate camelCase DTOs. `UsersDetail` has a unique normalized Email index in addition to MongoDB's unique `_id`. Additional indexes cover station active/name, slot station/start, reservation Prosumer/created and station/status. Indexes support the implemented queries; they do not replace service validation.
 
 Initialization is repeatable and tolerates another API process creating a collection concurrently. MongoDB duplicate-key errors in user writes become HTTP 409 through the application error contract.
 
@@ -28,69 +28,13 @@ Local Compose uses MongoDB 7, localhost port 27017 and the named `smartsolar_mon
 
 Tests use a unique `SmartSolarTests_<guid>` database on `SMARTSOLAR_TEST_MONGO`, removing that exact test database afterward. They never clear `SmartSolarMicrogridDb`. Android SQLite `local_user` caches the API profile; it does not store passwords or perform enterprise validation.
 
-## Member 3 Checkpoint 1 contract review
+## Accepted reservation schedules and query indexes
 
-**Historical checkpoint note:** this section describes the earlier checkpoint.
-The current Member 3 code has since implemented nullable accepted schedule
-snapshots and reservation persistence; see the current contract below. Member 4
-does not add those fields or change their mappings.
+EnergyReservation stores nullable ScheduledStartAtUtc and ScheduledEndAtUtc accepted UTC snapshots. Creation/update copies server-resolved slot times. Missing legacy values stay null; reads and writes return 409 for invalid/missing accepted schedules in their authorized candidate scope instead of reconstructing them from mutable slot times. Repair requires trustworthy historical evidence and explicit review.
 
-No persisted entity, collection, identifier, BSON mapping or index changes were made.
+User.ReservationWriteLock is a durable per-Prosumer recovery boundary. A failed compensation can deliberately leave the lock set. It has no automatic expiry: inspect and reconcile the exact reservation and capacity writes before an authorized manual unlock. Do not clear it just to silence a conflict.
 
-| Existing entity | Relevant existing fields |
-| --- | --- |
-| EnergyReservation | ReservationId, ProsumerNic, StationId, SlotId, EnergyAmountKwh, Status, QrToken, CreatedAtUtc, UpdatedAtUtc |
-| EnergyBookingSlot | SlotId, StationId, StartAtUtc, EndAtUtc, TotalSlots, AvailableSlots, IsActive, CreatedAtUtc, UpdatedAtUtc |
-| SolarStation | StationId, Name, Address, Latitude, Longitude, CapacityKwh, TotalBatterySlots, IsActive, CreatedAtUtc, UpdatedAtUtc |
-
-ReservationStatus remains Pending, Approved, Rejected, Cancelled, Completed.
-Pending is already the entity default. Only the user repository exists in Phase 0;
-there is no station/slot reservation repository or capacity mutation to reuse yet.
-
-AvailableSlots/TotalSlots can support a later conditional capacity decrement
-without a new collection. Slot capacity counts reservations, not kWh; the precise
-relationship between station CapacityKwh and requested energy must be settled with
-the station/slot owner. Checkpoint 1 performs no availability or energy allocation.
-
-### Proposed shared contract change requiring team review (not applied)
-
-An EnergyReservation currently stores only SlotId, not its accepted schedule.
-Reading the referenced slot is sufficient **only if its schedule is immutable for
-the reservation's lifetime and the slot is retained**. The repository currently
-contains no implementation enforcing that guarantee.
-
-If slot schedules may change, the smallest reservation extension is nullable UTC
-ScheduledStartAtUtc and ScheduledEndAtUtc snapshot fields on EnergyReservation.
-Creation and a successful slot change would copy server-resolved slot times; other
-operations would use the accepted snapshots. The response DTO already has these
-names. This would avoid coupling Member 3 cutoff/overlap correctness to mutable
-Member 1 slot data.
-
-This extension is proposed, not an agreed or implemented schema migration.
-Before lifecycle implementation, team review must choose snapshots or enforce
-retained immutable slot schedules. If snapshots are selected, add BSON compatibility
-tests and an explicit legacy-data policy. Missing legacy snapshots must never be
-treated as DateTime.MinValue or silently reconstructed from a possibly changed slot.
-A trustworthy backfill or a conflict requiring repair is necessary.
-
-No index is added before query implementation. Existing starter indexes and
-standalone MongoDB topology remain unchanged. Atomic capacity acquisition,
-compensation, exactly-once release, concurrent same-Prosumer conflict prevention,
-and their integration tests belong to later checkpoints.
-
-## Current contract inspected for Member 4 steps 2–5
-
-EnergyReservation already has nullable DateTime ScheduledStartAtUtc and
-ScheduledEndAtUtc accepted snapshots in the current Member 3 implementation.
-Missing legacy values remain null. Member 3 creation/update writes these snapshots;
-reads and writes reject invalid/missing accepted schedules rather than guessing
-from slots. User also already contains the Member 3 ReservationWriteLock field for
-standalone write recovery. These are discoveries of existing schema, not changes
-introduced by this Member 4 checkpoint. The earlier snapshot proposal above is
-historical. No automatic legacy backfill is performed.
-
-Member 4 adds these nonunique reservation indexes and partial QR index through the existing
-repeatable MongoDbInitializer:
+The repeatable MongoDbInitializer includes these reservation query/QR indexes:
 
 | Index | Ascending keys | Justification |
 | --- | --- | --- |
@@ -98,7 +42,7 @@ repeatable MongoDbInitializer:
 | ix_reservations_prosumer_status_start | ProsumerNic, Status, ScheduledStartAtUtc | Owner-scoped status counts and Approved future range |
 | ux_reservations_qr_token_hash | QrTokenHash (Unique, PartialFilter: QrTokenHash is String) | Indexed server lookup for QR verification while allowing multiple null documents |
 
-## Steps 7–10: QR and Completion persistence extensions
+## QR and completion persistence
 
 To support secure QR issuance, verification, and transaction completion without creating separate collections:
 - `EnergyReservation` document includes:
@@ -119,14 +63,13 @@ pageSize + 1 summaries and omit QrToken and QrTokenHash from the projection; das
 CountDocumentsAsync, not full collection loading. A scoped existence query detects
 invalid snapshots before date filtering/pagination. These additive indexes do not
 cover every history/snapshot-validity predicate; no blanket query-performance
-claim is made. The API contract and
-[Member 4 handshake](MEMBER-4-RESERVATION-CONTRACT.md) define scoping and repair errors.
+claim is made. The [API contract](API-CONTRACT.md) defines authorized scoping and repair errors.
 
-## Member 1 station and slot contract
+## Station and slot contract
 
 No collection or identifier was renamed. Station/slot IDs remain server-generated GUID strings mapped to MongoDB `_id`. Reservation references remain `StationId` and `SlotId`.
 
-`SolarStationInfo` retains `Name`, `Address`, `Latitude`, `Longitude`, `CapacityKwh`, `TotalBatterySlots`, `IsActive`, `CreatedAtUtc`, `UpdatedAtUtc`. **The only domain-field addition is `OperatingSchedule`**, a list of embedded `OperatingDay` objects:
+`SolarStationInfo` retains `Name`, `Address`, `Latitude`, `Longitude`, `CapacityKwh`, `TotalBatterySlots`, `IsActive`, `CreatedAtUtc`, `UpdatedAtUtc`. `OperatingSchedule` is a list of embedded `OperatingDay` objects:
 
 | BSON field | Meaning |
 | --- | --- |
@@ -139,10 +82,28 @@ Create/update requires exactly seven unique weekdays. Open days require opening 
 
 `EnergyBookingSlots` retains the original `SlotId`/`_id`, `StationId`, `StartAtUtc`, `EndAtUtc`, `TotalSlots`, `AvailableSlots`, `IsActive`, `CreatedAtUtc`, `UpdatedAtUtc` fields. TotalSlots is battery-slot inventory and cannot exceed its parent station's TotalBatterySlots. It is not energy in kWh; no per-slot kWh field or conversion was invented.
 
-Member 1 writes preserve creation timestamps and references. Soft deactivation changes IsActive; documents are not deleted and parent deactivation does not rewrite child slot history. API DTOs are separate from domain objects. Mongo timestamps use UTC millisecond precision. Changed records advance UpdatedAtUtc by at least one millisecond, with an atomic ID + previous UpdatedAtUtc condition on each update.
+Catalog writes preserve creation timestamps and references. Soft deactivation changes IsActive; documents are not deleted and parent deactivation does not rewrite child slot history. API DTOs are separate from domain objects. Mongo timestamps use UTC millisecond precision. Changed records advance UpdatedAtUtc by at least one millisecond, with an atomic ID + previous UpdatedAtUtc condition on each update.
 
 The API checks for **Pending or Approved** reservations through IReservationReferenceReader against EnergyReservation, using the team's frozen rule. HasActiveStationReservationsAsync filters by StationId and those statuses; HasActiveSlotReservationsAsync filters by SlotId and those statuses. Rejected, Cancelled and Completed references do not block station deactivation or protected slot mutation. Queries use the existing ReservationStatus string-enum BSON mapping, never write reservations, and preserve every ID/reference. No schema, index or collection change is required. See [business rules](BUSINESS-RULES.md#frozen-active-reservation-protection-rule).
 
-Nearby distance is transient Haversine distance in kilometres, calculated from stored coordinates after reading active stations. It is never persisted in MongoDB or SQLite. Existing indexes are retained; nearby is a linear scan suitable for the current development catalogue, not an indexed geospatial search or a claim of large-scale performance. No GeoJSON field, new collection, reservation scheduling field, lock document or operator assignment field was added.
+Nearby distance is transient Haversine distance in kilometres, calculated from stored coordinates after reading active stations. It is never persisted in MongoDB or SQLite. Existing indexes are retained; nearby is a linear scan suitable for the current development catalogue, not an indexed geospatial search or a claim of large-scale performance. No GeoJSON index or operator-assignment field is used.
 
 A shared singleton `CatalogWriteGate` serializes station/slot consistency checks, reservation allocation/capacity changes and station energy checks on the supported single ASP.NET Core API instance hosted by IIS. The acquisition order is always `CatalogWriteGate`, then the durable per-Prosumer reservation/recovery lock when required. Atomic slot updates advance `UpdatedAtUtc`, so reservation allocation cannot be overwritten by a stale catalog write. Individual Mongo document updates retain compare-and-update protection; this remains coordination for one API process, not a distributed transaction. Completion keeps the allocated slot count because a completed reservation consumed its published booking place; Completed remains non-active for catalog protection and energy calculations.
+
+## Embedded account and experience data
+
+UsersDetail contains profile/contact information, salted password hashes, account/security versions, one-time verification/recovery token hashes and expiry metadata. Raw reset/verification tokens and passwords are not persisted. AvatarBytes holds the normalized JPEG inside the user document; AvatarVersion and ProfileComplete describe its current profile state. There is no local server upload directory or extra image collection.
+
+Notifications and audit trails are bounded embedded arrays (100 retained entries per user/entity). Reservation events support notification delivery; the worker polls every ten seconds and deduplicates retained event IDs. Evicted history cannot provide permanent deduplication or a compliance archive. No Notification, Audit, QR, Transaction or PasswordReset collection is created.
+
+EnergyReservation retains the legacy nullable QrToken field for compatibility; current issuance stores only QrTokenHash. Completion retains the accepted schedule, station/slot/Prosumer identifiers and completion operator/time. Decimal kWh values use the existing BSON mapping. The source of truth for mappings/indexes is MongoMappings/MongoDbInitializer; schema changes require review.
+
+## Local Android persistence
+
+SQLiteOpenHelper maintains smart_solar_local.db, schema version 1, table local_user. One profile is transactionally replaced after API verification. No password/hash, JWT, QR payload, avatar image or location is stored in this table. JWT/expiry use app-private preferences; backup/device transfer excludes session data and database files. Logout, expiry, matching 401 and account switching clear stale profile data. A cached row never authorizes a session; see [Database Inspector instructions](../mobile/SmartSolarMobile/README.md#verify-sqlite).
+
+## Index inventory
+
+In addition to each collection's unique _id, initialization retains ux_users_email, ix_users_name_prefix, ux_users_reset_hash (unique partial string hash), ix_stations_name_prefix, ix_stations_active_name, ix_slots_station_start, ix_reservations_prosumer_created, ix_reservations_station_status, ix_reservations_status_start, ix_reservations_prosumer_status_start and ux_reservations_qr_token_hash (unique partial string hash). Index creation is repeatable; not every filter/sort is fully covered.
+
+Account writes compare/increment AccountVersion and preserve reservation lock fields. Legacy accounts without version fields are supported; existing active accounts are not automatically migrated to verified status. Prosumer email edits clear prior approval/verification and return active accounts to PendingActivation; already Deactivated accounts remain deactivated. Name/phone-only edits preserve state.

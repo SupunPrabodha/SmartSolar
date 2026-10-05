@@ -1,6 +1,8 @@
 /*
+ * File: CorrelationMiddleware.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Assigns server-generated request references and correlated logging scopes.
  */
 namespace SmartSolar.Api.Middleware;
 

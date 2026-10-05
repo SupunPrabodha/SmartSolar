@@ -1,7 +1,8 @@
 /*
  * File: IUserRepository.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Wickramathilaka N. M. (IT23165434)
+ * Purpose: Defines account lookup and conditional persistence operations.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 
@@ -13,7 +14,11 @@ namespace SmartSolar.Application.Abstractions.Persistence;
 public interface IUserRepository
 {
     Task<User?> GetByNicAsync(string nic, CancellationToken cancellationToken = default);
-    Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default) => GetByNicAsync(nic, cancellationToken);
+    Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default)
+    {
+        // Reuse the identity lookup as the default current-session account projection.
+        return GetByNicAsync(nic, cancellationToken);
+    }
     Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default);

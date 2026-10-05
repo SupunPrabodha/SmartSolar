@@ -1,7 +1,8 @@
 /*
  * File: UserResponse.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Wickramathilaka N. M. (IT23165434)
+ * Purpose: Returns public profile, role, state and completion metadata without credentials.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

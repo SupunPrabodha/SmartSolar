@@ -1,6 +1,7 @@
 /*
  * File: MongoDbInitializer.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Creates the required MongoDB collections and shared indexes.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

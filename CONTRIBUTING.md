@@ -1,37 +1,25 @@
 # Contributing
 
-This is the SE4040 four-member Smart Solar team foundation. Agree feature ownership before starting implementation and coordinate changes to shared authentication, DTOs, Mongo mappings, configuration and CI.
+Coordinate changes to shared authentication, DTOs, Mongo mappings, configuration and CI with the responsible team members. The verified allocation is in [README](README.md#submission-and-individual-contributions).
 
-## Planned Git workflow
+## Review workflow
 
-| Branch | Purpose |
-| --- | --- |
-| `main` | Release/submission-ready work |
-| `develop` | Reviewed integration work |
-| `feature/*` | Member-owned features |
-| `bugfix/*` | Focused corrections |
-| `docs/*` | Documentation changes |
-
-After the team leader manually establishes the repository and branches, work from current `develop`, create a member branch, make focused commits, push that branch and open a PR to `develop`. CI and peer review must pass before merge. The team leader controls releases into `main`. Do not push directly to shared branches or rewrite another member's work.
-
-Planned remote: `https://github.com/SupunPrabodha/SmartSolar.git`. Repository initialization, branch creation, remote setup and all commits/pushes are manual team actions.
+Use focused branches and reviewed pull requests under the team's agreed workflow. Preserve other members' work; do not rewrite shared history or push directly to shared branches without team agreement. Release/submission selection remains a team decision.
 
 ## Engineering boundaries
 
-- Keep Domain independent; use Application services for authoritative rules, Infrastructure for persistence, and thin API controllers.
-- Clients call the REST API only. Android remains Java/XML Views; SQLite is local persistence only.
-- Preserve collection names, NIC identifiers, roles, account states and API contracts. Coordinate migrations and shared DTO changes.
-- Preserve the required project header in every handwritten C# file. Begin methods with meaningful purpose comments where the assignment requires them.
-- Keep passwords, signing keys and tokens out of source, screenshots and logs. Never weaken release TLS or add trust-all certificate code.
-- Implement only your agreed feature scope. Phase-0 module cards are deliberately disabled and carry no business data.
-- Add focused tests for behavior and meaningful regressions, not tests that merely mirror code.
+- Domain stays independent. Application services own business validation, Infrastructure owns persistence and API controllers expose the REST boundary.
+- Clients use REST; Android stays Java/XML Views with SQLite only for the local profile cache.
+- Preserve collection names, NIC/record identifiers, roles, account states and shared contracts. Coordinate schema changes and migrations.
+- Every handwritten C# file under src/ and tests/ needs a block with File, Project, Author(s) and Purpose. Attribute substantive work honestly; merging or formatting alone does not establish authorship. Preserve useful Notes.
+- Begin each method, constructor and local-function body with a meaningful intent comment. Bodyless interface/abstract declarations are exempt.
+- Keep credentials, signing material and tokens out of source, logs and evidence. Preserve release TLS validation.
+- Add focused regression tests for behavior changes; do not weaken existing assertions.
 
-## Before a pull request
+## Before review
 
-1. Review changed files and local ignore rules. Exclude secrets, local environment files, build outputs and database exports.
-2. Run the relevant builds/tests from [onboarding](docs/TEAM-ONBOARDING.md). For shared changes, validate backend, web and Android.
-3. Describe the concrete problem, resulting behavior and validation. State any manual tests still needed.
-4. Include API/documentation updates when contracts or setup change. Attach UI evidence without personal data or credentials.
-5. Request a teammate's review; resolve feedback and merge only after green CI.
-
-The common foundation owns session behavior and shared shells. Station management, slots/reservations, Maps/QR, operator workflows and business dashboards belong to the feature phase and need explicit team ownership.
+1. Inspect the diff and ignored files; exclude credentials, generated outputs and private exports.
+2. Run the [validation commands](README.md#validation); shared changes require backend, Web and Android checks.
+3. Explain the problem, resulting behavior and actual validation. Identify unexecuted manual tests.
+4. Update canonical setup/contracts when behavior changes. Use redacted real UI evidence when relevant.
+5. Obtain peer review and confirm hosted CI for the selected revision.

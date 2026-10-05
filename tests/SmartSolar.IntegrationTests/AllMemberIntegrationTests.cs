@@ -1,6 +1,7 @@
 /*
  * File: AllMemberIntegrationTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Verifies catalog protection against real lifecycle/QR writes and shared booking summaries.
  */
 using MongoDB.Bson;

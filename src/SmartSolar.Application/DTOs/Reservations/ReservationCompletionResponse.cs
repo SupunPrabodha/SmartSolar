@@ -1,6 +1,7 @@
 /*
  * File: ReservationCompletionResponse.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Returns trusted authoritative completion details after server completes the energy transfer.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

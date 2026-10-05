@@ -1,7 +1,8 @@
 /*
  * File: ReservationQueryService.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enforces Member 4 read authorization, filters and server-clock semantics.
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
+ * Purpose: Enforces booking read authorization, filters and server-clock semantics.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using SmartSolar.Application.Abstractions.Persistence;

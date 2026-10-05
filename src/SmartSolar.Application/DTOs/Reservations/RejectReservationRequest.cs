@@ -1,6 +1,7 @@
 /*
  * File: RejectReservationRequest.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Defines operator input for reservation rejection with a mandatory remark.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -16,6 +17,7 @@ public sealed class RejectReservationRequest : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        // Reject whitespace-only rejection remarks before reservation state can change.
         if (string.IsNullOrWhiteSpace(Remark))
             yield return new ValidationResult("Rejection remark must not be empty or whitespace.", [nameof(Remark)]);
     }

@@ -1,6 +1,7 @@
 /*
  * File: AuthController.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Exposes public registration and login endpoints for API clients.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

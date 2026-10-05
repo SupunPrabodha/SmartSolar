@@ -1,6 +1,7 @@
 /*
  * File: ReservationRules.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Provides testable reservation policy without orchestration or persistence.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

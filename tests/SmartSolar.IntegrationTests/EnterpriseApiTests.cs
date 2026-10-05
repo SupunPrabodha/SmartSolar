@@ -1,6 +1,8 @@
 /*
+ * File: EnterpriseApiTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Tests HTTP recovery, avatar, profile, search, export, audit and notification contracts.
  */
 using System.Net;
 using System.Net.Http.Headers;
@@ -29,13 +31,20 @@ public sealed class EnterpriseApiTests
     private sealed class Mail : IAccountSecurityEmailSender
     {
         public readonly TaskCompletionSource<string> Reset = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public Task SendResetAsync(string email,string token,CancellationToken ct) { Reset.TrySetResult(token);return Task.CompletedTask; }
-        public Task SendChangedAsync(string email,bool reset,CancellationToken ct) => Task.CompletedTask;
+        public Task SendResetAsync(string email,string token,CancellationToken ct) {
+            // Capture the reset token for the HTTP test without sending mail.
+            Reset.TrySetResult(token);return Task.CompletedTask; }
+        public Task SendChangedAsync(string email,bool reset,CancellationToken ct)
+        {
+            // Complete the test acknowledgement without contacting SMTP.
+            return Task.CompletedTask;
+        }
     }
     private sealed class Factory(string connection,string name,Mail mail) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Configure an isolated API test host with disposable storage and security dependencies.
             builder.UseEnvironment("Testing");
             builder.UseSetting("MongoDb:ConnectionString",connection);builder.UseSetting("MongoDb:DatabaseName",name);
             builder.UseSetting("Jwt:Key",Convert.ToHexString(RandomNumberGenerator.GetBytes(32)));
@@ -47,6 +56,7 @@ public sealed class EnterpriseApiTests
     }
     private static async Task WithApi(Func<Factory,IMongoDatabase,Mail,Task> action)
     {
+        // Run the API scenario against a unique test database and dispose its resources afterward.
         var connection=Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO")!;
         var mongo=new MongoClient(connection);var name="SmartSolarTests_"+Guid.NewGuid().ToString("N");
         var mail=new Mail();
@@ -55,18 +65,23 @@ public sealed class EnterpriseApiTests
     }
     private static async Task<User> Seed(IMongoDatabase db,string nic,UserRole role)
     {
+        // Persist a disposable active account with a hashed test password.
         var user=new User {Nic=nic,FullName="Test User",Email=nic.ToLowerInvariant()+"@example.invalid",PhoneNumber="0123456789",Role=role,Status=UserStatus.Active};
         user.PasswordHash=new PasswordService().HashPassword(user,"Initial-Test-Password");
         await db.GetCollection<User>(CollectionNames.Users).InsertOneAsync(user);return user;
     }
     private static HttpClient Client(Factory f,User? user=null)
     {
+        // Create an in-process HTTP client with the requested identity and redirects disabled.
         var client=f.CreateClient(new WebApplicationFactoryClientOptions{BaseAddress=new Uri("https://localhost"),AllowAutoRedirect=false});
         if(user!=null)client.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",f.Services.GetRequiredService<IJwtTokenService>().CreateToken(user).AccessToken);
         return client;
     }
     [MongoFact]
-    public Task HttpPasswordFlowsRejectOldJwtAndProtectAnonymousRecovery() => WithApi(async(f,db,mail)=>{
+    public Task HttpPasswordFlowsRejectOldJwtAndProtectAnonymousRecovery()
+    {
+        // Exercise HTTP recovery and verify old sessions cannot survive a credential reset.
+        return WithApi(async(f,db,mail)=>{
         var user=await Seed(db,"200012345678",UserRole.Prosumer);
         using var anonymous=Client(f);using var old=Client(f,user);
         using var denied=await anonymous.PostAsJsonAsync("/api/v1/users/me/change-password",new{currentPassword="Initial-Test-Password",newPassword="Changed-Test-Password"});
@@ -92,8 +107,12 @@ public sealed class EnterpriseApiTests
         anonymous.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",json.RootElement.GetProperty("accessToken").GetString());
         Assert.Equal(HttpStatusCode.OK,(await anonymous.GetAsync("/api/v1/users/me")).StatusCode);
     });
+    }
     [MongoFact]
-    public Task MultipartAvatarProfileCompletionAndCorrelationAreCompatible() => WithApi(async(f,db,mail)=>{
+    public Task MultipartAvatarProfileCompletionAndCorrelationAreCompatible()
+    {
+        // Verify avatar upload, profile completion and diagnostic headers through the API pipeline.
+        return WithApi(async(f,db,mail)=>{
         var user=await Seed(db,"200012345678",UserRole.GridOperator);using var client=Client(f,user);
         byte[] bytes;
         using(var bitmap=new SKBitmap(800,600)){using var canvas=new SKCanvas(bitmap);canvas.Clear(SKColors.Green);using var image=SKImage.FromBitmap(bitmap);using var encoded=image.Encode(SKEncodedImageFormat.Png,100);bytes=encoded.ToArray();}
@@ -125,8 +144,12 @@ public sealed class EnterpriseApiTests
         var document=await db.GetCollection<User>(CollectionNames.Users).Find(x=>x.Nic==user.Nic).SingleAsync();
         Assert.Contains(document.AuditHistory,x=>x.Event=="AvatarUpdated");Assert.Contains(document.AuditHistory,x=>x.Event=="ProfileCompleted");
     });
+    }
     [MongoFact]
-    public Task SearchExportAuditAndInboxRespectRolesAndFilters() => WithApi(async(f,db,mail)=>{
+    public Task SearchExportAuditAndInboxRespectRolesAndFilters()
+    {
+        // Exercise role-scoped search, export, history and inbox operations through HTTP.
+        return WithApi(async(f,db,mail)=>{
         var bo=await Seed(db,"BO",UserRole.Backoffice);var op=await Seed(db,"OP",UserRole.GridOperator);
         var p1=await Seed(db,"P1",UserRole.Prosumer);var p2=await Seed(db,"P2",UserRole.Prosumer);
         var station=new SolarStation{Name="=unsafe spreadsheet formula",IsActive=true};
@@ -150,10 +173,12 @@ public sealed class EnterpriseApiTests
         using var invalid=await operatorClient.GetAsync("/api/v1/search?q=*");
         Assert.Equal(HttpStatusCode.BadRequest,invalid.StatusCode);
     });
+    }
     [Theory]
     [InlineData("<svg/>")] [InlineData("bad png")] [InlineData("not jpeg")]
     public void AvatarRejectsMalformedAndUnsupportedImages(string input)
     {
+        // Verify invalid image bytes fail normalization before they reach persistence.
         Assert.Throws<SmartSolar.Application.Exceptions.BadRequestException>(()=>SmartSolar.Api.Security.AvatarNormalizer.Normalize(System.Text.Encoding.UTF8.GetBytes(input)));
     }
 }

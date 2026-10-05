@@ -1,6 +1,8 @@
 /*
+ * File: IPasswordSecurityRepository.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Defines conditional password recovery, credential mutation and security notification contracts.
  */
 using SmartSolar.Domain.Entities;
 namespace SmartSolar.Application.Abstractions.Security;

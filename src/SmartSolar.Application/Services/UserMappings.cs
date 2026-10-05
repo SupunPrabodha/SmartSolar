@@ -1,6 +1,7 @@
 /*
  * File: UserMappings.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Maps user domain entities to API-safe DTOs.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

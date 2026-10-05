@@ -1,6 +1,7 @@
 /*
  * File: StationService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Owns station validation and geographic discovery, preserving reservation ownership.
  */
 using SmartSolar.Application.Abstractions.Persistence;

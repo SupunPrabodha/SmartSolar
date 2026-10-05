@@ -52,4 +52,4 @@ Stations uses a child SupportMapFragment with view lifecycle enabled, getMapAsyn
 
 No Navigation Component, Compose or new dependency was added. The resolved existing versions are Fragment 1.5.4 and lifecycle-viewmodel 2.6.2.
 
-For evidence and limits, see [the refactor report](FINAL-ANDROID-WORKSPACE-REFACTOR.md) and [device acceptance](ANDROID-WORKSPACE-NAVIGATION-ACCEPTANCE.md).
+Run the [manual acceptance checklist](FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md) and [screenshot checklist](FINAL-UI-SCREENSHOT-CHECKLIST.md). Host tests do not certify lifecycle, rendering or device behavior.

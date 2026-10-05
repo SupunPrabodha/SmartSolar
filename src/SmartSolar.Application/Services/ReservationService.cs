@@ -1,6 +1,7 @@
 /*
  * File: ReservationService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Orchestrates authorized reservation lifecycle and conservative standalone write recovery.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -673,6 +674,7 @@ public sealed class ReservationService : IReservationService
     private async Task EnsureStationEnergyCapacityAsync(
         SolarStation station, string slotId, decimal requestedKwh, string? excludedReservationId, CancellationToken ct)
     {
+        // Check requested energy against station capacity and active allocation on this slot.
         if (requestedKwh > station.CapacityKwh)
             throw new BadRequestException($"Requested energy amount ({requestedKwh} kWh) exceeds station capacity ({station.CapacityKwh} kWh).");
 

@@ -1,6 +1,7 @@
 /*
  * File: EmailVerificationController.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Consumes approved Prosumer email-verification links without granting a login session.
  */
 using System.ComponentModel.DataAnnotations;

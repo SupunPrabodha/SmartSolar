@@ -1,6 +1,7 @@
 /*
  * File: ReservationMongoTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Verifies real standalone Mongo concurrency and reservation persistence contracts.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

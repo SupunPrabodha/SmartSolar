@@ -1,6 +1,8 @@
 /*
+ * File: PasswordSecurityRepository.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Conditionally persists recovery hashes and atomic credential/session-version changes.
  */
 using MongoDB.Driver;
 using SmartSolar.Application.Abstractions.Security;
@@ -15,6 +17,7 @@ public sealed class PasswordSecurityRepository(IMongoDatabase database) : IPassw
     private IMongoCollection<User> Users => database.GetCollection<User>(CollectionNames.Users);
     private static FilterDefinition<User> Expected(User user)
     {
+        // Match the active account and observed version, including legacy unversioned documents.
         var f = Builders<User>.Filter;
         var version = f.Eq(x => x.AccountVersion, user.AccountVersion);
         if (user.AccountVersion == 0) version |= f.Exists(x => x.AccountVersion, false);
@@ -28,13 +31,17 @@ public sealed class PasswordSecurityRepository(IMongoDatabase database) : IPassw
             .Set(x => x.PasswordResetRequestedAtUtc, now).Inc(x => x.AccountVersion, 1), cancellationToken: ct);
         return result.ModifiedCount == 1;
     }
-    public Task<User?> FindResetAsync(string hash, DateTime now, CancellationToken ct) =>
-        Users.Find(x => x.PasswordResetTokenHash == hash && x.PasswordResetExpiresAtUtc > now && x.Status == UserStatus.Active)
+    public Task<User?> FindResetAsync(string hash, DateTime now, CancellationToken ct)
+    {
+        // Find an active account with the matching unexpired recovery-token hash.
+        return Users.Find(x => x.PasswordResetTokenHash == hash && x.PasswordResetExpiresAtUtc > now && x.Status == UserStatus.Active)
             .FirstOrDefaultAsync(ct)!;
+    }
 
     public async Task<bool> ChangeAsync(User expected, string passwordHash, string? resetHash, DateTime now,
         AuditEntry audit, InboxNotification notification, CancellationToken ct)
     {
+        // Atomically replace credentials, consume reset state and advance account and session versions.
         var filter = Expected(expected);
         if (resetHash is not null)
             filter &= Builders<User>.Filter.Eq(x => x.PasswordResetTokenHash, resetHash) &

@@ -1,6 +1,7 @@
 /*
  * File: IReservationQueryService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Defines authorized booking views and dashboard reads for a trusted caller NIC.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

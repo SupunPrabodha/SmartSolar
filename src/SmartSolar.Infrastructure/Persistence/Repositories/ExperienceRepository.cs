@@ -1,6 +1,8 @@
 /*
+ * File: ExperienceRepository.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Persists avatars and inbox state and performs authorized audit, search and export reads.
  */
 using SmartSolar.Application.Abstractions.Security;
 using System.Globalization;
@@ -20,6 +22,7 @@ public sealed class ExperienceRepository(IMongoDatabase database, IRequestIdenti
     private IMongoCollection<User> Users => database.GetCollection<User>(CollectionNames.Users);
     public async Task SetAvatarAsync(string nic, byte[]? bytes, CancellationToken ct)
     {
+        // Replace avatar metadata atomically while preserving unrelated account fields.
         var update = Builders<User>.Update.Set(x => x.AvatarBytes, bytes)
             .Set(x => x.AvatarContentType, bytes is null ? null : "image/jpeg")
             .Set(x => x.AvatarVersion, bytes is null ? null : Guid.NewGuid().ToString("N"))
@@ -29,13 +32,17 @@ public sealed class ExperienceRepository(IMongoDatabase database, IRequestIdenti
     }
     public async Task<(byte[]? Bytes, string? Version)> GetAvatarAsync(string nic, CancellationToken ct)
     {
+        // Project only avatar bytes and version for the authenticated image response.
         var data = await Users.Find(x => x.Nic == nic)
             .Project(x => new { x.AvatarBytes, x.AvatarVersion }).FirstOrDefaultAsync(ct);
         return (data?.AvatarBytes, data?.AvatarVersion);
     }
-    public async Task<IReadOnlyList<InboxNotification>> InboxAsync(string nic, CancellationToken ct) =>
-        (await Users.Find(x => x.Nic == nic).Project(x => x.Notifications).FirstOrDefaultAsync(ct) ?? [])
+    public async Task<IReadOnlyList<InboxNotification>> InboxAsync(string nic, CancellationToken ct)
+    {
+        // Return the owner's latest retained notifications in descending time order.
+        return (await Users.Find(x => x.Nic == nic).Project(x => x.Notifications).FirstOrDefaultAsync(ct) ?? [])
             .OrderByDescending(x => x.AtUtc).Take(100).ToList();
+    }
 
     public async Task ReadAsync(string nic, string? id, DateTime now, CancellationToken ct)
     {
@@ -47,14 +54,19 @@ public sealed class ExperienceRepository(IMongoDatabase database, IRequestIdenti
             new UpdateOptions { ArrayFilters = [new BsonDocumentArrayFilterDefinition<BsonDocument>(filter)] }, ct);
     }
 
-    private static string Collection(string kind) => kind switch
+    private static string Collection(string kind)
+    {
+        // Resolve supported resource names to the existing four collection constants.
+        return kind switch
     {
         "users" => CollectionNames.Users, "stations" => CollectionNames.Stations,
         "slots" => CollectionNames.BookingSlots, "reservations" => CollectionNames.Reservations,
         _ => throw new BadRequestException("Unsupported resource.")
     };
+    }
     public async Task<IReadOnlyList<AuditEntry>> AuditAsync(string kind, string id, string nic, UserRole role, CancellationToken ct)
     {
+        // Enforce resource visibility before returning retained audit entries.
         if (kind == "users" && role != UserRole.Backoffice && id != nic ||
             kind == "reservations" && role == UserRole.Backoffice ||
             kind is "stations" or "slots" && role == UserRole.Prosumer)
@@ -69,6 +81,7 @@ public sealed class ExperienceRepository(IMongoDatabase database, IRequestIdenti
     }
     public async Task<IReadOnlyList<SearchHit>> SearchAsync(string query, string nic, UserRole role, CancellationToken ct)
     {
+        // Validate and scope bounded prefix searches to records the caller may access.
         if (query.Length is < 2 or > 80) throw new BadRequestException("Enter between 2 and 80 characters.");
         // Prefix-only literal searches, a hard result cap and execution deadline protect large datasets.
         var rx = new BsonRegularExpression("^" + Regex.Escape(query), "");
@@ -91,6 +104,7 @@ public sealed class ExperienceRepository(IMongoDatabase database, IRequestIdenti
     }
     public async Task<byte[]> ExportAsync(string kind, ExportQuery query, string nic, UserRole role, CancellationToken ct)
     {
+        // Apply role, owner and filter constraints before encoding a bounded CSV projection.
         if (kind == "users" && role != UserRole.Backoffice || kind == "reservations" && role == UserRole.Backoffice ||
             kind == "slots" || kind == "stations" && role == UserRole.Prosumer)
             throw new ForbiddenException("Export is not available for your role.");

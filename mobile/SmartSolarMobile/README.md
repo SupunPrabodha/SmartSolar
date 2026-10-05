@@ -1,8 +1,6 @@
-# Smart Solar Mobile - common foundation and Member 1
+# Smart Solar Mobile
 
-This is the authoritative native Android project: Java + XML Views in package `com.smartsolar.mobile`. All source lives in `app/src`. The integrated duplicate `template-src` / `template-res` and unused `SmartSolarMobileGenerated` IDE folder have been removed after comparison.
-
-Phase 0 includes login, a common HomeActivity, server profile refresh, JWT expiry/401 handling and sign out. Member 1 adds Find Stations, API nearby search, Google Maps markers and station/slot availability details. Reservation, QR, transaction and dashboard workflows remain deferred.
+The native Android client uses Java/XML Views in package `com.smartsolar.mobile`. All application source lives in `app/src`. Prosumer workflows include registration, profile management, reservations, booking views and Approved QR display. GridOperators use booking queries, counts, camera scanning, server verification and completion. Both roles discover stations with Maps; enterprise data always comes from the REST API.
 
 ## Build
 
@@ -12,9 +10,7 @@ From the repository root in PowerShell:
 
 ```powershell
 Set-Location .\mobile\SmartSolarMobile
-.\gradlew.bat clean
-.\gradlew.bat :app:assembleDebug
-.\gradlew.bat :app:testDebugUnitTest :app:lintDebug
+.\gradlew.bat clean :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:processReleaseMainManifest
 ```
 
 The command is `.\gradlew.bat`, with no slash between `gradlew` and `.bat`.
@@ -23,7 +19,7 @@ The command is `.\gradlew.bat`, with no slash between `gradlew` and `.bat`.
 - JVM tests: `app/build/reports/tests/testDebugUnitTest/index.html`.
 - Lint: `app/build/reports/lint-results-debug.html`.
 
-Local tests cover expiry, JWT headers/401 handling, permitted mobile roles/statuses, station/slot DTOs and discovery request paths/parameters. They run without an emulator and do not certify live login, UI or SQLite behavior.
+Local tests cover sessions, role policy, auth errors, DTO/API requests, reservations, QR and display references. Host tests do not certify camera, Maps, live login, rendered UI or SQLite device behavior.
 
 ## Start the backend
 
@@ -63,7 +59,7 @@ For Android Studio emulators and USB-connected physical Android devices, connect
 
 The trailing slash is required by Retrofit. Android debug uses `localhost` with ADB reverse forwarding, which works for both the emulator and a USB-connected physical device. Without forwarding, Android `localhost` points to the device itself and API requests fail.
 
-The main manifest requests INTERNET and ACCESS_COARSE_LOCATION and disables cleartext. Location is requested only when Find near me is tapped. LoginActivity is the exported launcher; HomeActivity and both station activities are internal. Only `app/src/debug/AndroidManifest.xml` adds the debug network-security config allowing HTTP to local API addresses. Release has no such exception. Approximate foreground location is the only requested dangerous permission; there is no fine/background location or camera permission. Maps adds normal ACCESS_NETWORK_STATE through manifest merging. There are no trust-all certificates or hostname-validation bypasses.
+The main manifest requests INTERNET, ACCESS_COARSE_LOCATION and CAMERA and disables cleartext. Location is requested on Find near me; camera is requested for QR scanning, with denial/recovery handling. LoginActivity is the exported launcher; WorkspaceActivity and deep-flow activities are internal. Only the debug manifest adds local-host HTTP exceptions. Release has no exception. No fine/background location, broad storage permission, trust-all certificate or hostname-validation bypass is used. Maps contributes normal ACCESS_NETWORK_STATE through manifest merging.
 
 For future release configuration, replace the placeholder with the actual public HTTPS host:
 
@@ -77,21 +73,25 @@ The property must use HTTPS, end in `/api/v1/`, and contain no credentials, quer
 
 1. Start an API 26+ emulator with Google APIs/Google Play services in Android Studio Device Manager.
 2. Select `app`, the `debug` variant and that emulator, then Run. Alternatively, run `.\gradlew.bat :app:installDebug` and launch Smart Solar Microgrid.
-3. Use an **Active Prosumer or GridOperator** NIC/password. A PendingActivation Prosumer must first be activated by Backoffice through Swagger/API.
-4. Confirm Home shows your real full name, role, account state, profile verification time and session expiry.
-5. Tap Refresh profile: it calls `GET /api/v1/users/me`. Returning to the app also revalidates the profile. A SQLite row alone never grants access.
+3. Use an **Active Prosumer or GridOperator** NIC/password. A PendingActivation Prosumer requires Backoffice approval and explicit email verification before activation.
+4. Confirm the workspace/account sheet shows your real profile, role and account state, with live booking data.
+5. Open Account options > Refresh profile: it calls `GET /api/v1/users/me`. Returning to the app also revalidates the profile. A SQLite row alone never grants access.
 6. Sign out: the token/expiry and local profile are cleared, and Back cannot reopen the signed-in screen.
 
 Backoffice users must use web; Android rejects their mobile session with a clear message. API authorization remains authoritative for every role.
 
-Find Stations works for both supported mobile roles. My Reservations/Booking History (Prosumer) and Scan Transaction/Transaction History (GridOperator) remain disabled.
+The workspace has exactly five destinations:
+- Prosumer: Home / Stations / Reservations / History / Account.
+- GridOperator: Home / Stations / Scan / Bookings / Search.
+
+Prosumer Reservations contains My reservations, Current, Pending and Search; operator Bookings contains Current, Pending and History. Deep registration/detail/create/review/summary/QR/scanner/profile/notification flows use focused screens. See [workspace architecture](../../docs/ANDROID-WORKSPACE-ARCHITECTURE.md).
 
 ## Manual emulator checks
 
 These checks require your running backend and test accounts. Host build/unit-test results are not runtime evidence.
 
-1. **Prosumer login:** use an Active Prosumer; verify actual name, role, Active status, expiry, working Find Stations and the two disabled reservation/history placeholders. Refresh successfully.
-2. **GridOperator login:** sign out and use an Active GridOperator; verify Find Stations is available; Scan Transaction and Transaction History remain disabled.
+1. **Prosumer login:** use an Active Prosumer; verify actual name, role, Active status, Stations, Reservations/History and Account. Refresh successfully.
+2. **GridOperator login:** sign out and use an Active GridOperator; verify Stations, Scan, Bookings, Search and live counts are available; owner reservation controls are absent.
 3. **Backoffice rejection:** sign out and enter valid Backoffice credentials; expect a web-workspace message, no Home access and no cached profile.
 4. **Invalid/inactive accounts:** test wrong password, PendingActivation and Deactivated accounts; expect an error and no session/cache.
 5. **Restoration:** close/reopen, background/foreground and rotate the app. Expect `/users/me` verification with a valid token. Check portrait, landscape, light/dark mode, large fonts, keyboard and system-bar insets.
@@ -122,23 +122,9 @@ Expect one profile after login/refresh and zero after logout/expiry/401 or mobil
 
 ## Package organization
 
-```text
-com.smartsolar.mobile
-  data/local           SQLite profile cache
-  data/remote          Retrofit client
-    api                auth/profile and station/slot discovery
-    dto                API request/response objects
-    interceptor        Authorization and invalid-session clearing
-  data/repository      Background API/session/cache coordination
-  ui/auth              LoginActivity
-  ui/home              HomeActivity with Find Stations and remaining placeholders
-  ui/stations          API station list/nearby Maps and station/slot details
-  util                 Session storage/expiry and mobile navigation policy
-```
+Enterprise data goes through Retrofit repositories to REST; SQLite remains a local profile cache. ui/workspace owns the retained top-level fragments, with focused ui/auth, ui/account, ui/stations and ui/reservations flows. data/local contains SQLite, data/remote APIs/DTOs/interceptors, data/repository background coordination and util session/presentation helpers.
 
-Future domain/model and feature UI packages are created by their owners when needed. No fake feature classes are included.
-
-Enterprise data goes through the REST API. Google Maps SDK separately downloads Google map imagery; Play services supplies device location. MongoDB remains server-side enterprise persistence; SQLite is local cache only. See [dependencies](DEPENDENCIES.md), [team onboarding](../../docs/TEAM-ONBOARDING.md) and [final report](../../docs/PHASE-0-FINAL-REPORT.md).
+Google Maps separately downloads map tiles; Play services supplies location. See [dependencies](DEPENDENCIES.md), [onboarding](../../docs/TEAM-ONBOARDING.md) and [architecture/display references](../../docs/ARCHITECTURE.md#display-references).
 
 ## Google Maps local configuration
 
@@ -155,21 +141,29 @@ Enterprise data goes through the REST API. Google Maps SDK separately downloads 
 5. Without a key, builds still succeed and the app offers the API station list with a map-unavailable message. It does not initialize Maps with a fake key. A configured but invalid/restricted key can leave map tiles blank; the list remains usable. Check API enablement, billing, package and SHA-1 locally.
 6. The key is necessarily present in a configured APK manifest; an ignored file prevents source disclosure, not extraction from the APK. Google Cloud application/API restrictions are required. Do not upload configured build artifacts to public issues.
 
-The selected SDKs are Maps 19.2.0 and Play services Location 21.3.0, declared in the version catalog and validated by this project's build. No new web dependency or camera/QR SDK is added.
+The selected SDKs are Maps 19.2.0 and Play services Location 21.3.0, declared in the version catalog and validated by this project's build. QR display/scanning uses ZXing; see the dependency list.
 
-## Member 1 manual emulator checks
+## Station and Maps manual checks
 
-These have **not** been executed in this pass. Use disposable real API data created through the web/Swagger; no mock stations are included in the app.
+These require fresh execution on the selected build. Use disposable real API data created through the web/Swagger; no mock stations are included in the app.
 
-1. Start MongoDB and the backend using the commands above. Verify `http://10.0.2.2:5000/health`. Start a Google APIs/Play emulator, install the debug APK and sign in with an Active Prosumer.
+1. Start MongoDB and the backend using the commands above. Verify `http://localhost:5000/health`. Start a Google APIs/Play emulator, install the debug APK and sign in with an Active Prosumer.
 2. On Home tap **Find Stations**. Without granting location, confirm it lists actual active stations, their address, kWh capacity and battery-slot count. An empty database shows an empty state. With no local Maps key, confirm the list and detail still work.
-3. Configure the restricted key, rebuild/reinstall, and repeat. Confirm markers use the stored station latitude/longitude. Tap a marker and a list item's View station; both must open that station's freshly fetched name, address, capacity, UTC schedule and active slot inventory.
+3. Configure the restricted key, rebuild/reinstall, and repeat. Confirm markers use the stored station latitude/longitude. Tap a marker and a list item's View station; both must open that station's freshly fetched name, address, capacity, device-local dated operating intervals derived from the UTC schedule, and active slot inventory.
 4. Set an emulator location near your test stations using Extended Controls > Location. Enable device Location and tap **Find near me**. Grant approximate location; expect API results within 25 km, nearest first, with approximate distance. Locate a test station beyond 25 km and an inactive station; neither should appear in nearby results. Distances are great-circle estimates, not driving distances.
 5. Deny location, deny again, and disable it in Android Settings. Confirm a helpful message and working all-stations fallback, no repeated unsolicited prompts. Restore permission/device location and tap Find near me again. Turn location off to exercise timeout/unavailable handling.
 6. Tap **Show all active stations**, then Refresh / retry. Confirm the current API list replaces earlier results. Change a station's GPS/name through Backoffice and refresh; confirm marker/detail updates. Deactivate an unreferenced station and confirm it disappears; an old detail shows unavailable after refresh.
-7. As GridOperator in web, create a slot and change its availability. Reopen/refresh Android detail; confirm actual start/end UTC and counts, including zero availability. No booking button or reservation action should exist.
+7. As GridOperator in web, create a slot and change its availability. Reopen/refresh Android detail; compare local displayed start/end against API UTC values and actual counts, including zero availability. Verify Prosumer reservation creation through the workspace slot picker.
 8. Test API/network outage on list, nearby and details. Expect an error and working retry after recovery. Also test offline Maps tiles: station API/list availability is independent. Test an invalid key locally without sharing it.
 9. Rotate, background/foreground, and navigate Back while API/location calls are pending. Confirm no crash, duplicate stale rows or old-session content. Repeat with API 26 and a current target-compatible device, portrait/landscape, light/dark mode, large fonts, TalkBack and system bars.
-10. Repeat discovery as Active GridOperator. Backoffice mobile login remains rejected. Expire/deactivate a disposable account while a station screen is visible; refresh/resume should require login and clear invalid session/cache. Run the foundation expiry/401/SQLite checks above as well.
+10. Repeat discovery as Active GridOperator. Backoffice mobile login remains rejected. Expire/deactivate a disposable account while a station screen is visible; refresh/resume should require login and clear invalid session/cache. Run the expiry/401/SQLite checks above as well.
 
 Only foreground approximate location is used. Location and nearby distance are not persisted to SQLite; its version-1 profile schema remains unchanged. No emulator, Maps tiles, real location result or device SQLite execution is claimed by JVM tests.
+
+## Functional and device acceptance
+
+Run the [consolidated manual checklist](../../docs/FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md) for create/review/modify/cancel, 7-day/12-hour cutoffs, status/role controls, current/pending/history/search paging, QR issuance/scan/window/completion and replay. Also test account photo/profile/security, notifications, forgotten passwords and explicit email verification.
+
+Compare REF-/STN-/SLOT- display references with Web for the same real IDs; these are presentation aids only. Existing API payloads retain actual identifiers. Test rotation/process restoration, light/dark themes, large fonts, TalkBack, keyboard, system insets and permission denial on API 26 and a current physical device. The login form overlays a decorative solar photograph; verify all fields/actions remain reachable when the keyboard is open.
+
+Before configuring Maps, the key owner must confirm revocation of the historically exposed key and restrict its replacement. Never share configured APK manifests or credentials as evidence.

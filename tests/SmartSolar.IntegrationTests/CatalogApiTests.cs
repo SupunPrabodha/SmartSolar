@@ -1,6 +1,7 @@
 /*
  * File: CatalogApiTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Exercises actual JWT authorization, HTTP contracts and Mongo catalog persistence.
  */
 using System.Net;
@@ -164,6 +165,7 @@ public sealed class CatalogApiTests
     [MongoFact]
     public async Task StationCapacityReductionUsesAllActiveReservationEnergy()
     {
+        // Verify capacity reduction respects all Pending and Approved energy across station slots.
         MongoMappings.Register();
         var client = new MongoClient(Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO"));
         var name = "SmartSolarTests_" + Guid.NewGuid().ToString("N");

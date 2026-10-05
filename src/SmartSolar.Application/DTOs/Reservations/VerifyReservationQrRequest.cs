@@ -1,6 +1,7 @@
 /*
  * File: VerifyReservationQrRequest.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Transports scanned opaque QR reference for server-side verification.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

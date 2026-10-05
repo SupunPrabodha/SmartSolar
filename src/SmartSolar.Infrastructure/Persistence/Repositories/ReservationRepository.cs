@@ -1,6 +1,7 @@
 /*
  * File: ReservationRepository.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Implements conditional Mongo reservation writes without multi-document transactions.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -230,6 +231,7 @@ public sealed class ReservationRepository : IReservationRepository
 
     public async Task RecordQrVerificationAsync(EnergyReservation expected, string actorNic, DateTime now, CancellationToken ct = default)
     {
+        // Append verification evidence only while the approved reservation and QR hash still match.
         var entry = AuditTrail.Create(_identity, "QrVerified", "Reservation", expected.ReservationId);
         entry.ActorNic = actorNic; entry.AtUtc = now;
         var result = await _reservations.UpdateOneAsync(x => x.ReservationId == expected.ReservationId &&

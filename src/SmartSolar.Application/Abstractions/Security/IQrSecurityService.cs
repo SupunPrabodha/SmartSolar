@@ -1,6 +1,7 @@
 /*
  * File: IQrSecurityService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Defines secure QR reference generation, hashing, and structural validation.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */

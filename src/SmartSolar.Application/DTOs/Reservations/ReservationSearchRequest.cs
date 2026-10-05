@@ -1,6 +1,7 @@
 /*
  * File: ReservationSearchRequest.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Validates bounded, exact reservation read filters without accepting database expressions.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

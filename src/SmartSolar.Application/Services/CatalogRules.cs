@@ -1,6 +1,7 @@
 /*
  * File: CatalogRules.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Validates UTC operating schedules, coordinates and optimistic update timestamps.
  */
 using System.Globalization;

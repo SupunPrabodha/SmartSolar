@@ -1,6 +1,7 @@
 /*
  * File: StationsController.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Exposes authenticated station discovery and Backoffice management.
  */
 using Microsoft.AspNetCore.Authorization;

@@ -1,7 +1,8 @@
 /*
  * File: ReservationsController.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Exposes authenticated Member 3 reservation lifecycle operations.
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
+ * Purpose: Exposes authenticated reservation lifecycle operations.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using Microsoft.AspNetCore.Authorization;

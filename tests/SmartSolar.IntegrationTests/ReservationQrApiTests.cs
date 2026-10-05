@@ -1,6 +1,7 @@
 /*
  * File: ReservationQrApiTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Tests QR issuance, rotation, server-side verification HTTP endpoints and MongoDB persistence.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -384,6 +385,7 @@ public sealed class ReservationQrApiTests
 
     private static async Task<JsonElement> Body(HttpResponseMessage response)
     {
+        // Clone response JSON for assertions after the parsing document is disposed.
         using var stream = await response.Content.ReadAsStreamAsync();
         using var doc = await JsonDocument.ParseAsync(stream);
         return doc.RootElement.Clone();
@@ -391,6 +393,7 @@ public sealed class ReservationQrApiTests
 
     private static async Task WithApi(Func<ApiFixture, Task> test)
     {
+        // Run the API scenario against a unique test database and dispose its resources afterward.
         var name = "SmartSolarTests_" + Guid.NewGuid().ToString("N");
         var connection = Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO")!;
         var factory = new ApiFactory(connection, name);
@@ -413,6 +416,7 @@ public sealed class ReservationQrApiTests
         public FixedClock Clock { get; } = new();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Configure an isolated API test host with disposable storage and security dependencies.
             builder.UseEnvironment("Testing");
             builder.UseSetting("MongoDb:ConnectionString", connection);
             builder.UseSetting("MongoDb:DatabaseName", databaseName);
@@ -441,6 +445,7 @@ public sealed class ReservationQrApiTests
 
         public async Task Seed()
         {
+            // Seed disposable role identities, a station and linked inventory for QR API scenarios.
             foreach (var pair in new[] { ("P1", UserRole.Prosumer), ("P2", UserRole.Prosumer), ("OP", UserRole.GridOperator), ("BO", UserRole.Backoffice) })
             {
                 _accounts[pair.Item1] = new User
@@ -466,10 +471,15 @@ public sealed class ReservationQrApiTests
             await Slots.InsertOneAsync(Slot);
         }
 
-        public void EnterWindow() => factory.Clock.Current = Slot.StartAtUtc;
+        public void EnterWindow()
+        {
+            // Advance the fixture clock to the accepted transfer start boundary.
+            factory.Clock.Current = Slot.StartAtUtc;
+        }
 
         public HttpClient Client(string? nic = null)
         {
+            // Create an in-process HTTP client with the requested identity and redirects disabled.
             var client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new Uri("https://localhost"),
@@ -486,6 +496,7 @@ public sealed class ReservationQrApiTests
 
         public async Task<string> CreateReservation(string nic)
         {
+            // Create a reservation through the API and retain its authoritative identifier.
             using var client = Client(nic);
             using var response = await client.PostAsJsonAsync(Root, new { slotId = Slot.SlotId, energyAmountKwh = 10m });
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -494,6 +505,7 @@ public sealed class ReservationQrApiTests
 
         public async Task<string> CreateApprovedReservation(string nic)
         {
+            // Prepare an approved reservation and move the fixture clock into its transfer window.
             var id = await CreateReservation(nic);
             await Reservations.UpdateOneAsync(
                 x => x.ReservationId == id,
@@ -506,6 +518,10 @@ public sealed class ReservationQrApiTests
     private sealed class FixedClock : TimeProvider
     {
         public DateTime Current { get; set; } = Now;
-        public override DateTimeOffset GetUtcNow() => new(Current);
+        public override DateTimeOffset GetUtcNow()
+        {
+            // Return the controlled fixture clock for deterministic time-boundary assertions.
+            return new(Current);
+        }
     }
 }

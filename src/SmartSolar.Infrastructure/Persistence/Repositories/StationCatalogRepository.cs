@@ -1,6 +1,7 @@
 /*
  * File: StationCatalogRepository.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Persists station and slot administration in the original collections.
  */
 using SmartSolar.Application.Abstractions.Security;

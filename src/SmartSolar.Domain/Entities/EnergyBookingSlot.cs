@@ -1,7 +1,8 @@
 /*
  * File: EnergyBookingSlot.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Models station inventory, its UTC interval, availability and audit history.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

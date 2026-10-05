@@ -1,7 +1,8 @@
 /*
  * File: ReservationQueriesController.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Exposes Member 4 read-only booking views using the existing JWT authorization style.
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
+ * Purpose: Exposes authorized read-only booking views using the existing JWT authorization style.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using Microsoft.AspNetCore.Authorization;

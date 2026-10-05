@@ -1,6 +1,7 @@
 /*
  * File: UsersController.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Exposes authenticated user/profile and Backoffice user-management endpoints.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

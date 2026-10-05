@@ -1,6 +1,7 @@
 /*
  * File: SlotService.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Owns booking-slot inventory management without implementing reservation booking.
  */
 using SmartSolar.Application.Abstractions.Persistence;

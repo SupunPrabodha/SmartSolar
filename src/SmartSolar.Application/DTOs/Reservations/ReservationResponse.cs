@@ -1,6 +1,7 @@
 /*
  * File: ReservationResponse.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Defines the server-derived reservation summary without QR credentials.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

@@ -1,6 +1,7 @@
 /*
  * File: MongoFoundationTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Verifies MongoDB collection contracts, identifiers and uniqueness in an isolated test database.
  */
 using MongoDB.Bson;

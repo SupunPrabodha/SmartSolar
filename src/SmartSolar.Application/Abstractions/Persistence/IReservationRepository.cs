@@ -1,6 +1,7 @@
 /*
  * File: IReservationRepository.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Defines reservation aggregate reads and conditional standalone-safe writes.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -26,6 +27,10 @@ public interface IReservationRepository
     Task<bool> TryReplaceAsync(EnergyReservation expected, EnergyReservation replacement, CancellationToken ct = default);
     Task<EnergyReservation?> GetByQrHashAsync(string qrTokenHash, CancellationToken ct = default);
     Task<bool> TryUpdateQrHashAsync(string reservationId, string? expectedHash, string newHash, DateTime issuedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default);
-    Task RecordQrVerificationAsync(EnergyReservation expected, string actorNic, DateTime now, CancellationToken ct = default) => Task.CompletedTask;
+    Task RecordQrVerificationAsync(EnergyReservation expected, string actorNic, DateTime now, CancellationToken ct = default)
+    {
+        // Leave verification auditing optional for repositories without an audit store.
+        return Task.CompletedTask;
+    }
     Task<bool> TryCompleteReservationAsync(string reservationId, string qrTokenHash, string operatorNic, DateTime completedAtUtc, DateTime updatedAtUtc, CancellationToken ct = default);
 }

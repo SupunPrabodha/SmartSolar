@@ -1,6 +1,8 @@
 /*
+ * File: IExperienceRepository.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Defines authorized profile-image, notification, audit, search and export persistence.
  */
 using SmartSolar.Domain.Entities;
 using SmartSolar.Domain.Enums;

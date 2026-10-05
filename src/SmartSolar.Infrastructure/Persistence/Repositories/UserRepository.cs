@@ -1,6 +1,7 @@
 /*
  * File: UserRepository.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450), Wickramathilaka N. M. (IT23165434), RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Encapsulates MongoDB persistence operations for users.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
@@ -33,10 +34,13 @@ public sealed class UserRepository : IUserRepository
         return await _collection.Find(x => x.Nic == nic).FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default) =>
-        _collection.Find(x => x.Nic == nic)
+    public Task<User?> GetSessionUserAsync(string nic, CancellationToken cancellationToken = default)
+    {
+        // Project identity, role, state and session version without loading private profile payloads.
+        return _collection.Find(x => x.Nic == nic)
             .Project<User>(Builders<User>.Projection.Include(x => x.Nic).Include(x => x.Role).Include(x => x.Status).Include(x => x.SecurityVersion))
             .FirstOrDefaultAsync(cancellationToken)!;
+    }
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {

@@ -1,6 +1,7 @@
 /*
  * File: IVerificationEmailSender.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Wickramathilaka N. M. (IT23165434)
  * Purpose: Separates account approval from email transport.
  */
 namespace SmartSolar.Application.Abstractions.Users;

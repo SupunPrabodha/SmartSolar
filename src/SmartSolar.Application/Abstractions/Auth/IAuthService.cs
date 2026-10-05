@@ -1,7 +1,8 @@
 /*
  * File: IAuthService.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Shared project source file for the SE4040 EAD implementation.
+ * Author(s): Wickramathilaka N. M. (IT23165434)
+ * Purpose: Defines Prosumer registration and active-account sign-in operations.
  * Note: Keep this header and add/update method-level comments as the code evolves.
  */
 

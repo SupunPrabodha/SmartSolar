@@ -1,6 +1,7 @@
 /*
  * File: QrSecurityServiceTests.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): ALAHAKOON A. W. A. C. N. (IT23163522)
  * Purpose: Tests cryptographic randomness, hashing determinism, and payload format rules.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

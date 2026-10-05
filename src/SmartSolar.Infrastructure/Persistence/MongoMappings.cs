@@ -1,6 +1,7 @@
 /*
  * File: MongoMappings.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Keeps MongoDB document mappings outside the dependency-free domain.
  */
 using MongoDB.Bson;

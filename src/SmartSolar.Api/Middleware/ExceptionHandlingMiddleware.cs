@@ -1,6 +1,7 @@
 /*
  * File: ExceptionHandlingMiddleware.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Converts application exceptions into consistent RFC-style ProblemDetails responses.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

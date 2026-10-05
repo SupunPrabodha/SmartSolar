@@ -1,6 +1,6 @@
 # Final UI screenshot and acceptance checklist
 
-Capture only after running the final app against disposable API data. The fixture browser captures described in [the polish report](FINAL-UI-UX-POLISH-REPORT.md) are layout evidence, not these live acceptance screenshots. Every item below remains unchecked until executed.
+Capture only after running the final app against disposable API data. Every item below remains unchecked until executed.
 
 Record the date, branch/HEAD, client build, role, browser/device, viewport or screen size, timezone, theme and font/zoom setting with each capture. Use fictitious account details. Do not include passwords, JWTs, Maps keys, developer secrets or raw QR payloads. Keep an Approved QR capture private; redact the scannable code before sharing publicly. Do not commit screenshots containing personal data or valid credentials.
 
@@ -10,7 +10,7 @@ Record the date, branch/HEAD, client build, role, browser/device, viewport or sc
 | --- | --- | --- |
 | [ ] | Login | Product branding, labeled fields, readable failure, keyboard focus |
 | [ ] | Backoffice Home | Actual account/activation/station metrics and compact actions |
-| [ ] | User Management / Pending Activation | Pending account, activation control, account form; one matching sidebar selection |
+| [ ] | User Management / Pending Activation | Pending account, approval/send-email control, account form; one matching sidebar selection |
 | [ ] | Stations | Real station names, addresses, capacities and active/inactive status |
 | [ ] | Station Detail / Slots | Recurring schedule explicitly UTC; dated slot inputs/displays local; slot state and controls |
 | [ ] | GridOperator Home | Actual pending/approved-future counts and role-specific actions |
@@ -37,7 +37,7 @@ For live Web acceptance:
 | Done | Screen | Required evidence |
 | --- | --- | --- |
 | [ ] | Login | Shared brand, persistent field labels, readable failure |
-| [ ] | Registration | Toolbar Back, no bottom bar; pending-activation confirmation |
+| [ ] | Registration | Toolbar Back, no bottom bar; pending-activation and email-verification guidance |
 | [ ] | Home with floating nav | Live counts; Home / Stations / Reservations / History / Account |
 | [ ] | Find Stations + Map | Real list/markers, map attribution, nearby controls, Stations selected |
 | [ ] | Station Detail | Local dated operating intervals and actual slots; toolbar Back, no bottom bar |
@@ -93,3 +93,14 @@ Use a small supported emulator and a current target-compatible emulator/device. 
 - [ ] Inspect SQLite: only the current cached profile; no password/hash/JWT/QR secret. Logout/expiry/matching 401/account switching clear stale data.
 
 Use [the functional acceptance checklist](FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md) for the complete business flows. IIS runtime and hosted CI remain separate execution requirements; neither follows from UI screenshots or local builds.
+
+## Account experience evidence
+
+- [ ] Web and Android profile: own photo/initials, completion state, personal/security sections, no private image/token disclosure.
+- [ ] Verification/recovery: generic acknowledgement, explicit verification confirmation and successful reset with all token-bearing URLs redacted.
+- [ ] Notifications and audit: real scoped entries, priority/unread state and mark-read actions.
+- [ ] Global search and filtered CSV: actual authorized records and clear empty/error states.
+- [ ] Station editor: manual coordinates, map selection/drag, Google coordinate-link helper, saved-location preview and station identity badge.
+- [ ] Same record on Web and Android: matching REF-/STN-/SLOT- display reference while API IDs remain unchanged.
+
+Do not include decorative login photography as evidence of a real station. Screenshots must be unique captures of the team's running system, with captions prepared by the documentation owner.

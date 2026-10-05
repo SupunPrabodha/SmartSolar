@@ -1,6 +1,8 @@
 /*
+ * File: AuditTrail.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Builds server-authored audit events and safe recipient notification metadata.
  */
 using SmartSolar.Application.Abstractions.Security;
 using SmartSolar.Domain.Entities;
@@ -9,7 +11,10 @@ namespace SmartSolar.Infrastructure.Persistence;
 internal static class AuditTrail
 {
     public static AuditEntry Create(IRequestIdentity? identity, string name, string action, string resource,
-        string? recipient = null, string? role = null) => new()
+        string? recipient = null, string? role = null)
+    {
+        // Build an audit event with safe notification metadata and the request identity.
+        return new()
     {
         AtUtc = DateTime.UtcNow, ActorNic = identity?.Nic ?? "System", Event = name,
         CorrelationId = identity?.CorrelationId ?? Guid.NewGuid().ToString("N"),
@@ -38,4 +43,5 @@ internal static class AuditTrail
         },
         Delivered = recipient is null && role is null
     };
+    }
 }

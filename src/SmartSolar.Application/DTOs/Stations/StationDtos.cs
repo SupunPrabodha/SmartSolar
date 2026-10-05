@@ -1,6 +1,7 @@
 /*
  * File: StationDtos.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Defines station and nearby API contracts without persistence objects.
  */
 using System.ComponentModel.DataAnnotations;

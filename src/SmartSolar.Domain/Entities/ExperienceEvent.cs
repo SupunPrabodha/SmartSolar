@@ -1,6 +1,8 @@
 /*
+ * File: ExperienceEvent.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Defines embedded, bounded audit events and user inbox notifications.
  */
 namespace SmartSolar.Domain.Entities;
 

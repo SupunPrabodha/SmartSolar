@@ -1,6 +1,7 @@
 /*
  * File: DevelopmentDataSeeder.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Seeds a development Backoffice account without storing credentials in source control.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

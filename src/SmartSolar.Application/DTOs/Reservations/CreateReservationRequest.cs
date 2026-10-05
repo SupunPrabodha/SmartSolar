@@ -1,6 +1,7 @@
 /*
  * File: CreateReservationRequest.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
  * Purpose: Limits reservation input to slot selection and positive energy amount.
  * Note: Keep this header and update method-level comments as the code evolves.
  */

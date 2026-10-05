@@ -1,6 +1,7 @@
 /*
  * File: MongoHealthCheck.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Smart Solar Development Team
  * Purpose: Reports API readiness using a live MongoDB ping.
  */
 using Microsoft.Extensions.Diagnostics.HealthChecks;

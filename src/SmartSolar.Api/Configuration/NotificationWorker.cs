@@ -1,6 +1,8 @@
 /*
+ * File: NotificationWorker.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Periodically retries delivery of retained business-event notifications.
  */
 using SmartSolar.Infrastructure.Persistence;
 namespace SmartSolar.Api.Configuration;
@@ -9,6 +11,7 @@ public sealed class NotificationWorker(IServiceScopeFactory scopes, ILogger<Noti
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Retry retained notification delivery until the host stops.
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {

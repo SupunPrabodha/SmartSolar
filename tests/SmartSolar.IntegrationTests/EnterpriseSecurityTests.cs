@@ -1,6 +1,8 @@
 /*
+ * File: EnterpriseSecurityTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Enterprise experience and operations security.
+ * Author(s): Liyanage S. P. (IT23187450)
+ * Purpose: Tests Mongo recovery concurrency, session revocation and bounded notification persistence.
  */
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -19,25 +21,38 @@ namespace SmartSolar.IntegrationTests;
 
 public sealed class EnterpriseSecurityTests
 {
-    private sealed class Clock : TimeProvider { public DateTimeOffset Now = DateTimeOffset.UtcNow; public override DateTimeOffset GetUtcNow() => Now; }
+    private sealed class Clock : TimeProvider { public DateTimeOffset Now = DateTimeOffset.UtcNow; public override DateTimeOffset GetUtcNow()
+    {
+        // Return the controlled fixture clock for deterministic time-boundary assertions.
+        return Now;
+    } }
     private sealed class Identity : IRequestIdentity
     {
         public string Nic => "200012345678";
         public string CorrelationId => new('a', 32);
         public int Failures;
-        public void DeliveryFailed(string operation) => Failures++;
+        public void DeliveryFailed(string operation)
+        {
+            // Count simulated delivery failures without retaining provider diagnostics.
+            Failures++;
+        }
     }
     private sealed class Email : IAccountSecurityEmailSender
     {
         public string? Token;
         public int Requests, Changes;
         public bool Fail;
-        public Task SendResetAsync(string email, string token, CancellationToken ct) { Token = token; Requests++; if (Fail) throw new Exception("private SMTP detail"); return Task.CompletedTask; }
-        public Task SendChangedAsync(string email, bool reset, CancellationToken ct) { Changes++; if (Fail) throw new Exception("private SMTP detail"); return Task.CompletedTask; }
+        public Task SendResetAsync(string email, string token, CancellationToken ct) {
+            // Capture reset delivery attempts and optionally simulate a private SMTP failure.
+            Token = token; Requests++; if (Fail) throw new Exception("private SMTP detail"); return Task.CompletedTask; }
+        public Task SendChangedAsync(string email, bool reset, CancellationToken ct) {
+            // Count password-change notifications and optionally simulate delivery failure.
+            Changes++; if (Fail) throw new Exception("private SMTP detail"); return Task.CompletedTask; }
     }
     [MongoFact]
     public async Task RecoveryReplacementExpiryConcurrencyAndRevocationAreAtomic()
     {
+        // Verify reset replacement, expiry, concurrent consumption and session revocation in MongoDB.
         MongoMappings.Register();
         var client = new MongoClient(Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO"));
         var name = "SmartSolarTests_" + Guid.NewGuid().ToString("N"); var db = client.GetDatabase(name);
@@ -63,7 +78,9 @@ public sealed class EnterpriseSecurityTests
             await Assert.ThrowsAsync<BadRequestException>(() => service.ResetAsync(new() { Token = first, NewPassword = "Replacement-Test-Password" }));
             await Assert.ThrowsAsync<BadRequestException>(() => service.ResetAsync(new() { Token = "malformed", NewPassword = "Replacement-Test-Password" }));
             await Assert.ThrowsAsync<BadRequestException>(() => service.ResetAsync(new() { Token = second, NewPassword = "short" }));
-            async Task<bool> Attempt() { try { await service.ResetAsync(new() { Token = second, NewPassword = "Replacement-Test-Password" }); return true; } catch (BadRequestException) { return false; } }
+            async Task<bool> Attempt() {
+                // Capture whether this competing reset request wins the one-use conditional update.
+                try { await service.ResetAsync(new() { Token = second, NewPassword = "Replacement-Test-Password" }); return true; } catch (BadRequestException) { return false; } }
             var winners = await Task.WhenAll(Attempt(), Attempt()); Assert.Single(winners, x => x);
             stored = (await users.GetByNicAsync(user.Nic))!;
             Assert.Null(stored.PasswordResetTokenHash); Assert.Null(stored.PasswordResetExpiresAtUtc);
@@ -93,6 +110,7 @@ public sealed class EnterpriseSecurityTests
     [MongoFact]
     public async Task NotificationsAreBoundedDeduplicatedAndReadWithoutErasingProfile()
     {
+        // Verify retention, delivery deduplication and read updates preserve unrelated profile data.
         MongoMappings.Register();
         var client = new MongoClient(Environment.GetEnvironmentVariable("SMARTSOLAR_TEST_MONGO"));
         var name = "SmartSolarTests_" + Guid.NewGuid().ToString("N"); var db = client.GetDatabase(name);

@@ -1,7 +1,8 @@
 /*
  * File: ReservationQueryTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Verifies Member 4 queries through real JWT authorization, HTTP and isolated MongoDB data.
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130), ALAHAKOON A. W. A. C. N. (IT23163522)
+ * Purpose: Verifies booking queries through real JWT authorization, HTTP and isolated MongoDB data.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using System.Net;

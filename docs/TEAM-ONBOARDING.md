@@ -1,6 +1,6 @@
 # Team onboarding (Windows)
 
-This guide starts from a fresh teammate checkout. If you already have the project, keep your existing checkout, local database and working User Secrets. The team leader will publish the repository manually; the commands below do not imply it has already been published.
+This guide starts from a fresh teammate checkout. If you already have the project, keep your existing checkout, local database and working User Secrets.
 
 ## 1. Install prerequisites
 
@@ -16,7 +16,7 @@ This guide starts from a fresh teammate checkout. If you already have the projec
 
 Use a checkout path without non-ASCII characters; a short path such as `C:\dev\SmartSolar` avoids Android path issues. Do not copy another developer's `local.properties`.
 
-## 2. Clone after the team leader publishes
+## 2. Clone the repository
 
 In PowerShell, from a parent folder for your projects:
 
@@ -25,7 +25,7 @@ git clone https://github.com/SupunPrabodha/SmartSolar.git
 Set-Location SmartSolar
 ```
 
-All following root commands run here, beside `SmartSolarMicrogrid.sln`. Once the leader creates `develop`, use that integration branch and follow [CONTRIBUTING](../CONTRIBUTING.md). Do not initialize a second repository inside web or mobile.
+All following root commands run here, beside `SmartSolarMicrogrid.sln`. Follow [CONTRIBUTING](../CONTRIBUTING.md). Do not initialize a second repository inside web or mobile.
 
 ## 3. Check tools and start local MongoDB
 
@@ -77,8 +77,8 @@ Keep it running. The profile serves both HTTPS 7001 and HTTP 5000:
 - Swagger: `https://localhost:7001/swagger`.
 - Web API: `https://localhost:7001/api/v1`.
 - Host health: `http://localhost:5000/health`.
-- Emulator API: `http://10.0.2.2:5000/api/v1/`.
-- Emulator health: `http://10.0.2.2:5000/health`.
+- Emulator API: `http://localhost:5000/api/v1/`.
+- Emulator health: `http://localhost:5000/health`.
 
 For Android-only work use `--launch-profile http` instead. It serves port 5000 only. ASP.NET Development does not redirect HTTP; other environments retain HTTPS redirection.
 
@@ -114,9 +114,9 @@ Set-Location .\mobile\SmartSolarMobile
 
 Start an emulator, select `app` / `debug`, and click Run. The APK is `app/build/outputs/apk/debug/app-debug.apk`.
 
-DEBUG uses `http://10.0.2.2:5000/api/v1/`; `10.0.2.2` is the host alias inside Android Emulator. Emulator `localhost` is the emulator itself. The debug network config permits HTTP to that host and to localhost/127.0.0.1 for explicit port-forwarding setups. Release requires a real HTTPS API endpoint and has no debug cleartext exception.
+DEBUG uses `http://localhost:5000/api/v1/`. Connect and authorize the emulator or USB device, then run `scripts\setup-adb-reverse.cmd` from the repository root. It forwards host ports 5000/7001 to connected devices; rerun after reconnecting. Without forwarding, localhost is the device. The debug config permits cleartext only to local development hosts; release requires HTTPS.
 
-Active Prosumer/GridOperator accounts open the native home screen. New Prosumers can register anonymously from the mobile login screen and remain PendingActivation until Backoffice approval. Backoffice users are told to use web and their mobile session is cleared. Login/restoration/refresh use the API; SQLite contains only the cached current profile, never passwords. Reservation times are shown in device-local time while API values remain UTC. Follow [Android manual checks](../mobile/SmartSolarMobile/README.md#manual-emulator-checks), including Database Inspector.
+Active Prosumer/GridOperator accounts open the native home screen. New Prosumers can register anonymously from the mobile login screen and remain PendingActivation until Backoffice approval and email verification. Backoffice users are told to use web and their mobile session is cleared. Login/restoration/refresh use the API; SQLite contains only the cached current profile, never passwords. Reservation times are shown in device-local time while API values remain UTC. Follow [Android manual checks](../mobile/SmartSolarMobile/README.md#manual-emulator-checks), including Database Inspector.
 
 ## 8. Verify the account foundation
 
@@ -124,12 +124,12 @@ Using Swagger and your own test identities:
 
 1. Log in as the seeded Backoffice user, use Swagger Authorize with the returned JWT without copying it into documentation/logs.
 2. Register a Prosumer with a unique valid NIC/email. Confirm `PendingActivation` and rejected login.
-3. As Backoffice, activate the Prosumer and verify login and `GET /api/v1/users/me`.
+3. As Backoffice, approve/send the email, open the verification page and explicitly confirm. Only then verify Active login and `GET /api/v1/users/me`.
 4. Create an active GridOperator using the common staff endpoint, if needed.
 5. Verify role-specific web/mobile shells, restoration, expiry, logout and 401 clearing.
 6. Deactivate only your disposable test account, refresh its session, and confirm access ends. Restore the account afterward if required.
 
-Routes and DTOs are in [API-CONTRACT](API-CONTRACT.md). No new feature UI is required for these checks.
+Routes and DTOs are in [API-CONTRACT](API-CONTRACT.md). Use the existing Web account screens and Android registration/profile flows.
 
 ## Troubleshooting
 
@@ -140,18 +140,37 @@ Routes and DTOs are in [API-CONTRACT](API-CONTRACT.md). No new feature UI is req
 | JWT key configuration error | Run the local secret helper once; use the Development launch profile. |
 | Seed login fails after changing secrets | Existing database records keep their password hash. Use the original test credentials/account lifecycle; do not delete the database. |
 | Browser cannot call HTTPS | Trust the development certificate, visit Swagger, check the API is on 7001 and restart Vite after env changes. |
-| Emulator connection fails | Check emulator health URL, API port 5000, Docker health and Windows firewall. A physical phone needs a separate reviewed network setup. |
+| Emulator connection fails | Check device health URL, ADB authorization/reverse forwarding, API port 5000, Docker health and firewall. Keep USB forwarding active. |
 | Emulator request gets 307 | Restart the updated API in Development, using its committed launch profile. Do not disable TLS checking. |
 | Android SDK/JDK error | Select JDK 17, install SDK 35 / Build-Tools 35.0.0, and let Studio create ignored `local.properties`. |
-| Login says inactive | A Backoffice user must activate the account through the API. |
-| Module card does nothing | User Management (Backoffice), Stations (staff), and reservation operations/history (GridOperator) must open implemented screens. Backoffice reservation/transaction placeholders do not grant operational access. |
-
-## 9. Start feature work
-
-The leader assigns ownership for four developers. Keep shared DTOs, auth/session code and configuration coordinated. Normal flow is current `develop` -> member branch -> focused commits -> push -> PR to `develop` -> CI -> review -> merge. All Git actions are manual.
-
-Before the first commit, review ignored local files and the final report. After the first push, check all three CI jobs; local green builds are not evidence of an executed hosted workflow.
+| Login says inactive | Backoffice approval and Prosumer email verification must both complete; inspect pending/deactivated state. |
 
 ## Integrated acceptance
 
-Use [FINAL-INTEGRATION-AUDIT.md](FINAL-INTEGRATION-AUDIT.md) for the audited HEAD, exact all-member results, known blockers and manual end-to-end checklist. Android includes Prosumer account/reservation management, both roles' booking views and GridOperator QR scanning. Passing builds do not replace browser/device, SQLite, camera/Maps or hosted CI checks. Resolve the documented shared concurrency/completion decisions and historical key exposure before final acceptance or deployment.
+Run [manual acceptance](FINAL-MANUAL-ACCEPTANCE-CHECKLIST.md) and [screenshot checks](FINAL-UI-SCREENSHOT-CHECKLIST.md) with disposable real records. Browser/device, SQLite, camera/Maps, email and hosted CI results require execution. Use [IIS deployment](../deployment/iis/README.md) for production configuration and the single-worker constraint.
+
+The previously exposed Maps key still requires owner confirmation of revocation/rotation. A clean checkout does not revoke a historical key. Keep a restricted replacement in ignored secrets.properties; never include its value in reports.
+
+## Email verification and password recovery
+
+Edit the API's existing User Secrets file locally (UserSecretsId is SmartSolarMicrogrid-Api-Dev). Merge these keys with existing MongoDB/JWT/seed settings; do not replace working configuration or paste Markdown links as values:
+
+```json
+{
+  "VerificationEmail:Host": "YOUR-SMTP-HOST",
+  "VerificationEmail:Port": "587",
+  "VerificationEmail:Username": "YOUR-SMTP-USERNAME",
+  "VerificationEmail:Password": "YOUR-SMTP-APP-PASSWORD",
+  "VerificationEmail:From": "Smart Solar <sender@example.com>",
+  "VerificationEmail:VerificationPageUrl": "http://localhost:5173/verify-email",
+  "VerificationEmail:ResetPageUrl": "http://localhost:5173/reset-password"
+}
+```
+
+Use a provider supporting SMTP STARTTLS with the configured sender. The implementation rejects implicit TLS port 465 and never disables certificate checks. The example values are placeholders, not credentials. Follow your provider's account/app-password requirements privately. Restart the API after configuration changes.
+
+VerificationPageUrl must be an absolute HTTPS URL or loopback HTTP URL without credentials, query or fragment. ResetPageUrl is optional; if absent it is derived at /reset-password on the verification origin. localhost links work only on the computer hosting Web; links opened on another device need an accessible reviewed Web URL (HTTPS for non-loopback hosts). Production must use the public HTTPS Web origin, not localhost.
+
+Approve a disposable PendingActivation Prosumer in Web: delivery should succeed, the account stays pending, and its owner explicitly confirms the email page before login succeeds. Resending invalidates the previous link; wait at least one minute. Deactivation/email change invalidates prior links. Recovery should always acknowledge generically; inspect receipt using an active disposable account and verify reset once, replay rejection and previous-session invalidation. Recovery delivery is queued in memory, so a restart may discard pending delivery.
+
+Do not log/list secrets or include token-bearing URLs in screenshots. Credentials previously shared in chat or committed must be rotated by their owners; do not reuse them merely because they still work.

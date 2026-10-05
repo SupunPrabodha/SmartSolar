@@ -1,7 +1,8 @@
 /*
  * File: ReservationRulesTests.cs
  * Project: Smart Solar Microgrid Trading System
- * Purpose: Defines deterministic Member 3 timing, overlap and transition expectations.
+ * Author(s): RAMANAYAKE R. H. B. D. G. (IT23164130)
+ * Purpose: Defines deterministic reservation timing, overlap and transition expectations.
  * Note: Keep this header and update method-level comments as the code evolves.
  */
 using SmartSolar.Application.Exceptions;

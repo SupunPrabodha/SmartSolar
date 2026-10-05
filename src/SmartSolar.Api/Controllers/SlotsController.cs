@@ -1,6 +1,7 @@
 /*
  * File: SlotsController.cs
  * Project: Smart Solar Microgrid Trading System
+ * Author(s): Liyanage S. P. (IT23187450)
  * Purpose: Exposes GridOperator inventory operations and authenticated slot reads.
  */
 using Microsoft.AspNetCore.Authorization;
