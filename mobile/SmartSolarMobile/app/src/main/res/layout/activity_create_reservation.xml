@@ -106,7 +106,7 @@
                 android:layout_marginTop="6dp"
                 android:hint="@string/slot_id_hint"
                 android:visibility="gone">
-                <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/editSlotId"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

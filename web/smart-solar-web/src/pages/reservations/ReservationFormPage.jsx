@@ -1,3 +1,4 @@
+import { useStationNames } from '../../components/StationCaption';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { createReservation, getReservation, listAvailableSlots, updateReservation } from '../../api/reservations.js';
@@ -19,6 +20,7 @@ function Edit({ reservationId }) {
 
 function ReservationForm({ existing }) {
   const creating = !existing;
+  const stationNames = useStationNames();
   const [values, setValues] = useState({
     prosumerNic: existing?.prosumerNic ?? '', slotId: existing?.slotId ?? '',
     energyAmountKwh: existing ? String(existing.energyAmountKwh) : ''
@@ -30,6 +32,7 @@ function ReservationForm({ existing }) {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [manualSlot, setManualSlot] = useState(false);
+  const [slotReference, setSlotReference] = useState(existing ? shortReference(existing.slotId, 'slot') : '');
   const mutation = useReservationMutation();
   const form = useRef(null);
   const reviewHeading = useRef(null);
@@ -90,9 +93,9 @@ function ReservationForm({ existing }) {
     const messages = [errors.slotId, ...fieldMessages(mutation.error, 'slotId')].filter(Boolean);
     return <div className="mb-3">
       <div className="d-flex justify-content-between align-items-center mb-1">
-        <label className="form-label mb-0" htmlFor="slotId">Slot ID</label>
+        <label className="form-label mb-0" htmlFor="slotId">Slot reference</label>
         <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none"
-          onClick={() => setManualSlot(!manualSlot)}>
+          onClick={() => { setSlotReference(values.slotId ? shortReference(values.slotId, 'slot') : ''); setManualSlot(!manualSlot); }}>
           {manualSlot ? 'Select from active slots list' : 'Enter slot reference'}
         </button>
       </div>
@@ -105,28 +108,33 @@ function ReservationForm({ existing }) {
             {slotsLoading
               ? 'Loading active slots...'
               : availableSlots.length === 0
-                ? '-- No active slots available (use manual entry) --'
+                ? '-- No active slots available --'
                 : '-- Select an active slot --'}
           </option>
           {existing && !availableSlots.some(s => s.slotId === existing.slotId) && (
-            <option value={existing.slotId}>Current: {existing.slotId.slice(0, 8)}… — Station: {shortReference(existing.stationId)}</option>
+            <option value={existing.slotId}>Current: {shortReference(existing.slotId, 'slot')} — Station: {shortReference(existing.stationId, 'station')}</option>
           )}
           {availableSlots.map(s => (
             <option key={s.slotId} value={s.slotId}>
-              {s.slotId.slice(0, 8)}… — Station: {shortReference(s.stationId)} ({formatUtc(s.startAtUtc)} | {s.availableSlots} avail)
+              {shortReference(s.slotId, 'slot')} — {stationNames[s.stationId] || 'Station'} · {shortReference(s.stationId, 'station')} ({formatUtc(s.startAtUtc)} | {s.availableSlots} avail)
             </option>
           ))}
         </select>
       ) : (
         <input id="slotId" name="slotId" className={`form-control${messages.length ? ' is-invalid' : ''}`}
-          value={values.slotId} onChange={event => setValues({ ...values, slotId: event.target.value })}
+          value={slotReference} onChange={event => {
+            const value = event.target.value.toUpperCase(); setSlotReference(value);
+            const matches = [...availableSlots, ...(existing ? [existing] : [])].filter(slot => shortReference(slot.slotId, 'slot') === value.trim());
+            const ids = [...new Set(matches.map(slot => slot.slotId))];
+            setValues({ ...values, slotId: ids.length === 1 ? ids[0] : '' });
+          }}
           required aria-invalid={messages.length ? 'true' : undefined}
           aria-describedby={messages.length ? 'slotId-error' : undefined}
-          placeholder="e.g. 11111111-1111-1111-1111-111111111111"
+          placeholder="SLOT-…"
           autoComplete="off" spellCheck={false} />
       )}
       {!!messages.length && <div id="slotId-error" className="invalid-feedback">{messages.join(' ')}</div>}
-      <p className="small text-secondary mt-1 mb-0">Select an active slot or enter a known slot reference. Availability is confirmed when you save.</p>
+      <p className="small text-secondary mt-1 mb-0">Select an active slot or enter a reference from the loaded slot list. Availability is confirmed when you save.</p>
     </div>;
   }
 
@@ -151,7 +159,7 @@ function ReservationForm({ existing }) {
       <h2 ref={reviewHeading} tabIndex="-1" className="h4">Review your request</h2>
       <dl>
         <dt>Prosumer NIC</dt><dd>{values.prosumerNic.trim().toUpperCase()}</dd>
-        <dt>Requested slot ID</dt><dd className="text-break">{values.slotId.trim()}</dd>
+        <dt>Requested slot reference</dt><dd className="text-break">{shortReference(values.slotId, 'slot')}</dd>
         <dt>Energy amount</dt><dd>{values.energyAmountKwh} kWh</dd>
       </dl>
       <p>The accepted station and schedule will appear in the confirmation after the server validates your request.</p>

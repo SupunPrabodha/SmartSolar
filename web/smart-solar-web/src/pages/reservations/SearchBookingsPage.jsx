@@ -1,3 +1,4 @@
+import ReferencePicker from '../../components/ReferencePicker';
 import { ExportButton } from '../../components/Experience';
 import { useCallback, useState } from 'react';
 import { fromUtcInput } from '../../util/catalog.js';
@@ -66,14 +67,8 @@ export default function SearchBookingsPage() {
       <form className="surface-card mb-4" onSubmit={handleSearch} aria-label="Search reservation filters">
         <div className="row g-3">
           <div className="col-md-4">
-            <label className="form-label" htmlFor="search-reservation-id">Reservation ID</label>
-            <input
-              id="search-reservation-id"
-              className="form-control"
-              placeholder="Full reservation reference"
-              value={draft.reservationId}
-              onChange={e => setDraft({ ...draft, reservationId: e.target.value })}
-            />
+            <label className="form-label" htmlFor="search-reservation-id">Reservation reference</label>
+            <ReferencePicker id="search-reservation-id" kind="reservation" value={draft.reservationId} onChange={e => setDraft({ ...draft, reservationId: e.target.value })}/>
           </div>
 
           <div className="col-md-4">
@@ -88,14 +83,8 @@ export default function SearchBookingsPage() {
           </div>
 
           <div className="col-md-4">
-            <label className="form-label" htmlFor="search-station">Station ID</label>
-            <input
-              id="search-station"
-              className="form-control"
-              placeholder="Full station reference"
-              value={draft.stationId}
-              onChange={e => setDraft({ ...draft, stationId: e.target.value })}
-            />
+            <label className="form-label" htmlFor="search-station">Station reference</label>
+            <ReferencePicker id="search-station" kind="station" value={draft.stationId} onChange={e => setDraft({ ...draft, stationId: e.target.value })}/>
           </div>
 
           <div className="col-md-4">

@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservation;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -47,6 +48,8 @@ public final class ModifyReservationActivity extends AppCompatActivity {
     private Button buttonBackToForm;
     private Button buttonCancelEdit;
     private boolean busy;
+    private final java.util.List<String> slotIds = new java.util.ArrayList<>();
+    private String selectedSlotId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,11 +98,28 @@ public final class ModifyReservationActivity extends AppCompatActivity {
             return;
         }
 
-        textCurrentId.setText(getString(R.string.label_reservation_id) + ": " + existing.getReservationId());
-        textCurrentSlot.setText(getString(R.string.label_slot_id) + ": " + existing.getSlotId());
+        textCurrentId.setText(getString(R.string.label_reservation_id) + ": " + DisplayReference.reservation(existing.getReservationId()));
+        textCurrentSlot.setText(getString(R.string.label_slot_id) + ": " + DisplayReference.slot(existing.getSlotId()));
         textCurrentEnergy.setText(getString(R.string.label_energy_amount) + ": " + existing.getEnergyAmountKwh() + " kWh");
 
-        editSlotId.setText(existing.getSlotId());
+        editSlotId.setText(DisplayReference.slot(existing.getSlotId()));
+        slotIds.add(existing.getSlotId());
+        SlotReferenceInput.bind(editSlotId, slotIds);
+        repository.getAvailableSlots(new ReservationRepository.Callback<java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse>>() {
+            @Override public void onSuccess(java.util.List<com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse> slots) {
+                if (isFinishing() || isDestroyed()) return;
+                for (com.smartsolar.mobile.data.remote.dto.AvailableSlotResponse slot : slots) slotIds.add(slot.getSlotId());
+                SlotReferenceInput.bind(editSlotId, slotIds);
+            }
+            @Override public void onError(ReservationError error) {
+                if (isFinishing() || isDestroyed()) return;
+                if (error.isSessionExpired()) {
+                    startActivity(new Intent(ModifyReservationActivity.this, LoginActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)); finish(); return;
+                }
+                showError("Could not load replacement slots. You can retain the current slot or reopen this screen to retry.");
+            }
+        });
         editEnergyAmount.setText(String.valueOf(existing.getEnergyAmountKwh()));
 
         buttonReview.setOnClickListener(v -> onReviewClicked());
@@ -110,7 +130,7 @@ public final class ModifyReservationActivity extends AppCompatActivity {
 
     private void onReviewClicked() {
         textError.setVisibility(View.GONE);
-        String slotId = editSlotId.getText() != null ? editSlotId.getText().toString().trim() : "";
+        String slotId = DisplayReference.resolveSlot(editSlotId.getText().toString(), slotIds);
         String energyStr = editEnergyAmount.getText() != null ? editEnergyAmount.getText().toString().trim() : "";
 
         if (!ReservationUiUtils.isValidGuid(slotId)) {
@@ -124,7 +144,8 @@ public final class ModifyReservationActivity extends AppCompatActivity {
             return;
         }
 
-        textReviewSlotId.setText(slotId);
+        selectedSlotId = slotId;
+        textReviewSlotId.setText(DisplayReference.slot(slotId));
         textReviewEnergy.setText(energyStr + " kWh");
         layoutEditForm.setVisibility(View.GONE);
         layoutReview.setVisibility(View.VISIBLE);
@@ -139,7 +160,7 @@ public final class ModifyReservationActivity extends AppCompatActivity {
     private void onConfirmClicked() {
         if (busy || repository == null) return;
         setBusy(true);
-        String slotId = editSlotId.getText().toString().trim();
+        String slotId = selectedSlotId;
         double energy = Double.parseDouble(editEnergyAmount.getText().toString().trim());
 
         repository.updateReservation(existing.getReservationId(), slotId, energy, new ReservationRepository.Callback<ReservationResponse>() {

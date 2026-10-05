@@ -4,6 +4,7 @@
  */
 
 package com.smartsolar.mobile.ui.reservations;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.content.Context;
 import android.content.Intent;
@@ -173,6 +174,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
             ReservationUiUtils.formatStatusAccent(viewStatusAccent, item.getStatus());
 
             StationNameResolver.bindStationName(textCardStation, item.getStationId());
+            ((TextView) itemView.findViewById(R.id.bookingReferences)).setText(DisplayReference.reservation(item.getReservationId()) + "\n" + DisplayReference.slot(item.getSlotId()));
 
             textCardEnergy.setText(
                     String.format(Locale.US, "%.1f kWh", item.getEnergyAmountKwh())
@@ -544,7 +546,7 @@ public final class ReservationAdapter extends RecyclerView.Adapter<ReservationAd
                     .setMessage(
                             context.getString(
                                     R.string.dialog_cancel_message,
-                                    reservation.getReservationId(),
+                                    DisplayReference.reservation(reservation.getReservationId()),
                                     String.format(
                                             Locale.US,
                                             "%.1f",

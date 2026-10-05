@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.reservations;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import com.smartsolar.mobile.util.ReservationUiUtils;
 import android.graphics.Bitmap;
@@ -93,9 +94,7 @@ public final class ReservationQrActivity extends AppCompatActivity {
         textQrIssuedAt = findViewById(R.id.textQrIssuedAt);
         buttonClose = findViewById(R.id.buttonCloseQr);
 
-        String idSnippet = reservationId != null && reservationId.length() > 8
-                ? reservationId.substring(0, 8) + "…"
-                : String.valueOf(reservationId);
+        String idSnippet = DisplayReference.reservation(reservationId);
         textReservationId.setText("Reservation: " + idSnippet);
 
         com.smartsolar.mobile.util.ReservationUiUtils.formatStatusBadge(textStatus, status);
@@ -108,7 +107,9 @@ public final class ReservationQrActivity extends AppCompatActivity {
         }
 
         String station = stationId != null ? stationId : "—";
-        textStationSlot.setText("Station " + ReservationUiUtils.shortReference(station));
+        textStationSlot.setText(DisplayReference.station(stationId) + "\n" + DisplayReference.slot(slotId));
+        textReservationId.setTextIsSelectable(true);
+        textStationSlot.setTextIsSelectable(true);
 
         String startFormatted = com.smartsolar.mobile.util.ReservationUiUtils.formatUtc(scheduleStart);
         textSchedule.setText(ReservationUiUtils.schedule(scheduleStart, scheduleEnd));

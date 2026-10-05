@@ -81,7 +81,7 @@ The `https` launch profile serves both development ports. The `http` profile ser
 
 ## Accounts and persistence
 
-Prosumer registration starts in `PendingActivation`; Backoffice activates accounts. Active users may log in; inactive users are rejected. Roles remain `Backoffice`, `GridOperator`, `Prosumer`, and states remain `PendingActivation`, `Active`, `Deactivated`. NIC is the Prosumer business identifier.
+Prosumer registration starts in `PendingActivation`; Backoffice approval sends a verification email. The Prosumer must verify that email before first activation/sign-in. Active users may log in; inactive users are rejected. Roles remain `Backoffice`, `GridOperator`, `Prosumer`, and states remain `PendingActivation`, `Active`, `Deactivated`. NIC is the Prosumer business identifier.
 
 Web supports Backoffice/GridOperator: `/stations` serves both roles and `/users` is Backoffice-only. GridOperator reservation operations are under `/operator/reservations`, with dashboard/current/pending/history/search and create/detail/edit routes. Android supports anonymous Prosumer registration, both mobile roles for local-time station and booking views, Prosumer account/reservation management and QR display, and GridOperator pending/current/history/search, scanning and completion; Backoffice uses web. JWT expiry, `/users/me`, invalid-session clearing and logout are common foundation behavior.
 
@@ -101,3 +101,23 @@ Never commit passwords, JWT signing keys, tokens, User Secrets, `.env.local`, `l
 - [Architecture](docs/ARCHITECTURE.md) and [API contract](docs/API-CONTRACT.md).
 - [Android guide](mobile/SmartSolarMobile/README.md) and [dependencies](mobile/SmartSolarMobile/DEPENDENCIES.md).
 - [Contribution guide](CONTRIBUTING.md): workflow and shared ownership rules.
+
+## Submission and individual contributions
+
+Repository: [SupunPrabodha/SmartSolar](https://github.com/SupunPrabodha/SmartSolar) (verified against the local origin URL; assessor access must be checked by the team).
+
+The v1.2 handover guide assigns these responsibilities. **MANUAL SUBMISSION ACTION REQUIRED:** add each developer's confirmed name/student ID and actual contribution evidence before submitting.
+
+| Owner | Assigned vertical slice | Individual contribution evidence |
+| --- | --- | --- |
+| Member 1 | Stations, energy slots, Android Maps | Team member to confirm name/ID and PR/task evidence |
+| Member 2 | Users, Prosumer lifecycle, local account persistence | Team member to confirm name/ID and PR/task evidence |
+| Member 3 | Reservation lifecycle and 7-day/12-hour rules | Team member to confirm name/ID and PR/task evidence |
+| Member 4 | Booking views, counts, QR and operator completion | Team member to confirm name/ID and PR/task evidence |
+| Shared | Architecture, integration, security, testing and handoff | Team to attribute actual work; allocation is not proof of authorship |
+
+**Demo video (maximum 5 minutes): MANUAL SUBMISSION ACTION REQUIRED — real link not supplied.**
+
+- [Rubric traceability and missing submission evidence](docs/requirements/RUBRIC-TRACEABILITY.md).
+- [Station location, display references and final audit](docs/FINAL-STATION-REFERENCE-RUBRIC-AUDIT.md).
+- [Reproducible IIS deployment checklist](deployment/iis/README.md).

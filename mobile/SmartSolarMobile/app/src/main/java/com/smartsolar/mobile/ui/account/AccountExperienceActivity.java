@@ -1,4 +1,5 @@
 package com.smartsolar.mobile.ui.account;
+import com.smartsolar.mobile.util.DisplayReference;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -307,7 +308,7 @@ public final class AccountExperienceActivity extends AppCompatActivity {
 
             run(() -> checked(api.getReservation(item.resourceId).execute()), reservation -> {
                 clear(); section("Reservation details",R.drawable.ic_nav_bookings);
-                text(reservation.getReservationId()+"\n"+reservation.getStatus()+" · "+reservation.getEnergyAmountKwh()+" kWh");
+                text(DisplayReference.reservation(reservation.getReservationId())+"\n"+reservation.getStatus()+" · "+reservation.getEnergyAmountKwh()+" kWh");
                 text("Starts: "+ReservationUiUtils.formatTime(reservation.getScheduledStartAtUtc())+"\nEnds: "+ReservationUiUtils.formatTime(reservation.getScheduledEndAtUtc()));
                 button("Back to notifications",this::loadInbox);
             });

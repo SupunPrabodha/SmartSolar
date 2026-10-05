@@ -1,3 +1,4 @@
+import { displayReference } from '../../util/displayReference.js';
 export const reservationStatuses = ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed'];
 
 export function localTimeZone() {
@@ -25,7 +26,7 @@ export function validateReservationForm({ prosumerNic, slotId, energyAmountKwh }
     errors.prosumerNic = 'Enter a valid Prosumer NIC (12 digits, or 9 digits followed by V/X).';
   const id = slotId.trim();
   if (!/^(?:[a-f0-9]{32}|[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12})$/i.test(id) || /^0+$/.test(id.replaceAll('-', '')))
-    errors.slotId = 'Enter a nonempty slot GUID.';
+    errors.slotId = 'Select an available slot or enter its reference.';
   if (!energyAmountKwh.trim() || !Number.isFinite(Number(energyAmountKwh)) || Number(energyAmountKwh) <= 0)
     errors.energyAmountKwh = 'Enter an energy amount greater than zero.';
   return errors;
@@ -46,10 +47,7 @@ export function errorMessage(error, mutation = false) {
   return error?.message || 'Unable to load reservations. Check your connection and try again.';
 }
 
-export function shortReference(value) {
-  if (!value) return 'Unavailable';
-  return value.length > 14 ? value.slice(0,8).toUpperCase() + '…' + value.slice(-4).toUpperCase() : value;
-}
+export function shortReference(value, kind = 'reservation') { return displayReference(value, kind); }
 export function scheduleParts(start, end) {
   const a = new Date(start), b = new Date(end);
   if (!start || !end || !Number.isFinite(a.getTime()) || !Number.isFinite(b.getTime())) return { date:'Schedule unavailable', time:'' };
